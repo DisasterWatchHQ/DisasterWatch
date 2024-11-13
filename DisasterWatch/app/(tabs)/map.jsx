@@ -4,7 +4,7 @@ import React from 'react';
 const MapView = () => {
   return (
     <View>
-      <Text>mapview</Text>
+      <Text>profile</Text>
     </View>
   )
 };

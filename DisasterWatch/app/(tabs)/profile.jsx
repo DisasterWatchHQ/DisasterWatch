@@ -9,5 +9,5 @@ const Profile = () => {
   )
 };
 
-export default MapView;
+export default Profile;
 
