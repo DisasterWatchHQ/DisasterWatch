@@ -1,26 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import React from 'react';
-import { Slot } from 'expo-router';
+import { Slot, Stack } from 'expo-router';
+import '../global.css';
 
 const RootLayout = () => {
   return (
-    <>
-      <Text> Header </Text>
-        <Slot />
-      <Text> Footer </Text>
-    </>
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+    </Stack>
   )
 };
 
 export default RootLayout;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    display: 'flex',
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
