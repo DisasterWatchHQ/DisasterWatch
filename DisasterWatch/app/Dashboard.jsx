@@ -1,7 +1,9 @@
-import { TextInput,TouchableOpacity, StyleSheet, Text, View, ScrollView } from 'react-native';
+import { TextInput,TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
-
 import { MaterialIcons } from '@expo/vector-icons';
+
+
+import AppHeader from '../components/appheader';
 import AppFooter from '../components/appFooter';
 
 
@@ -9,7 +11,7 @@ const Dashboard = () => {
 
   return (
     <>
-     <ScrollView contentContainerStyle={{ height: '100%' }}>
+     <AppHeader/>
       <View style={styles.header}>
         <View style={styles.locationContainer}>
           <View style={styles.circle} />
@@ -56,7 +58,6 @@ const Dashboard = () => {
           <Text style={styles.buttonText1}>Next</Text>
         </TouchableOpacity>
         <AppFooter/>
-     </ScrollView>
     </>
   );
 };
