@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AppHeader from './components/appheader';
+// import AppHeader from './components/appheader';
 
 
 

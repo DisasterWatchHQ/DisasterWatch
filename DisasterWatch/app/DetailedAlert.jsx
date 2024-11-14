@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import AppFooter from './components/appFooter';
+import AppFooter from '../components/appFooter';
 
 const DetailedAlert = () => {
   const handlePress = (button) => {
