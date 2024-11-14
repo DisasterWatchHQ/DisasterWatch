@@ -1,15 +1,15 @@
 import { TextInput,TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
-import AppHeader from '../components/appheader';
+
 import { MaterialIcons } from '@expo/vector-icons';
-import AppFooter from '../components/appFooter';
+import AppFooter from './components/appFooter';
 
 
 const Dashboard = () => {
 
   return (
     <>
-      <AppHeader />
+     
       <View style={styles.header}>
         <View style={styles.locationContainer}>
           <View style={styles.circle} />

@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AppHeader from '../components/appheader';
+import AppHeader from './components/appheader';
+
 
 
 const LandingPage = () => {
@@ -12,7 +13,7 @@ const LandingPage = () => {
   return (
     <>
       <View style={styles.layoutContainer}>
-        <AppHeader />
+        <AppHeader/>
         <View style={styles.container}>
           <View  style={styles.line1}>
           <MaterialIcons name="warning-amber" size={40} color="red" style={styles.icon} />
