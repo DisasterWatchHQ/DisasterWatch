@@ -13,7 +13,7 @@ const LandingPage = () => {
   return (
     <>
       <View style={styles.layoutContainer}>
-        <AppHeader/>
+        {/* <AppHeader/> */}
         <View style={styles.container}>
           <View  style={styles.line1}>
           <MaterialIcons name="warning-amber" size={40} color="red" style={styles.icon} />
