@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-// import AppHeader from './components/appheader';
-
+import AppHeader from '../components/appheader';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const LandingPage = () => {
@@ -11,8 +11,11 @@ const LandingPage = () => {
   };
 
   return (
-    <>
-      <View style={styles.layoutContainer}>
+    <SafeAreaView>
+      <AppHeader/>
+    <ScrollView>
+      
+      <View className="w-full justify-center min-h-[85vh] px-4 my-6">
         {/* <AppHeader/> */}
         <View style={styles.container}>
           <View  style={styles.line1}>
@@ -64,7 +67,8 @@ const LandingPage = () => {
           </View>
       </TouchableOpacity>
     </View>
-    </>
+    </ScrollView>
+    </SafeAreaView>
   );
 };
 

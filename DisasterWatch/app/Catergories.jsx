@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    mar
   },
   icon: {
     marginRight: 10,
