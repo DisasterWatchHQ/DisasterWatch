@@ -1,34 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'react-native';
+import TitleText from './titleText'
 
 export default function AppHeader() {
+  
   return (
-    <View style={styles.headerContainer}>
-      <Text style={styles.appName}>Disaster Watch</Text>
-      <View style={styles.circle} />
+    <View className="flex-row justify-between items-center w-full h-18 px-4 bg-white">
+      <TitleText title="DisasterWatch" containerStyles="text-4xl font-extrabold text-center " />
+      <Image 
+        source={require('../assets/favicon.png')} 
+        className="w-15 h-15 rounded-full "
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'stretch',
-    padding: 10,
-    backgroundColor: '#f8f8f8',
-    width: '100%',
-    marginTop:30
-  },
-  circle: {
-    width: 60,
-    height: 60,
-    borderRadius: 45,
-    backgroundColor: '#007bff',
-  },
-  appName: {
-    fontSize: 35,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-});

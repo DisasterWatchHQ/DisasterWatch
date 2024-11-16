@@ -16,27 +16,27 @@ export default function App() {
           <CustomButton 
             title="Get Started"
             handlePress={() => router.push('/signIn')}
-            containerStyles="w-full mt-7 rounded-xl"
+            containerStyles="w-full mt-7 rounded-xl bg-yellow-700"
           />
           <CustomButton 
             title="To Home"
             handlePress={() => router.push('/home')}
-            containerStyles="w-full mt-7 rounded-xl"
+            containerStyles="w-full mt-7 rounded-xl bg-yellow-700"
           />
           <CustomButton 
             title="To Dashboard"
             handlePress={() => router.push('/Dashboard')}
-            containerStyles="w-full mt-7 rounded-xl"
+            containerStyles="w-full mt-7 rounded-xl bg-yellow-700"
           />
           <CustomButton 
             title="To Landing Page"
             handlePress={() => router.push('/Landingpage')}
-            containerStyles="w-full mt-7 rounded-xl"
+            containerStyles="w-full mt-7 rounded-xl bg-yellow-700"
           />
           <CustomButton 
             title="To Detailed alerts"
             handlePress={() => router.push('/DetailedAlert')}
-            containerStyles="w-full mt-7 rounded-xl"
+            containerStyles="w-full mt-7 rounded-xl bg-yellow-700"
           />
          
         </View>

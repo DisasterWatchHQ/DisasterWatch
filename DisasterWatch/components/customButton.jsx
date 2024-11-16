@@ -6,7 +6,7 @@ const CustomerButton = ({ title, handlePress, containerStyles, textStyles, isLoa
     <TouchableOpacity
       onPress={handlePress}
       activeOpacity={0.7}
-      className={`bg-yellow-700 rounded-xl min-h-[62px] flex flex-row justify-center items-center ${containerStyles} ${isLoading ? "opacity-50" : ""
+      className={`rounded-xl min-h-[62px] flex flex-row justify-center items-center ${containerStyles} ${isLoading ? "opacity-50" : ""
         }`}
       disabled={isLoading}
     >

@@ -1,7 +1,7 @@
-import { TextInput,TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { TextInput,TouchableOpacity, StyleSheet, Text, View, ScrollView } from 'react-native';
 import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppHeader from '../components/appheader';
 import AppFooter from '../components/appFooter';
@@ -10,8 +10,9 @@ import AppFooter from '../components/appFooter';
 const Dashboard = () => {
 
   return (
-    <>
+    <SafeAreaView className="bg-teal-600 h-full">
      <AppHeader/>
+     <ScrollView>
       <View style={styles.header}>
         <View style={styles.locationContainer}>
           <View style={styles.circle} />
@@ -57,8 +58,8 @@ const Dashboard = () => {
         >
           <Text style={styles.buttonText1}>Next</Text>
         </TouchableOpacity>
-        <AppFooter/>
-    </>
+     </ScrollView>
+    </SafeAreaView>
   );
 };
 
