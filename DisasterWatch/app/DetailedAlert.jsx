@@ -1,35 +1,35 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import AppFooter from '../components/appFooter';
+import DisasterCard from '../components/DisasterCard';
 
 const DetailedAlert = () => {
+  const handleArrowPress = () => {
+    console.log('Arrow pressed');
+  };
+
   const handlePress = (button) => {
     console.log(`${button} pressed`);
   };
 
   return (
     <>
-      <View style={styles.bigcontainer1}>
-        <AntDesign name="arrowleft" size={40} color="black" style={[styles.icon, { marginTop: 40 }]} />
-        <View style={styles.itemsalign}>
-          <MaterialIcons name="warning-amber" size={50} color="white" style={styles.icon} />
-        </View>
-        <Text style={styles.text1}>Flood</Text>
-        <Text style={styles.text2}>10Km away</Text>
-        <Text style={styles.text3}>2 hours ago</Text>
-      </View>
-      
+      <DisasterCard
+        disaster="Flood"
+        distance="10Km away"
+        timeAgo="2 hours ago"
+        onArrowPress={handleArrowPress}
+      />
+
       <Text style={styles.text4}>Guides</Text>
-      
+
       <View style={styles.smallBoxContainer}>
         <View style={styles.smallBox} />
         <View style={styles.smallBox} />
         <View style={styles.smallBox} />
       </View> 
 
-      {/* Button placed directly below the small boxes */}
       <TouchableOpacity 
         onPress={() => handlePress('First Button')} 
         style={[styles.button, { backgroundColor: '#000000', borderColor: '#000000', borderWidth: 1, borderRadius: 3 }]}
@@ -55,7 +55,7 @@ const DetailedAlert = () => {
           </TouchableOpacity>
         </View>
       </View>
-      {/* Place container2 directly after the header */}
+
       <View style={styles.container2} />
       <AppFooter/>
     </>
@@ -65,35 +65,6 @@ const DetailedAlert = () => {
 export default DetailedAlert;
 
 const styles = StyleSheet.create({
-  bigcontainer1: {
-    width: '100%',
-    height: 280,
-    backgroundColor: '#898989',
-    borderRadius: 30,
-  },
-  itemsalign: {
-    marginTop: 5,
-    marginLeft: '45%',
-  },
-  text1: {
-    color: 'white',
-    fontSize: 30,
-    fontWeight: '500',
-    marginStart: 165,
-  },
-  text2: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '400',
-    marginStart: 145,
-  },
-  text3: {
-    color: 'white',
-    fontSize: 15,
-    fontWeight: '200',
-    marginStart: 155,
-    marginTop: 30,
-  },
   text4: {
     color: '#000000',
     fontSize: 30,
@@ -111,7 +82,7 @@ const styles = StyleSheet.create({
   smallBoxContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    marginBottom: 20, 
+    marginBottom: 20,
   },
   container2: {
     width: '100%',
@@ -171,6 +142,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 5,
     marginLeft: 30,
-    
   },
 });
