@@ -3,8 +3,8 @@ import React from 'react'
 
 const TitleText = ({ title, containerStyles }) => {
   return (
-    <View>
-      <Text className={`${containerStyles}`}>{title}</Text>
+    <View className="items-center justify-center">
+      <Text className={`${containerStyles} items-center justify-center`}>{title}</Text>
     </View>
   )
 }
