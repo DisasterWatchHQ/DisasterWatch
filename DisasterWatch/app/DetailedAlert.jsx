@@ -1,8 +1,10 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { SafeAreaView } from "react-native-safe-area-context";
 import AppFooter from '../components/appFooter';
 import DisasterCard from '../components/DisasterCard';
+import TopGuides from '../components/TopGuides';
 
 const DetailedAlert = () => {
   const handleArrowPress = () => {
@@ -14,13 +16,15 @@ const DetailedAlert = () => {
   };
 
   return (
-    <>
-      <DisasterCard
-        disaster="Flood"
-        distance="10Km away"
-        timeAgo="2 hours ago"
-        onArrowPress={handleArrowPress}
-      />
+    <SafeAreaView>
+      <ScrollView>
+        <DisasterCard
+          disaster="Flood"
+          distance="10Km away"
+          timeAgo="2 hours ago"
+          onArrowPress={handleArrowPress}
+        />
+        <TopGuides />
 
       <Text style={styles.text4}>Guides</Text>
 
@@ -57,8 +61,8 @@ const DetailedAlert = () => {
       </View>
 
       <View style={styles.container2} />
-      <AppFooter/>
-    </>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
