@@ -166,7 +166,31 @@ export const disaster = [
     ],
     sources: 'https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/wildfires'
   },
-  
-  
- 
+  {
+    disastername: 'Tornadoes',
+    beforeoccur: [
+      'Know your tornado risk by contacting your local authorities. Know how warnings are given for tornadoes and ensure your family is familiar with the alert.',
+      'Visit Environment Canada for up to date information on tornado conditions, storm maps and weather warnings. ',
+      'If you have already dipped into your emergency kit and food supply while staying at home, consider safely getting the supplies to replenish it following your local public health authorities’ guidelines for leaving your residence.',
+      'Make a personalized preparedness kit. Families should be prepared to be self-sustaining for at least three days.',
+      'If you are in a highrise, pick a place in a hallway in the centre of the building. Talk to your building superintendent or manager and know your building emergency plan.',
+      'Pick a safe place in your home for household members to gather during a tornado, preferably a basement. Make sure it is away from external doors, windows and walls.',
+      'Have practice drills with your family, so you know what to do and are prepared.'
+    ],
+    duringdisaster: [
+      'If a tornado watch or warning has been issued, head to a safe location, like a basement or lower level of the building. Stay away from external doors, windows and walls.',
+      'Continue to listen to local news and weather reports for updates.'
+    ],
+    afterdisaster: [
+      'Listen to the radio for further information and instructions.',
+      'If you are away from home, only return home when it is safe to do so.',
+      'Check on vulnerable family members, friends and neighbours who may require assistance.',
+      'If you suspect your home is unsafe, do not enter. Rely on the professionals to clear your home for re-entry, if you are unsure.',
+      'Once you return home, take the opportunity to review your family emergency plan and restock your personalized emergency kit. ',
+      'Wear long pants, a long-sleeved shirt and sturdy shoes when examining your home for damage.',
+      'Take pictures of damage, both of the building and its contents, for insurance claims.',
+      'Check with local authorities on how to properly dispose of damaged items from your home.'
+    ],
+    sources: 'https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/tornadoes'
+  },  
 ]; 
