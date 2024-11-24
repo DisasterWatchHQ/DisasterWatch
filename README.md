@@ -1,8 +1,6 @@
 # DisasterWatch
   This repo contains the group project for module IT3162
 
- **This branch is only for the frontend development**
-
  Current map we have in mind
 
  Frontend (React Native/Expo)<br/>
@@ -22,7 +20,24 @@
    ├── State Management (Redux)<br/>
    ├── APIs (Integration with OpenWeatherAPI, Cloud ML Model)<br/>
    ├── Push Notifications (Firebase Cloud Messaging)<br/>
-
+  
+ Backend (Node.js/Express)<br/>
+    ├── RESTful API Endpoints<br/>
+    │     ├── /reports (CRUD for Disaster Reports)<br/>
+    │     ├── /weather (Fetch Weather Data)<br/>
+    │     ├── /predictions (ML Model Predictions)<br/>
+    │     ├── /users (User Authentication & Profiles)<br/>
+    │     └── /hotlines (Emergency Contact Management)<br/>
+    ├── Database (MongoDB)<br/>
+    │     ├── Collections<br/>
+    │     │     ├── users<br/>
+    │     │     ├── reports<br/>
+    │     │     ├── predictions<br/>
+    │     │     └── hotlines<br/>
+    ├── Machine Learning (Hosted Model on Cloud)<br/>
+    │     ├── TensorFlow/Python for ML Model<br/>
+    └── Authentication & Security (Firebase Auth)<br/>
+    
   **For Team members**
 
   The commit type can be one of the following:<br/>
