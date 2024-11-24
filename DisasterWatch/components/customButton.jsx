@@ -1,5 +1,6 @@
 import { Text, View, TouchableOpacity } from 'react-native';
 import React from 'react';
+import { ActivityIndicator } from "react-native";
 
 const CustomerButton = ({ title, handlePress, containerStyles, textStyles, isLoading }) => {
   return (

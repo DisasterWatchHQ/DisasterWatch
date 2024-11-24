@@ -2,9 +2,12 @@ import { Text, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '../../components/formField';
 import CustomerButton from '../../components/customButton';
-import DropdownSelect from '../../components/dropDownSelect';
 import { Link } from 'expo-router';
 import { useState } from 'react';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebaseConfig";
+import * as SecureStore from 'expo-secure-store';
+import { Alert } from 'react-native';
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -12,60 +15,90 @@ const SignUp = () => {
     email: '',
     password: '',
     district: '',
-    remember: false,
+    remember: true,
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const submit = () => {
-    
-  }
-  
+
+  const submit = async () => {
+    if (!form.email || !form.password) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      const user = userCredential.user;
+
+      // Log the user details for debugging
+      // console.log('User created:', user);
+
+      // Save the user session if the user wants to remember credentials
+      if (form.remember) {
+        await SecureStore.setItemAsync('userSession', JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }));
+      }
+
+      Alert.alert('Success', 'Account created successfully!');
+    } catch (error) {
+      // Log detailed error message
+      console.error('Firebase error:', error);
+
+      // Display error message
+      Alert.alert('Error', error.message || 'Something went wrong.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView className="bg-teal-600 h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-white text-2xl text-semibold mt-10 font-semibold">Sign In DisasterWatch</Text>
+          <Text className="text-white text-2xl text-semibold mt-10 font-semibold">Sign Up DisasterWatch</Text>
           
           <FormField 
             title="Username"
             value={form.username}
-            handleChangeText={(e) => setForm({ ...form,
-              username: e})}
-            otherStyles="mt-10"
+            handleChangeText={(e) => setForm({ ...form, username: e })}
+            otherStyles="mt-7"
           />
-          <FormField 
+
+          <FormField
             title="Email"
             value={form.email}
-            handleChangeText={(e) => setForm({ ...form,
-              email: e})}
+            handleChangeText={(e) => setForm({ ...form, email: e })}
             otherStyles="mt-7"
             keyboardType="email-address"
           />
-          <FormField 
+
+          <FormField
             title="Password"
             value={form.password}
-            handleChangeText={(e) => setForm({ ...form,
-              password: e})}
+            handleChangeText={(e) => setForm({ ...form, password: e })}
             otherStyles="mt-7"
-          />
-          <FormField 
-            title="District"
-            value={form.district}
-            handleChangeText={(e) => setForm({ ...form,
-              district: e})}
-            otherStyles="mt-7"
+            secureTextEntry
           />
           
+          <FormField
+            title="District"
+            value={form.district}
+            handleChangeText={(e) => setForm({ ...form, district: e })}
+            otherStyles="mt-7"
+          />
+
+          {/* Submit Button */}
           <CustomerButton 
-            title="Sign Up"
+            title="Create Account"
             handlePress={submit}
             containerStyles="mt-7"
             isLoading={isSubmitting}
           />
-          
-          
-          
+
           <View className="justify-center pt-5 flex-row gap-2">
             <Text className="text-lg text-gray-100 font-regular">Already have an account?</Text>
             <Link href="/signIn" className="text-lg font-semibold text-orange-400">Sign In</Link>
@@ -73,8 +106,7 @@ const SignUp = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 };
 
 export default SignUp;
-
