@@ -24,10 +24,7 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
       ],
-      "config": {
-        "googleMaps": {
-        }
-      }
+      "package":"com.disasterwatch.disasterwatch"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -40,5 +37,12 @@
     "permissions": [
       "INTERNET"
     ]
+  },
+  "android": {
+    "config": {
+      "googleMaps": {
+        "apiKey": "AIzaSyDsmSW27RRaBzpNXC1ARYJCTeUICDl5vM4"
+      }
+    }
   }
 }
