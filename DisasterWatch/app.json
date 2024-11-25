@@ -37,12 +37,5 @@
     "permissions": [
       "INTERNET"
     ]
-  },
-  "android": {
-    "config": {
-      "googleMaps": {
-        "apiKey": "AIzaSyDsmSW27RRaBzpNXC1ARYJCTeUICDl5vM4"
-      }
-    }
   }
 }
