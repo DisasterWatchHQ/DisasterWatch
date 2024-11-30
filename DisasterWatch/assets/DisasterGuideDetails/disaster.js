@@ -111,7 +111,28 @@ export const disaster = [
       
     ],
     sources: 'https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/landslides'
+  },
   
+  {
+    disasterName: "Tsunamis",
+    beforeOccur: [
+      "Know if you live in a tsunami hazard area and learn evacuation plans.",
+      "Familiarize yourself with local alerts and their sounds; sign up for them.",
+      "Prepare a 3-day emergency kit (water, food, cash, prescriptions, etc.).",
+      "Replenish supplies in your emergency kit after use."
+    ],
+    duringDisaster: [
+      "Drop to the ground to prevent falling.",
+      "Take cover under sturdy furniture to protect yourself.",
+      "Hold onto the object you're under to stay covered."
+    ],
+    afterDisaster: [
+      "Expect aftershocks and possible secondary tsunamis.",
+      "Return home only when officials say it is safe.",
+      "Avoid unsafe buildings and contaminated areas.",
+      "Do not use matches or appliances until gas leaks are ruled out."
+    ],
+    sources: "https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/tsunamis"
   },
   {
     disastername: 'Thunderstorms',
@@ -132,15 +153,11 @@ export const disaster = [
       'Stay inside for 30 minutes after the last thunder. '
       
     ],
-    afterdisaster: [
-      'If someone is struck by lightning, immediately call for medical assistance and if trained in first aid, administer first aid treatment. ',
-      'Check the area around the person for any dangers (live wires, broken class, debris). If there isn’t any, check the person for burns or other injuries. ',
-      'If the person is not breathing, start CPR. If the person is breathing normally, check for other injuries and care for them as necessary. '
-     
-      
+    afterDisaster: [
+      "Call for help if someone is struck by lightning.",
+      "Administer first aid if trained and ensure the area is safe from hazards."
     ],
-    sources: 'https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/landslides'
-  
+    sources: "https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/thunderstorms"
   },
   {
     
@@ -154,12 +171,10 @@ export const disaster = [
       
       
     ],
-    duringdisaster: [
-      'Be prepared to evacuate at any time. If told to evacuate, do so.',
-      'Monitor local radio stations for up-to-date information on the fire and possible road closures.',
-      'Park your car, positioned forward out of the driveway. Keep car windows closed and have your valuables ready to be packed in your car should you need to evacuate. ',
-      'If you do not evacuate, close all windows and doors in the house to reduce smoke and debris entering your home. Follow instructions on how to minimize fire damage. ',
-      'Move all combustibles away from the house, including firewood and lawn furniture. Move any propane barbeques into the open, away from structures.'
+    duringDisaster: [
+      "Evacuate immediately if instructed by authorities.",
+      "Monitor updates on the fire and road closures.",
+      "Move propane tanks and other combustibles to open areas."
     ],
     afterdisaster: [
       'Continue to take precautions and listen to and follow directions from local authorities.',
@@ -171,10 +186,26 @@ export const disaster = [
       
       
     ],
-    sources: 'https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/landslides'
-  
-
+    sources: "https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/wildfires"
+  },
+  {
+    disasterName: "Tornadoes",
+    beforeOccur: [
+      "Know your tornado risk and familiarize yourself with alerts.",
+      "Pick a safe place in your home, such as a basement, away from windows.",
+      "Prepare a 3-day emergency kit with essentials (food, water, medications).",
+      "Practice tornado drills with your family."
+    ],
+    duringDisaster: [
+      "Head to a safe location, like a basement, when a warning is issued.",
+      "Stay away from doors, windows, and external walls.",
+      "Listen to local news and weather updates."
+    ],
+    afterDisaster: [
+      "Listen to instructions from local authorities.",
+      "Inspect your home for damage while wearing protective gear.",
+      "Document damages for insurance claims."
+    ],
+    sources: "https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/tornadoes"
   }
-  
-  
 ]; 

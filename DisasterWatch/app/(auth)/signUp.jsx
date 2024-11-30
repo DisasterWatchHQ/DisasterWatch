@@ -56,10 +56,10 @@ const SignUp = () => {
   };
 
   return (
-    <SafeAreaView className="bg-teal-600 h-full">
+    <SafeAreaView className="bg-neutral-800 h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-white text-2xl text-semibold mt-10 font-semibold">Sign Up DisasterWatch</Text>
+          <Text className="text-neutral-100 text-2xl text-semibold mt-10 font-semibold">Sign Up to DisasterWatch</Text>
           
           <FormField 
             title="Username"
@@ -95,13 +95,13 @@ const SignUp = () => {
           <CustomerButton 
             title="Create Account"
             handlePress={submit}
-            containerStyles="mt-7"
+            containerStyles="mt-7 bg-primary-500"
             isLoading={isSubmitting}
           />
 
           <View className="justify-center pt-5 flex-row gap-2">
-            <Text className="text-lg text-gray-100 font-regular">Already have an account?</Text>
-            <Link href="/signIn" className="text-lg font-semibold text-orange-400">Sign In</Link>
+            <Text className="text-lg text-neutral-400 font-regular">Already have an account?</Text>
+            <Link href="/signIn" className="text-lg font-semibold text-tertiary-700">Sign In</Link>
           </View>
         </View>
       </ScrollView>

@@ -19,7 +19,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "package":"com.disasterwatch.disasterwatch"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,7 +34,8 @@
       "expo-secure-store"
     ],
     "newArchEnabled": true,
-    "permissions": ["INTERNET"]
-
+    "permissions": [
+      "INTERNET"
+    ]
   }
 }
