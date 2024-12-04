@@ -1,4 +1,5 @@
 import { Text, View, ScrollView } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '../../components/formField';
 import CustomerButton from '../../components/customButton';
@@ -10,11 +11,42 @@ import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
 
 const SignUp = () => {
+  const districts = [
+    "",
+    "Colombo",
+    "Gampaha",
+    "Kalutara",
+    "Kandy",
+    "Matale",
+    "Matara",
+    "Nuwara Eliya",
+    "Point Pedro",
+    "Puttalam",
+    "Ratnapura",
+    "Trincomalee",
+    "Colombo",
+    "Gampaha",
+    "Kalutara",
+    "Kandy",
+    "Matale",
+    "Matara",
+    "Nuwara Eliya",
+    "Point Pedro",
+    "Puttalam",
+    "Ratnapura",
+    "Trincomalee",
+    "Kegalle",
+    "Batticaloa",
+    "Badulla",
+    "Batticaloa",
+    "Badulla",
+  ]
+  
   const [form, setForm] = useState({
     username: '',
     email: '',
     password: '',
-    district: '',
+    district: districts[0],
     remember: true,
   });
 
@@ -54,12 +86,19 @@ const SignUp = () => {
       setIsSubmitting(false);
     }
   };
+  
+  const handleOutsideClick = () => {
+      if (open) {
+        setOpen(false);
+      }
+      Keyboard.dismiss();
+    };
 
   return (
     <SafeAreaView className="bg-neutral-800 h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-neutral-100 text-2xl text-semibold mt-10 font-semibold">Sign Up to DisasterWatch</Text>
+          <Text className="text-neutral-100 text-3xl text-semibold mt-10 font-semibold">Sign Up to DisasterWatch</Text>
           
           <FormField 
             title="Username"
@@ -84,18 +123,35 @@ const SignUp = () => {
             secureTextEntry
           />
           
-          <FormField
-            title="District"
-            value={form.district}
-            handleChangeText={(e) => setForm({ ...form, district: e })}
-            otherStyles="mt-7"
-          />
+          <View className="mt-7">
+            <Text className="text-neutral-400 text-base mb-2">District</Text>
+              <View className="border-2 border-neutral-400 rounded-2xl">
+              <Picker
+                selectedValue={form.district}
+                onValueChange={(itemValue) =>
+                setForm({ ...form, district: itemValue })
+                }
+                className="text-neutral-100 text-base"
+                dropdownIconColor="#FFFFFF"
+              >
+                {districts.map((district) => (
+              <Picker.Item 
+                key={district} 
+                label={district} 
+                value={district}
+                className="text-neutral-100 text-base"
+              />
+              ))}
+            </Picker>
+          </View>
+        </View>
 
           {/* Submit Button */}
           <CustomerButton 
             title="Create Account"
             handlePress={submit}
-            containerStyles="mt-7 bg-primary-500"
+            containerStyles="mt-7 bg-primary-500 h-[50px]"
+            textStyles="text-neutral-100 text-lg font-semibold"
             isLoading={isSubmitting}
           />
 
