@@ -22,11 +22,11 @@ export default function App() {
           <CustomButton
             title="Get Started"
             handlePress={() => router.push("/signIn")}
-            containerStyles="w-full mt-7 rounded-xl bg-neutral-300"
+            containerStyles="w-full mt-3 rounded-xl bg-neutral-300 h-[45px]"
           />
         </View>
       </ScrollView>
-      <StatusBar style="light" backgroundColor="neutral-800" />
+      <StatusBar style="light" backgroundColor="#1212" />
     </SafeAreaView>
   );
 }
