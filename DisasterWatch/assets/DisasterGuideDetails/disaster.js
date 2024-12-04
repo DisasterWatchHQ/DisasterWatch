@@ -87,6 +87,31 @@ export const disaster = [
     ],
     sources: 'https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/landslides'
   },
+  {
+    disastername: 'Tsunamis',
+    beforeoccur: [
+      'Find out if your home, school, workplace or other frequently visited locations are in tsunami hazard areas. For high risk areas, know the earthquake and tsunami plans for each location. ',
+      'Contact your municipality to know the risks, evacuation and alerting system in your community. Know the sound of the alert and make sure all in your family are familiar with it and what to do. Sign up for local alerts.',
+      'Make a personalized preparedness emergency kit. Families should be prepared to be self-sustaining for at least three days.',
+      'Kits should include practical items such as drinking water, food, cash, and a portable radio. However, they should also include items that are unique to your own families’ needs. This could include baby items, medical prescriptions, pet food, etc.',
+      'If you have already dipped into your emergency kit and food supply while staying at home, consider safely getting the supplies to replenish it following your local public health authorities’ guidelines for leaving your residence.',
+      
+    ],
+    duringdisaster: [
+      'drop to the ground before the earthquake causes you to fall. ',
+      'Take cover under a piece of heavy furniture such as a desk or table to protect your head and torso from falling objects.',
+      'hold onto the object you are under so that you remain covered. '
+    ],
+    afterdisaster: [
+      'Be prepared for aftershocks, which could generate another tsunami. ',
+      'Return home only after local officials tell you it is safe. A tsunami is a series of waves that may continue for hours. Do not assume that after one wave the danger is over. The next wave may be larger than the first one. ',
+      'Be aware of secondary effects. These include landslides, contaminated water, mudflows, damaged bridges, buildings and roads, and other hazards. ',
+      'Only make calls if you require emergency services.',
+      'Stay out of any building that has water around it. Tsunami force can cause floors to crack or walls to collapse. '
+      
+    ],
+    sources: 'https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/landslides'
+  },
   
   {
     disasterName: "Tsunamis",
@@ -110,16 +135,23 @@ export const disaster = [
     sources: "https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/tsunamis"
   },
   {
-    disasterName: "Thunderstorms",
-    beforeOccur: [
-      "Have an emergency plan and stay updated on weather reports.",
-      "Stock a 3-day emergency kit (water, food, medications).",
-      "Trim trees and shrubs to reduce wind damage."
+    disastername: 'Thunderstorms',
+    beforeoccur: [
+      'The key to staying safe is to prepare and to have an emergency plan in place. ',
+      'Listen to local news and weather reports for information on changing weather conditions.',
+      'Find out if you live in an area where thunderstorms commonly occur.',
+      'Pay attention to weather warnings. Thunderstorms are tracked before they occur.',
+      'Make a personalized preparedness emergency kit. Families should be prepared to be self-sustaining for at least three days.',
+      
     ],
-    duringDisaster: [
-      "Seek shelter at the first sign of a storm.",
-      "Avoid electrical equipment and plumbing.",
-      "Stay inside for at least 30 minutes after the last thunder."
+    duringdisaster: [
+      'During a thunderstorm, immediately seek shelter or a safe place to wait out the storm. Watch for signs of a storm, like darkening skies, lightning flashes or increasing wind. ',
+      'Postpone outdoor activities if thunderstorms are likely to occur. Many people struck by lightning are not in the area where rain is occurring.',
+      'If you count less than 30 seconds between lightning and thunder, seek shelter immediately.   ',
+      'Avoid using electrical equipment and telephones. Use battery operated devices instead, like flashlights.',
+      'Close outside doors and windows and keep away from windows.',
+      'Stay inside for 30 minutes after the last thunder. '
+      
     ],
     afterDisaster: [
       "Call for help if someone is struck by lightning.",
@@ -128,21 +160,31 @@ export const disaster = [
     sources: "https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/thunderstorms"
   },
   {
-    disasterName: "Wildfires",
-    beforeOccur: [
-      "Stay informed about fire risks by monitoring local news.",
-      "Practice fire drills and evacuation plans with your family.",
-      "Prepare an emergency kit for at least three days (food, water, first aid)."
+    
+    disastername: 'Wildfires',
+    beforeoccur: [
+      'The key to staying safe is to prepare and to have an emergency plan in place. ',
+      'Tune in to the radio or local news channels, and/or follow your local news outlet and emergency officials on social media for possible wildfire alerts.',
+      'Learn fire safety techniques and teach them to members of your family.',
+      'Keep your vehicle fueled, determine two routes out of your neighbourhood and practice your evacuation plan frequently.',
+      'If you are on a farm/ranch, leaving livestock unsheltered is preferable, or if time and personal safety permits, evacuation from the danger zone should be considered.​',
+      
+      
     ],
     duringDisaster: [
       "Evacuate immediately if instructed by authorities.",
       "Monitor updates on the fire and road closures.",
       "Move propane tanks and other combustibles to open areas."
     ],
-    afterDisaster: [
-      "Follow local authorities’ safety instructions.",
-      "Use caution when entering burned areas to avoid hotspots.",
-      "Document damages for insurance purposes."
+    afterdisaster: [
+      'Continue to take precautions and listen to and follow directions from local authorities.',
+      'Contact your local government office for help in finding temporary housing if you cannot stay in your home due to fire damage.',
+      'Check with local authorities to see if you are eligible for disaster financial assistance.',
+      'Use caution when entering burned areas because there may still be hazards, including hot spots, which can flare up without warning.',
+      'Ensure your food and water is safe. Discard any food that may have been exposed to heat, smoke or soot and do not use water that may be contaminated. ',
+      'Take an inventory and photos of ruined furniture, appliances, books, etc. for insurance purposes and keep all receipts related to living expenses, repairs, etc.',
+      
+      
     ],
     sources: "https://www.redcross.ca/how-we-help/emergencies-and-disasters-in-canada/types-of-emergencies/wildfires"
   },
