@@ -23,7 +23,7 @@ const HeaderBar = ({ showBack = false, title = "DisasterWatch" }) => {
         className="items-end"
       >
         <Image 
-          // source={require('../assets/default_profile.png')} //pass the image here
+          source={require('../assets/default_profile.png')} //pass the image here
           className="w-[48px] h-[48px] rounded-sm"
         />
         {/* <MaterialIcons name="account-circle" size={32} color="white" /> */}
