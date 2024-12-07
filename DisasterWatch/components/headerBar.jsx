@@ -6,7 +6,7 @@ const HeaderBar = ({ showBack = false, title = "DisasterWatch" }) => {
   const router = useRouter();
 
   return (
-    <View className="flex-row w-full h-[50px] items-center justify-between bg-neutral-700 border-1- border-neutral-800 mt-8 px-4">
+    <View className="flex-row h-[50px] items-center justify-between bg-neutral-700 border-1- border-neutral-800 mt-8 px-4">
       {showBack && (
         <TouchableOpacity 
           onPress={() => router.back()}
