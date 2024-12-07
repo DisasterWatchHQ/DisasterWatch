@@ -5,7 +5,7 @@ import HeaderBar from '../../components/headerBar';
 const Guides = () => {
   return (
     <View>
-      <HeaderBar showBack title="Details" />
+      <HeaderBar showBack title="Details" containerStyle="mt-8"/>
     </View>
   )
 };

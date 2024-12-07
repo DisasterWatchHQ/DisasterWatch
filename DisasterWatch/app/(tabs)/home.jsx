@@ -38,7 +38,7 @@ const Home = () => {
 
   return (
     <SafeAreaView className="bg-neutral-800 flex-1">
-       <HeaderBar />
+      <HeaderBar containerStyle="mt-8"/>
       <ScrollView className="h-full">
         <View>
           <MapWindow 
