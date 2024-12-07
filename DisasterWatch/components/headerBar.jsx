@@ -2,11 +2,11 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-const HeaderBar = ({ showBack = false, title = "DisasterWatch" }) => {
+const HeaderBar = ({ showBack = false, title = "DisasterWatch", containerStyle }) => {
   const router = useRouter();
 
   return (
-    <View className="flex-row h-[50px] items-center justify-between bg-neutral-700 border-1- border-neutral-800 mt-8 px-4">
+    <View className={`flex-row h-[50px] items-center justify-between bg-neutral-700 border-1- border-neutral-800 px-4 ${containerStyle}`}>
       {showBack && (
         <TouchableOpacity 
           onPress={() => router.back()}
