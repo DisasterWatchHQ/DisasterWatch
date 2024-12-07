@@ -38,7 +38,7 @@ const SignIn = () => {
       }
 
       // Navigate to home screen
-      router.replace('/home');
+      router.replace('/Landingpage');
     } catch (error) {
       Alert.alert('Error', 'Invalid email or password');
     } finally {
