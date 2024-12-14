@@ -50,17 +50,14 @@ const SignIn = () => {
     <SafeAreaView className="bg-neutral-800 h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          {/* Header */}
           <Text className="text-neutral-100 text-3xl font-semibold mt-10">
             Sign In to DisasterWatch
           </Text>
           
-          {/* Description */}
           <Text className="text-neutral-400 mt-2 text-base">
             Welcome back! Please enter your details
           </Text>
 
-          {/* Email Field */}
           <FormField
             title="Email"
             value={form.email}
@@ -70,7 +67,6 @@ const SignIn = () => {
             placeholder="Enter your email"
           />
 
-          {/* Password Field */}
           <FormField
             title="Password"
             value={form.password}
@@ -80,7 +76,6 @@ const SignIn = () => {
             placeholder="Enter your password"
           />
 
-          {/* Remember Me & Forgot Password */}
           <View className="flex-row justify-between items-center mt-4">
             <View className="flex-row items-center">
               <TouchableOpacity
@@ -103,7 +98,6 @@ const SignIn = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Sign In Button */}
           <CustomerButton
             title="Sign In"
             handlePress={handleSignIn}
@@ -112,7 +106,6 @@ const SignIn = () => {
             isLoading={isSubmitting}
           />
 
-          {/* Sign Up Link */}
           <View className="justify-center pt-5 flex-row gap-2">
             <Text className="text-lg text-neutral-400">
               Don't have an account?
