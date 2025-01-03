@@ -3,98 +3,119 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '../../components/formField';
 import { Link, useRouter } from "expo-router";
 import CustomerButton from '../../components/customButton';
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
-import { useContext, useState, useEffect } from 'react';
-import { UserContext } from '../../constants/globalProvider';
+import { useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { MaterialIcons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
 
 const SignIn = () => {
   const router = useRouter();
-  const { setUser }  = useContext(UserContext);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: '',
     password: '',
-    remember: false,
+    remember: true,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleSignIn = async () => {
+    if (!form.email || !form.password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
 
-  // Check for user credentials in SecureStore on initial load
-  useEffect(() => {
-    const autoLogin = async () => {
-      const session = await SecureStore.getItemAsync('userSession');
-      if (session) {
-        const parsedUser = JSON.parse(session);
-        signIn(parsedUser.email, parsedUser.password); // Auto sign-in if session exists
-      }
-    };
-    
-    autoLogin();
-  }, []); // Runs only once when the component is mounted
-
-  // Handle form submission
-  const submit = async () => {
     setIsSubmitting(true);
-    try {
-      // Authenticate the user using Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, form.email, form.password);
 
-      // If the 'remember' flag is true, store the session
+    try {
+      // Here make an API call to backend
+      // For now simulate a successful login
+      
+      // Save user session if remember is true
       if (form.remember) {
-        await SecureStore.setItemAsync('userSession', JSON.stringify({ email: form.email, password: form.password }));
+        await SecureStore.setItemAsync('userSession', JSON.stringify({
+          email: form.email,
+          token: 'dummy-token', // This would come from your backend
+        }));
       }
 
-      // Save the authenticated user in context
-      setUser(userCredential.user); // Set the logged-in user in context
-
-      // Redirect to dashboard or main screen
-      router.push('/home');
+      // Navigate to home screen
+      router.replace('/Landingpage');
     } catch (error) {
-      // Handle any authentication errors
-      Alert.alert('Sign In Error', error.message);
+      Alert.alert('Error', 'Invalid email or password');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <SafeAreaView className="bg-teal-600 h-full">
+    <SafeAreaView className="bg-neutral-800 h-full">
       <ScrollView>
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-white text-2xl text-semibold mt-10 font-semibold">Sign In DisasterWatch</Text>
+          <Text className="text-neutral-100 text-3xl font-semibold mt-10">
+            Sign In to DisasterWatch
+          </Text>
+          
+          <Text className="text-neutral-400 mt-2 text-base">
+            Welcome back! Please enter your details
+          </Text>
 
-          {/* Form Field for Email */}
           <FormField
             title="Email"
             value={form.email}
-            handleChangeText={(e) => setForm({ ...form, email: e })}
+            handleChangeText={(text) => setForm({ ...form, email: text })}
             otherStyles="mt-7"
             keyboardType="email-address"
+            placeholder="Enter your email"
           />
 
-          {/* Form Field for Password */}
           <FormField
             title="Password"
             value={form.password}
-            handleChangeText={(e) => setForm({ ...form, password: e })}
+            handleChangeText={(text) => setForm({ ...form, password: text })}
             otherStyles="mt-7"
             secureTextEntry
+            placeholder="Enter your password"
           />
 
-          {/* Submit Button */}
+          <View className="flex-row justify-between items-center mt-4">
+            <View className="flex-row items-center">
+              <TouchableOpacity
+                onPress={() => setForm({ ...form, remember: !form.remember })}
+                className={`w-5 h-5 rounded border ${
+                  form.remember ? 'bg-primary-500 border-primary-500' : 'border-neutral-400'
+                } justify-center items-center`}
+              >
+                {form.remember && (
+                  <MaterialIcons name="check" size={14} color="white" />
+                )}
+              </TouchableOpacity>
+              <Text className="text-neutral-400 ml-2">Remember me</Text>
+            </View>
+
+            <TouchableOpacity onPress={() => router.push('/forgot-password')}>
+              <Text className="text-primary-500 font-semibold">
+                Forgot password?
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <CustomerButton
             title="Sign In"
-            handlePress={submit}
-            containerStyles="mt-7"
+            handlePress={handleSignIn}
+            containerStyles="mt-7 bg-primary-500 h-[50px]"
+            textStyles="text-neutral-100 text-lg font-semibold"
             isLoading={isSubmitting}
           />
 
-          {/* Link to sign up */}
           <View className="justify-center pt-5 flex-row gap-2">
-            <Text className="text-lg text-gray-100 font-regular">Don't have an account?</Text>
-            <Link href="/signUp" className="text-lg font-semibold text-orange-400">Sign Up</Link>
+            <Text className="text-lg text-neutral-400">
+              Don't have an account?
+            </Text>
+            <Link 
+              href="/signUp" 
+              className="text-lg font-semibold text-tertiary-700"
+            >
+              Sign Up
+            </Link>
           </View>
         </View>
       </ScrollView>
