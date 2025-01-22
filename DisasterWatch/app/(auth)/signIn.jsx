@@ -40,37 +40,54 @@ const SignIn = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-    
+
 
   const handleSignIn = async () => {
-    if (!form.email || !form.password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // Here make an API call to backend
-      // For now simulate a successful login
-      
-      // Save user session if remember is true
+      const response = await authApi.login({
+        email: form.email.toLowerCase(),
+        password: form.password,
+      });
+
       if (form.remember) {
-        await SecureStore.setItemAsync('userSession', JSON.stringify({
-          email: form.email,
-          token: 'dummy-token', // This would come from your backend
-        }));
+        // Store user session data
+        await SecureStore.setItemAsync(
+          "userSession",
+          JSON.stringify({
+            token: response.token,
+            user: {
+              id: response.user.id,
+              name: response.user.name,
+              email: response.user.email,
+              department: response.user.department,
+              isVerified: response.user.isVerified,
+            },
+          }),
+        );
       }
 
-      // Navigate to home screen
-      router.replace('/Landingpage');
+      // Check if user is verified
+      if (!response.user.isVerified) {
+        Alert.alert(
+          "Account Not Verified",
+          "Your account is pending verification. Please contact your administrator.",
+          [{ text: "OK" }],
+        );
+        return;
+      }
+
+      router.replace("/Landingpage");
     } catch (error) {
-      Alert.alert('Error', 'Invalid email or password');
+      Alert.alert("Error", error.message || "Invalid email or password");
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <SafeAreaView className="bg-neutral-800 h-full">
       <ScrollView>
