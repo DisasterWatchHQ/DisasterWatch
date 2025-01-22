@@ -16,12 +16,18 @@ import {authApi} from "../../services/authApi";
 
 const SignIn = () => {
   const router = useRouter();
+  const theme = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+
   const [form, setForm] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     remember: true,
   });
+
+  
 
   const handleSignIn = async () => {
     if (!form.email || !form.password) {
