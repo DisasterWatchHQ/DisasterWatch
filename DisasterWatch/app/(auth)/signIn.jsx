@@ -87,79 +87,28 @@ const SignIn = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
-    <SafeAreaView className="bg-neutral-800 h-full">
-      <ScrollView>
-        <View className="w-full justify-center min-h-[85vh] px-4 my-6">
-          <Text className="text-neutral-100 text-3xl font-semibold mt-10">
-            Sign In to DisasterWatch
-          </Text>
-          
-          <Text className="text-neutral-400 mt-2 text-base">
-            Welcome back! Please enter your details
-          </Text>
-
-          <FormField
-            title="Email"
-            value={form.email}
-            handleChangeText={(text) => setForm({ ...form, email: text })}
-            otherStyles="mt-7"
-            keyboardType="email-address"
-            placeholder="Enter your email"
-          />
-
-          <FormField
-            title="Password"
-            value={form.password}
-            handleChangeText={(text) => setForm({ ...form, password: text })}
-            otherStyles="mt-7"
-            secureTextEntry
-            placeholder="Enter your password"
-          />
-
-          <View className="flex-row justify-between items-center mt-4">
-            <View className="flex-row items-center">
-              <TouchableOpacity
-                onPress={() => setForm({ ...form, remember: !form.remember })}
-                className={`w-5 h-5 rounded border ${
-                  form.remember ? 'bg-primary-500 border-primary-500' : 'border-neutral-400'
-                } justify-center items-center`}
-              >
-                {form.remember && (
-                  <MaterialIcons name="check" size={14} color="white" />
-                )}
-              </TouchableOpacity>
-              <Text className="text-neutral-400 ml-2">Remember me</Text>
-            </View>
-
-            <TouchableOpacity onPress={() => router.push('/forgot-password')}>
-              <Text className="text-primary-500 font-semibold">
-                Forgot password?
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <CustomerButton
-            title="Sign In"
-            handlePress={handleSignIn}
-            containerStyles="mt-7 bg-primary-500 h-[50px]"
-            textStyles="text-neutral-100 text-lg font-semibold"
-            isLoading={isSubmitting}
-          />
-
-          <View className="justify-center pt-5 flex-row gap-2">
-            <Text className="text-lg text-neutral-400">
-              Don't have an account?
-            </Text>
-            <Link 
-              href="/signUp" 
-              className="text-lg font-semibold text-tertiary-700"
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <view>
+        <View style={{ marginBottom: 32 }}>
+            <Text
+              variant="headlineMedium"
+              style={{ color: theme.colors.primary, fontWeight: "bold" }}
             >
-              Sign Up
-            </Link>
+              Welcome Back
+            </Text>
+            <Text
+              variant="bodyLarge"
+              style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+            >
+              Sign in to continue
+            </Text>
           </View>
-        </View>
+
+          
+        </view>
       </ScrollView>
     </SafeAreaView>
   );
