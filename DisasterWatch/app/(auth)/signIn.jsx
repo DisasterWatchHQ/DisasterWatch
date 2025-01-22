@@ -91,7 +91,7 @@ const SignIn = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <view>
+        <view style={{ padding: 20, flex: 1 }}>
         <View style={{ marginBottom: 32 }}>
             <Text
               variant="headlineMedium"
@@ -107,7 +107,43 @@ const SignIn = () => {
             </Text>
           </View>
 
-          
+          {/* Form Section */}
+          <View style={{ gap: 16 }}>
+            <TextInput
+              label="Email"
+              value={form.email}
+              onChangeText={(text) => setForm({ ...form, email: text })}
+              mode="outlined"
+              keyboardType="email-address"
+              error={!!errors.email}
+              left={<TextInput.Icon icon="email" />}
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+            <HelperText type="error" visible={!!errors.email}>
+              {errors.email}
+            </HelperText>
+
+            <TextInput
+              label="Password"
+              value={form.password}
+              onChangeText={(text) => setForm({ ...form, password: text })}
+              mode="outlined"
+              secureTextEntry={!showPassword}
+              error={!!errors.password}
+              left={<TextInput.Icon icon="lock" />}
+              right={
+                <TextInput.Icon
+                  icon={showPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
+            />
+            <HelperText type="error" visible={!!errors.password}>
+              {errors.password}
+            </HelperText>
+
+
         </view>
       </ScrollView>
     </SafeAreaView>
