@@ -172,6 +172,38 @@ const SignIn = () => {
             </View>
           </View>
 
+          {/* Action Buttons */}
+          <View style={{ marginTop: 32 }}>
+            <Button
+              mode="contained"
+              onPress={handleSignIn}
+              loading={isSubmitting}
+              style={{ padding: 4 }}
+            >
+              Sign In
+            </Button>
+
+            <Divider style={{ marginVertical: 24 }} />
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text variant="bodyMedium">Don't have an account? </Text>
+              <Link href="/signUp">
+                <Text
+                  variant="bodyMedium"
+                  style={{ color: theme.colors.primary, fontWeight: "bold" }}
+                >
+                  Sign Up
+                </Text>
+              </Link>
+            </View>
+          </View>
+
 
         </view>
       </ScrollView>
