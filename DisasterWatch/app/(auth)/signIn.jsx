@@ -143,6 +143,35 @@ const SignIn = () => {
               {errors.password}
             </HelperText>
 
+             {/* Remember Me & Forgot Password Row */}
+             <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 8,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Checkbox
+                  status={form.remember ? "checked" : "unchecked"}
+                  onPress={() => setForm({ ...form, remember: !form.remember })}
+                  color={theme.colors.primary}
+                />
+                <Text variant="bodyMedium">Remember me</Text>
+              </View>
+
+              <Button
+                onPress={() => router.push("/forgot-password")}
+                mode="text"
+                compact
+                style={{ marginLeft: "auto" }}
+              >
+                Forgot password?
+              </Button>
+            </View>
+          </View>
+
 
         </view>
       </ScrollView>
