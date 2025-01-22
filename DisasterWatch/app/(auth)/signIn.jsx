@@ -27,7 +27,20 @@ const SignIn = () => {
     remember: true,
   });
 
-  
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.email) newErrors.email = "Email is required";
+    if (!form.password) newErrors.password = "Password is required";
+
+    // Basic email validation
+    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+    
 
   const handleSignIn = async () => {
     if (!form.email || !form.password) {
