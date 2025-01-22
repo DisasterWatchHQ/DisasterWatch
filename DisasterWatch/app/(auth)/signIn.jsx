@@ -12,7 +12,7 @@ import {
   HelperText,
   Divider,
 } from "react-native-paper";
-import {authApi} from "../../services/authApi";
+import { authApi } from "../../services/authApi";
 
 const SignIn = () => {
   const router = useRouter();
@@ -40,7 +40,6 @@ const SignIn = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
 
   const handleSignIn = async () => {
     if (!validateForm()) return;
@@ -91,8 +90,9 @@ const SignIn = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <view style={{ padding: 20, flex: 1 }}>
-        <View style={{ marginBottom: 32 }}>
+        <View style={{ padding: 20, flex: 1 }}>
+          {/* Header Section */}
+          <View style={{ marginBottom: 32 }}>
             <Text
               variant="headlineMedium"
               style={{ color: theme.colors.primary, fontWeight: "bold" }}
@@ -143,8 +143,8 @@ const SignIn = () => {
               {errors.password}
             </HelperText>
 
-             {/* Remember Me & Forgot Password Row */}
-             <View
+            {/* Remember Me & Forgot Password Row */}
+            <View
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
@@ -203,9 +203,7 @@ const SignIn = () => {
               </Link>
             </View>
           </View>
-
-
-        </view>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
