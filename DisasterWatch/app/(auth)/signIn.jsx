@@ -1,12 +1,18 @@
-import { Text, View, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import FormField from '../../components/formField';
+import { View, ScrollView, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
-import CustomerButton from '../../components/customButton';
-import { useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
-import { MaterialIcons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
+import { useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import {
+  Text,
+  TextInput,
+  Button,
+  Checkbox,
+  useTheme,
+  HelperText,
+  Divider,
+} from "react-native-paper";
+import {authApi} from "../../services/authApi";
 
 const SignIn = () => {
   const router = useRouter();
