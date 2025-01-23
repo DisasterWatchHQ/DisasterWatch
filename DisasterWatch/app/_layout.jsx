@@ -141,3 +141,5 @@ const RootLayout = () => {
     </PaperProvider>
   );
 };
+
+export default RootLayout;
