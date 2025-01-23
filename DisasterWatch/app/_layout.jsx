@@ -39,3 +39,19 @@ const RootLayout = () => {
     "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
     "Poppins-Thin": require("../assets/fonts/Poppins-Thin.ttf"),
   });
+
+  return (
+    <PaperProvider theme={theme}>
+      <UserProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="Landingpage" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="profile" />
+              </Stack>
+            </UserProvider>
+         <StatusBar style="auto" />
+    </PaperProvider>
+  );
+};
