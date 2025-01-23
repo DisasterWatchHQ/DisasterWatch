@@ -47,3 +47,13 @@ const warningData = [
     timestamp: new Date(),
   },
 ];
+const LandingPage = () => {
+  const theme = useTheme();
+  const [warnings, setWarnings] = useState(warningData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [emergencyDialogVisible, setEmergencyDialogVisible] = useState(false);
+
+  const handleEmergency = useCallback(() => {
+    setEmergencyDialogVisible(true);
+  }, []);
