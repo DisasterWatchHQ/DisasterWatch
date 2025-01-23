@@ -145,3 +145,119 @@ const LandingPage = () => {
       </SafeAreaView>
     );
   }
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <HeaderBar
+        title="DisasterWatch"
+        subtitle="Your safety companion"
+        showBack={false}
+        containerStyle={{ marginTop: 1 }}
+      />
+
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        {/* Action Buttons */}
+        <View style={{ marginBottom: 24 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 8, // Add gap between buttons
+            }}
+          >
+            {navigationButtons.map((button, index) => (
+              <Card
+                key={index}
+                mode="elevated"
+                style={{
+                  flex: 1,
+                  backgroundColor: button.color,
+                }}
+                onPress={button.onPress}
+              >
+                <Card.Content
+                  style={{
+                    alignItems: "center",
+                    padding: 16,
+                    gap: 8,
+                  }}
+                >
+                  <IconButton
+                    icon={button.icon}
+                    size={32}
+                    iconColor="#fff"
+                    style={{
+                      margin: 0,
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                      borderRadius: 12,
+                    }}
+                  />
+                  <Text
+                    variant="titleMedium"
+                    style={{
+                      color: "#fff",
+                      textAlign: "center",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {button.title}
+                  </Text>
+                  <Text
+                    variant="bodySmall"
+                    style={{
+                      color: "#fff",
+                      textAlign: "center",
+                      opacity: 0.8,
+                    }}
+                  >
+                    {button.description}
+                  </Text>
+                </Card.Content>
+              </Card>
+            ))}
+          </View>
+        </View>
+
+        {/* Warnings Section */}
+        <Text variant="titleLarge" style={{ marginBottom: 16 }}>
+          Recent Alerts
+        </Text>
+        {isLoading ? (
+          <ActivityIndicator animating={true} size="large" />
+        ) : (
+          warnings.map((warning) => (
+            <WarningCard key={warning.id} warning={warning} />
+          ))
+        )}
+      </ScrollView>
+
+      {/* Emergency Dialog */}
+      <Portal>
+        <Dialog
+          visible={emergencyDialogVisible}
+          onDismiss={() => setEmergencyDialogVisible(false)}
+        >
+          <Dialog.Title>Emergency Alert</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">
+              Are you sure you want to report an emergency?
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setEmergencyDialogVisible(false)}>
+              Cancel
+            </Button>
+            <Button
+              onPress={() => {
+                setEmergencyDialogVisible(false);
+                router.push("/DetailedAlert");
+              }}
+              textColor={theme.colors.error}
+            >
+              Report Emergency
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </SafeAreaView>
+  );
+};
