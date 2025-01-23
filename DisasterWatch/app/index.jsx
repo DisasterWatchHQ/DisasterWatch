@@ -16,6 +16,17 @@ export default function WelcomePage() {
       }),
     ]).start();
   }, []);
+
+  const handleGetStarted = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      router.push("/Landingpage");
+    });
+  };
+  
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#262626" }}>
       <StatusBar style="light" backgroundColor="#262626" />
