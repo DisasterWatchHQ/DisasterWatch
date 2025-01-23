@@ -19,6 +19,20 @@ import { authApi } from "../../services/authApi";
 
 const SignUp = () => {
   const router = useRouter();
+  const theme=useTheme();
+  const [departmentDialogVisible,setDepartmentDialogVisible]=useState(false);
+
+  // Replace districts with departments
+  const departments=["Fire Department","Police","Disaster Response Team"];
+
+  const [form,setForm]=useState({
+    name:"",
+    email:"",
+    password:"",
+    workId:"",
+    associated_department:"",
+  });
+
   const districts = [
     "",
     "Colombo",
@@ -37,55 +51,67 @@ const SignUp = () => {
     "Badulla",
   ];
   
-  const [form, setForm] = useState({
-    username: '',
-    email: '',
-    password: '',
-    district: districts[0],
-    remember: true,
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSignUp = async () => {
-    // Form validation
-    if (!form.username || !form.email || !form.password || !form.district) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Save user session if remember is true
-      if (form.remember) {
-        await SecureStore.setItemAsync('userSession', JSON.stringify({
-          email: form.email,
-          username: form.username,
-          district: form.district,
-        }));
+  const SignUp = () => {
+    const router = useRouter();
+    const theme = useTheme();
+    const [departmentDialogVisible, setDepartmentDialogVisible] = useState(false);
+  
+    // Replace districts with departments
+    const departments = ["Fire Department", "Police", "Disaster Response Team"];
+  
+    const [form, setForm] = useState({
+      name: "",
+      email: "",
+      password: "",
+      workId: "",
+      associated_department: "",
+    });
+  
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+  
+    const validateForm = () => {
+      const newErrors = {};
+      if (!form.name) newErrors.name = "Name is required";
+      if (!form.email) newErrors.email = "Email is required";
+      if (!form.password) newErrors.password = "Password is required";
+      if (!form.workId) newErrors.workId = "Work ID is required";
+      if (!form.associated_department)
+        newErrors.associated_department = "Department is required";
+  
+      // Basic email validation
+      if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
+        newErrors.email = "Please enter a valid email address";
       }
+  
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    };
+  
+    const handleSignUp = async () => {
+      if (!validateForm()) return;
+  
+      setIsSubmitting(true);
+  
+      try {
+        const response = await authApi.register(form);
+  
+        Alert.alert(
+          "Success",
+          "Account created successfully! Awaiting verification.",
+          [{ text: "OK", onPress: () => router.replace("/signIn") }],
+        );
+      } catch (error) {
+        Alert.alert(
+          "Error",
+          error.message || "Something went wrong. Please try again.",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
 
-      Alert.alert(
-        'Success', 
-        'Account created successfully!',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/signIn')
-          }
-        ]
-      );
-    } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+    
   return (
     <SafeAreaView className="bg-neutral-800 h-full">
       <ScrollView>
