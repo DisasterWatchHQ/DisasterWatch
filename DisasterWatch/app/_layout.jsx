@@ -40,6 +40,92 @@ const RootLayout = () => {
     "Poppins-Thin": require("../assets/fonts/Poppins-Thin.ttf"),
   });
 
+  useEffect(() => {
+    if (error) throw error;
+
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded, error]);
+
+  // Setup notifications
+  useEffect(() => {
+    const setupNotifications = async () => {
+      // Create notification channel for Android
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "Default",
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#FF231F7C",
+        });
+
+        // Create a channel specifically for disaster alerts
+        await Notifications.setNotificationChannelAsync("disaster-alerts", {
+          name: "Disaster Alerts",
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#FF0000",
+          sound: "default",
+          enableVibrate: true,
+          showBadge: true,
+        });
+      }
+
+      // Request notification permissions
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+            allowAnnouncements: true,
+          },
+        });
+        finalStatus = status;
+      }
+
+      if (finalStatus !== "granted") {
+        console.log("Failed to get push notification permissions");
+        return;
+      }
+
+      // Set up notification listeners
+      const subscription = Notifications.addNotificationReceivedListener(
+        (notification) => {
+          console.log("Notification received:", notification);
+        },
+      );
+
+      const responseSubscription =
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          console.log("Notification response received:", response);
+          // Handle notification interaction here
+        });
+
+      return () => {
+        subscription.remove();
+        responseSubscription.remove();
+      };
+    };
+
+    setupNotifications();
+  }, []);
+
+  const theme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: "#007AFF", // or your preferred primary color
+      // customize other colors as needed
+    },
+  };
+
+  if (!fontsLoaded && !error) return null;
+
+
   return (
     <PaperProvider theme={theme}>
       <UserProvider>
