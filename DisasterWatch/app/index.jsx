@@ -1,4 +1,7 @@
 export default function WelcomePage() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#262626" }}>
       <StatusBar style="light" backgroundColor="#262626" />
