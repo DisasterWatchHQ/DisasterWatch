@@ -184,7 +184,18 @@ const SignUp = () => {
               {errors.password}
             </HelperText>
 
-
+            <List.Item
+              title="Select Department"
+              description={
+                form.associated_department || "Choose your department"
+              }
+              onPress={() => setDepartmentDialogVisible(true)}
+              left={(props) => <List.Icon {...props} icon="office-building" />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            />
+            <HelperText type="error" visible={!!errors.associated_department}>
+              {errors.associated_department}
+            </HelperText>
           </View>
 
         </View>
