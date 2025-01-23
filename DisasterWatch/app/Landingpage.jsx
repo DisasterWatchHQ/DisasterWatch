@@ -81,6 +81,19 @@ const LandingPage = () => {
       description: "View Statistics",
     },
   ];
+  const getSeverityColor = (severity) => {
+    switch (severity) {
+      case "high":
+        return theme.colors.error;
+      case "medium":
+        return theme.colors.warning;
+      case "low":
+        return theme.colors.success;
+      default:
+        return theme.colors.primary;
+    }
+  };
+
   const WarningCard = ({ warning }) => (
     <Card
       mode="outlined"
