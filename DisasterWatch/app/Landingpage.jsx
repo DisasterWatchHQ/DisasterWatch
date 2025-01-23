@@ -57,3 +57,27 @@ const LandingPage = () => {
   const handleEmergency = useCallback(() => {
     setEmergencyDialogVisible(true);
   }, []);
+
+  const navigationButtons = [
+    {
+      title: "Emergency",
+      color: theme.colors.error,
+      onPress: handleEmergency,
+      icon: "alert-octagon", // More distinct emergency icon
+      description: "Report Emergency",
+    },
+    {
+      title: "Map",
+      color: theme.colors.primary, // Changed from warning to primary
+      onPress: () => router.push("/(tabs)/map"), // Update this route as needed
+      icon: "map",
+      description: "View Disaster Map",
+    },
+    {
+      title: "Dashboard",
+      color: theme.colors.tertiary, // Changed from success to tertiary
+      onPress: () => router.push("/(tabs)/home"),
+      icon: "view-dashboard",
+      description: "View Statistics",
+    },
+  ];
