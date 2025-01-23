@@ -129,3 +129,19 @@ const LandingPage = () => {
       </Card.Content>
     </Card>
   );
+  if (error) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text variant="headlineMedium">Something went wrong!</Text>
+        <Button
+          mode="contained"
+          onPress={() => setError(null)}
+          style={{ marginTop: 16 }}
+        >
+          Try Again
+        </Button>
+      </SafeAreaView>
+    );
+  }
