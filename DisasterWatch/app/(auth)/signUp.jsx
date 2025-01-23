@@ -112,155 +112,154 @@ const SignUp = () => {
     };
 
 
-  return (
-    <SafeAreaView >
-      <ScrollView>
-        <View>
-          {/* Header Section */}
-          <View style={{ marginBottom: 32 }}>
-            <Text
-              variant="headlineMedium"
-              style={{ color: theme.colors.primary, fontWeight: "bold" }}
-            >
-              Create Account
-            </Text>
-            <Text
-              variant="bodyLarge"
-              style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
-            >
-              Join our platform
-            </Text>
-          </View>
-
-          {/*Form Section*/}
-          <View>
-           <TextInput
-              label="Full Name"
-              value={form.name}
-              onChangeText={(text) => setForm({ ...form, name: text })}
-              mode="outlined"
-              error={!!errors.name}
-              left={<TextInput.Icon icon="account" />}
-            />
-            <HelperText type="error" visible={!!errors.name}>
-              {errors.name}
-            </HelperText>
-
-            <TextInput
-              label="Work ID"
-              value={form.workId}
-              onChangeText={(text) => setForm({ ...form, workId: text })}
-              mode="outlined"
-              error={!!errors.workId}
-              left={<TextInput.Icon icon="card-account-details" />}
-            />
-            <HelperText type="error" visible={!!errors.workId}>
-              {errors.workId}
-            </HelperText>
-
-            <TextInput
-              label="Email"
-              value={form.email}
-              onChangeText={(text) => setForm({ ...form, email: text })}
-              mode="outlined"
-              keyboardType="email-address"
-              error={!!errors.email}
-              left={<TextInput.Icon icon="email" />}
-            />
-            <HelperText type="error" visible={!!errors.email}>
-              {errors.email}
-            </HelperText>
-
-            <TextInput
-              label="Password"
-              value={form.password}
-              onChangeText={(text) => setForm({ ...form, password: text })}
-              mode="outlined"
-              secureTextEntry
-              error={!!errors.password}
-              left={<TextInput.Icon icon="lock" />}
-            />
-            <HelperText type="error" visible={!!errors.password}>
-              {errors.password}
-            </HelperText>
-
-            <List.Item
-              title="Select Department"
-              description={
-                form.associated_department || "Choose your department"
-              }
-              onPress={() => setDepartmentDialogVisible(true)}
-              left={(props) => <List.Icon {...props} icon="office-building" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            />
-            <HelperText type="error" visible={!!errors.associated_department}>
-              {errors.associated_department}
-            </HelperText>
-          </View>
-
-          {/* Action Buttons */}
-          <View style={{ marginTop: 24 }}>
-            <Button
-              mode="contained"
-              onPress={handleSignUp}
-              loading={isSubmitting}
-              style={{ padding: 4 }}
-            >
-              Sign Up
-            </Button>
-
-            <Divider style={{ marginVertical: 24 }} />
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Text variant="bodyMedium">Already have an account? </Text>
-              <Link href="/signIn">
-                <Text
-                  variant="bodyMedium"
-                  style={{ color: theme.colors.primary, fontWeight: "bold" }}
-                >
-                  Sign In
-                </Text>
-              </Link>
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={{ padding: 20, flex: 1 }}>
+            {/* Header Section */}
+            <View style={{ marginBottom: 32 }}>
+              <Text
+                variant="headlineMedium"
+                style={{ color: theme.colors.primary, fontWeight: "bold" }}
+              >
+                Create Account
+              </Text>
+              <Text
+                variant="bodyLarge"
+                style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+              >
+                Join our platform
+              </Text>
+            </View>
+  
+            {/* Form Section */}
+            <View style={{ gap: 16 }}>
+              <TextInput
+                label="Full Name"
+                value={form.name}
+                onChangeText={(text) => setForm({ ...form, name: text })}
+                mode="outlined"
+                error={!!errors.name}
+                left={<TextInput.Icon icon="account" />}
+              />
+              <HelperText type="error" visible={!!errors.name}>
+                {errors.name}
+              </HelperText>
+  
+              <TextInput
+                label="Work ID"
+                value={form.workId}
+                onChangeText={(text) => setForm({ ...form, workId: text })}
+                mode="outlined"
+                error={!!errors.workId}
+                left={<TextInput.Icon icon="card-account-details" />}
+              />
+              <HelperText type="error" visible={!!errors.workId}>
+                {errors.workId}
+              </HelperText>
+  
+              <TextInput
+                label="Email"
+                value={form.email}
+                onChangeText={(text) => setForm({ ...form, email: text })}
+                mode="outlined"
+                keyboardType="email-address"
+                error={!!errors.email}
+                left={<TextInput.Icon icon="email" />}
+              />
+              <HelperText type="error" visible={!!errors.email}>
+                {errors.email}
+              </HelperText>
+  
+              <TextInput
+                label="Password"
+                value={form.password}
+                onChangeText={(text) => setForm({ ...form, password: text })}
+                mode="outlined"
+                secureTextEntry
+                error={!!errors.password}
+                left={<TextInput.Icon icon="lock" />}
+              />
+              <HelperText type="error" visible={!!errors.password}>
+                {errors.password}
+              </HelperText>
+  
+              <List.Item
+                title="Select Department"
+                description={
+                  form.associated_department || "Choose your department"
+                }
+                onPress={() => setDepartmentDialogVisible(true)}
+                left={(props) => <List.Icon {...props} icon="office-building" />}
+                right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              />
+              <HelperText type="error" visible={!!errors.associated_department}>
+                {errors.associated_department}
+              </HelperText>
+            </View>
+  
+            {/* Action Buttons */}
+            <View style={{ marginTop: 24 }}>
+              <Button
+                mode="contained"
+                onPress={handleSignUp}
+                loading={isSubmitting}
+                style={{ padding: 4 }}
+              >
+                Sign Up
+              </Button>
+  
+              <Divider style={{ marginVertical: 24 }} />
+  
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text variant="bodyMedium">Already have an account? </Text>
+                <Link href="/signIn">
+                  <Text
+                    variant="bodyMedium"
+                    style={{ color: theme.colors.primary, fontWeight: "bold" }}
+                  >
+                    Sign In
+                  </Text>
+                </Link>
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-
-      {/* Department Selection Dialog */}
-      <Portal>
-        <Dialog
-          visible={departmentDialogVisible}
-          onDismiss={() => setDepartmentDialogVisible(false)}
-        >
-          <Dialog.Title>Select Department</Dialog.Title>
-          <Dialog.Content>
-            <RadioButton.Group
-              onValueChange={(value) => {
-                setForm({ ...form, associated_department: value });
-                setDepartmentDialogVisible(false);
-              }}
-              value={form.associated_department}
-            >
-              {departments.map((department) => (
-                <RadioButton.Item
-                  key={department}
-                  label={department}
-                  value={department}
-                />
-              ))}
-            </RadioButton.Group>
-          </Dialog.Content>
-        </Dialog>
-      </Portal>
-    </SafeAreaView>
-
-  );
+        </ScrollView>
+  
+        {/* Department Selection Dialog */}
+        <Portal>
+          <Dialog
+            visible={departmentDialogVisible}
+            onDismiss={() => setDepartmentDialogVisible(false)}
+          >
+            <Dialog.Title>Select Department</Dialog.Title>
+            <Dialog.Content>
+              <RadioButton.Group
+                onValueChange={(value) => {
+                  setForm({ ...form, associated_department: value });
+                  setDepartmentDialogVisible(false);
+                }}
+                value={form.associated_department}
+              >
+                {departments.map((department) => (
+                  <RadioButton.Item
+                    key={department}
+                    label={department}
+                    value={department}
+                  />
+                ))}
+              </RadioButton.Group>
+            </Dialog.Content>
+          </Dialog>
+        </Portal>
+      </SafeAreaView>
+    );
 };
 
 export default SignUp;
