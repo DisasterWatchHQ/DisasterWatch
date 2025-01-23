@@ -1,35 +1,86 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, IconButton, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
-const HeaderBar = ({ showBack = false, title = "DisasterWatch", containerStyle }) => {
+const HeaderBar = ({ showBack = false, title = "DisasterWatch", subtitle, containerStyle }) => {
   const router = useRouter();
+  const theme = useTheme();
 
   return (
-    <View className={`flex-row h-[50px] items-center justify-between bg-neutral-700 border-1- border-neutral-800 px-4 ${containerStyle}`}>
-      {showBack && (
-        <TouchableOpacity 
-          onPress={() => router.back()}
-          className="items-start"
-        >
-          <MaterialIcons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-      )}
-      
-      <Text className="text-neutral-100 text-2xl font-bold">{title}</Text>
-
-      <TouchableOpacity 
-        onPress={() => router.push('/profile')}
-        className="items-end"
-      >
-        <Image 
-          source={require('../assets/default_profile.png')} //pass the image here
-          className="w-[48px] h-[48px] rounded-sm"
-        />
-        {/* <MaterialIcons name="account-circle" size={32} color="white" /> */}
-      </TouchableOpacity>
+    <View style={[styles.container, containerStyle]}>
+      <View style={styles.header}>
+        <View>
+          {showBack && (
+            <IconButton
+              icon="arrow-left"
+              mode="text"
+              size={20}
+              onPress={() => router.back()}
+              style={styles.backButton}
+            />
+          )}
+          <Text variant="headlineMedium" style={styles.title}>
+            {title}
+          </Text>
+          {subtitle && (
+            <Text variant="bodyMedium" style={styles.subtitle}>
+              {subtitle}
+            </Text>
+          )}
+        </View>
+        <View style={styles.headerButtons}>
+          <IconButton
+            icon="bell"
+            mode="text"
+            size={20}
+            onPress={() => {}}
+            style={styles.actionButton}
+          />
+          <IconButton
+            icon="cog"
+            mode="text"
+            size={20}
+            onPress={() => {}}
+            style={styles.actionButton}
+          />
+        </View>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+  },
+  header: {
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  actionButton: {
+    margin: 0,
+    width: 32,
+    height: 32,
+  },
+  backButton: {
+    margin: 0,
+  }
+});
 
 export default HeaderBar;
