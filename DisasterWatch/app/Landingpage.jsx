@@ -274,3 +274,5 @@ const LandingPage = () => {
     </SafeAreaView>
   );
 };
+
+export default LandingPage;
