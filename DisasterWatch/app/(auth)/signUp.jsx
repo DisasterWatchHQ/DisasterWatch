@@ -229,11 +229,37 @@ const SignUp = () => {
               </Link>
             </View>
           </View>
-
-
         </View>
       </ScrollView>
+
+      {/* Department Selection Dialog */}
+      <Portal>
+        <Dialog
+          visible={departmentDialogVisible}
+          onDismiss={() => setDepartmentDialogVisible(false)}
+        >
+          <Dialog.Title>Select Department</Dialog.Title>
+          <Dialog.Content>
+            <RadioButton.Group
+              onValueChange={(value) => {
+                setForm({ ...form, associated_department: value });
+                setDepartmentDialogVisible(false);
+              }}
+              value={form.associated_department}
+            >
+              {departments.map((department) => (
+                <RadioButton.Item
+                  key={department}
+                  label={department}
+                  value={department}
+                />
+              ))}
+            </RadioButton.Group>
+          </Dialog.Content>
+        </Dialog>
+      </Portal>
     </SafeAreaView>
+
   );
 };
 
