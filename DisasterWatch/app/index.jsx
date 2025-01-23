@@ -2,6 +2,20 @@ export default function WelcomePage() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
 
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#262626" }}>
       <StatusBar style="light" backgroundColor="#262626" />
