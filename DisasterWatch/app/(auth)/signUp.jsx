@@ -142,6 +142,9 @@ const SignUp = () => {
               error={!!errors.name}
               left={<TextInput.Icon icon="account" />}
             />
+            <HelperText type="error" visible={!!errors.name}>
+              {errors.name}
+            </HelperText>
 
             <TextInput
               label="Work ID"
@@ -151,6 +154,9 @@ const SignUp = () => {
               error={!!errors.workId}
               left={<TextInput.Icon icon="card-account-details" />}
             />
+            <HelperText type="error" visible={!!errors.workId}>
+              {errors.workId}
+            </HelperText>
 
             <TextInput
               label="Email"
@@ -161,6 +167,9 @@ const SignUp = () => {
               error={!!errors.email}
               left={<TextInput.Icon icon="email" />}
             />
+            <HelperText type="error" visible={!!errors.email}>
+              {errors.email}
+            </HelperText>
 
             <TextInput
               label="Password"
@@ -171,6 +180,10 @@ const SignUp = () => {
               error={!!errors.password}
               left={<TextInput.Icon icon="lock" />}
             />
+            <HelperText type="error" visible={!!errors.password}>
+              {errors.password}
+            </HelperText>
+
 
           </View>
 
