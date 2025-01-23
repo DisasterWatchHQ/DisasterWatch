@@ -1,3 +1,13 @@
+import { StatusBar } from "expo-status-bar";
+import { ScrollView, Animated, Dimensions, View } from "react-native";
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useRef } from "react";
+import { Button, Text } from "react-native-paper";
+import "../global.css";
+
+const { width, height } = Dimensions.get("window");
+
 export default function WelcomePage() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -26,7 +36,7 @@ export default function WelcomePage() {
       router.push("/Landingpage");
     });
   };
-  
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#262626" }}>
       <StatusBar style="light" backgroundColor="#262626" />
