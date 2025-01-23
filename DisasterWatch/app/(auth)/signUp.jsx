@@ -116,6 +116,21 @@ const SignUp = () => {
     <SafeAreaView >
       <ScrollView>
         <View>
+          {/* Header Section */}
+          <View style={{ marginBottom: 32 }}>
+            <Text
+              variant="headlineMedium"
+              style={{ color: theme.colors.primary, fontWeight: "bold" }}
+            >
+              Create Account
+            </Text>
+            <Text
+              variant="bodyLarge"
+              style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+            >
+              Join our platform
+            </Text>
+          </View>
           
         </View>
       </ScrollView>
