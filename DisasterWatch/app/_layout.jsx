@@ -13,6 +13,20 @@ import {
 import * as Notifications from "expo-notifications";
 import Geocoder from "react-native-geocoding";
 
+// Configure notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+Geocoder.init(process.env.GMAPS_API_KEY)
+SplashScreen.preventAutoHideAsync();
+
+
+
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
