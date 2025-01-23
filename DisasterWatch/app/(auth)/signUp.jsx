@@ -131,7 +131,49 @@ const SignUp = () => {
               Join our platform
             </Text>
           </View>
-          
+
+          {/*Form Section*/}
+          <View>
+           <TextInput
+              label="Full Name"
+              value={form.name}
+              onChangeText={(text) => setForm({ ...form, name: text })}
+              mode="outlined"
+              error={!!errors.name}
+              left={<TextInput.Icon icon="account" />}
+            />
+
+            <TextInput
+              label="Work ID"
+              value={form.workId}
+              onChangeText={(text) => setForm({ ...form, workId: text })}
+              mode="outlined"
+              error={!!errors.workId}
+              left={<TextInput.Icon icon="card-account-details" />}
+            />
+
+            <TextInput
+              label="Email"
+              value={form.email}
+              onChangeText={(text) => setForm({ ...form, email: text })}
+              mode="outlined"
+              keyboardType="email-address"
+              error={!!errors.email}
+              left={<TextInput.Icon icon="email" />}
+            />
+
+            <TextInput
+              label="Password"
+              value={form.password}
+              onChangeText={(text) => setForm({ ...form, password: text })}
+              mode="outlined"
+              secureTextEntry
+              error={!!errors.password}
+              left={<TextInput.Icon icon="lock" />}
+            />
+
+          </View>
+
         </View>
       </ScrollView>
     </SafeAreaView>
