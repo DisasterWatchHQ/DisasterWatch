@@ -129,15 +129,15 @@ const RootLayout = () => {
   return (
     <PaperProvider theme={theme}>
       <UserProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="Landingpage" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="profile" />
-              </Stack>
-            </UserProvider>
-         <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="Landingpage" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="profile" />
+        </Stack>
+      </UserProvider>
+      <StatusBar style="auto" />
     </PaperProvider>
   );
 };
