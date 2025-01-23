@@ -1,11 +1,21 @@
-import { Text, View, ScrollView, Alert } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import FormField from '../../components/formField';
-import CustomerButton from '../../components/customButton';
-import { Link, useRouter } from 'expo-router';
-import { useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { View, ScrollView, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Link, useRouter } from "expo-router";
+import { useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import {
+  Text,
+  TextInput,
+  Button,
+  useTheme,
+  Divider,
+  HelperText,
+  List,
+  Portal,
+  Dialog,
+  RadioButton,
+} from "react-native-paper";
+import { authApi } from "../../services/authApi";
 
 const SignUp = () => {
   const router = useRouter();
