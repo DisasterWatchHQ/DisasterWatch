@@ -198,6 +198,39 @@ const SignUp = () => {
             </HelperText>
           </View>
 
+          {/* Action Buttons */}
+          <View style={{ marginTop: 24 }}>
+            <Button
+              mode="contained"
+              onPress={handleSignUp}
+              loading={isSubmitting}
+              style={{ padding: 4 }}
+            >
+              Sign Up
+            </Button>
+
+            <Divider style={{ marginVertical: 24 }} />
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text variant="bodyMedium">Already have an account? </Text>
+              <Link href="/signIn">
+                <Text
+                  variant="bodyMedium"
+                  style={{ color: theme.colors.primary, fontWeight: "bold" }}
+                >
+                  Sign In
+                </Text>
+              </Link>
+            </View>
+          </View>
+
+
         </View>
       </ScrollView>
     </SafeAreaView>
