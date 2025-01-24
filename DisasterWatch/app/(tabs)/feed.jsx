@@ -25,45 +25,43 @@ export default function DisasterFeed() {
       }
     };
 
-  // Refresh handler
-  const onRefresh = useCallback(async () => {
+    fetchActiveWarnings();
+  }, []);
+
+  const handleShare = async (report) => {
     try {
-      setRefreshing(true);
-      setError(null);
-      
-      if (propOnRefresh) {
-        const newReports = await propOnRefresh();
-        setReports(newReports);
-      } else {
-        const newReports = await fetchReports();
-        setReports(newReports);
-      }
-    } catch (err) {
-      setError('Failed to refresh reports');
-      console.error(err);
-    } finally {
-      setRefreshing(false);
+      const shareText = `${report.title} - ${report.description}`;
+      const result = await Share.share({
+        message: shareText,
+        title: report.title,
+      });
+    } catch (error) {
+      console.error("Error sharing report:", error);
     }
-  }, [propOnRefresh]);
+  };
 
-  // Handle report interactions
-  const handleReportPress = useCallback((report) => {
-    if (onReportPress) {
-      onReportPress(report);
-    }
-  }, [onReportPress]);
+  const handleSocialShare = async (report, platform) => {
+    const shareText = encodeURIComponent(
+      `${report.title} - ${report.description}`,
+    );
 
-  const handleUserPress = useCallback((user) => {
-    if (onUserPress) {
-      onUserPress(user);
+    switch (platform) {
+      case "twitter":
+        await Linking.openURL(
+          `https://twitter.com/intent/tweet?text=${shareText}`,
+        );
+        break;
+      case "facebook":
+        await Linking.openURL(
+          `https://www.facebook.com/sharer/sharer.php?u=${shareText}`,
+        );
+        break;
+      case "whatsapp":
+        await Linking.openURL(`whatsapp://send?text=${shareText}`);
+        break;
     }
-  }, [onUserPress]);
+  };
 
-  const handleLocationPress = useCallback((location) => {
-    if (onLocationPress) {
-      onLocationPress(location);
-    }
-  }, [onLocationPress]);
 
   const handleImagePress = useCallback((images, index) => {
     if (onImagePress) {
