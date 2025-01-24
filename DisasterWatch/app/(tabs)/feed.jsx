@@ -20,21 +20,6 @@ const Feed = ({
   const [loading, setLoading] = useState(propIsLoading || false);
   const [error, setError] = useState(propError || null);
 
-  // Simulate data fetching
-  const fetchReports = async () => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    const newReport = {
-      id: Date.now().toString(),
-      type: 'Flood',
-      location: 'New Location',
-      description: 'New disaster report',
-      timestamp: 'Just now',
-      severity: 'high',
-      images: ['https://example.com/new-image.jpg'],
-      user: {
-        id: 'user2',
-        name: 'Jane Doe',
-        avatar: 'https://example.com/avatar2.jpg'
       }
     };
     return [newReport, ...reports];
