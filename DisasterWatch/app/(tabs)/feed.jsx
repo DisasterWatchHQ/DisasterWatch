@@ -1,17 +1,20 @@
-import { Text, View, ScrollView, SafeAreaView, RefreshControl, Image } from 'react-native';
-import React, { useState, useCallback, useEffect } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
-import ReportCard from '../../components/reportCard';
-import HeaderBar from '../../components/headerBar';
+import { useState, useEffect } from "react";
+import { View, ScrollView, Share, Linking, StyleSheet } from "react-native";
+import {
+  useTheme,
+} from "react-native-paper";
+import { useReports } from "../../hooks/useReports";
+import { useLiveUpdates } from "../../hooks/useLiveUpdates";
 
+export default function DisasterFeed() {
+  const { reports, loading, error, filters, updateFilters, refreshReports } =
+    useReports();
+  const { updates } = useLiveUpdates();
+  const [activeWarnings, setActiveWarnings] = useState([]);
+  const [showAlert, setShowAlert] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("all");
+  const theme = useTheme();
 
-const Feed = ({
-  initialReports = sampleReports,
-  onRefresh: propOnRefresh,
-  onReportPress,
-  onUserPress,
-  onLocationPress,
-  onImagePress,
   isLoading: propIsLoading,
   error: propError,
 }) => {
