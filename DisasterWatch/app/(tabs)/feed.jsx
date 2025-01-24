@@ -4,46 +4,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import ReportCard from '../../components/reportCard';
 import HeaderBar from '../../components/headerBar';
 
-// Sample data
-const sampleReports = [
-  {
-    id: '1',
-    type: 'Flood',
-    location: 'Colombo District',
-    description: 'Water level rising rapidly in Wellawatta area',
-    timestamp: '2 minutes ago',
-    severity: 'high',
-    images: ['https://example.com/image1.jpg'],
-    user: {
-      id: 'user1',
-      name: 'John Doe',
-      avatar: 'https://example.com/avatar.jpg'
-    },
-    coordinates: {
-      latitude: 6.9271,
-      longitude: 79.8612
-    }
-  },
-  {
-    id: '2',
-    type: 'Flood',
-    location: 'Colombo District',
-    description: 'Water level rising rapidly in Wellawatta area',
-    timestamp: '2 minutes ago',
-    severity: 'high',
-    images: ['https://example.com/image1.jpg'],
-    user: {
-      id: 'user1',
-      name: 'John Doe',
-      avatar: 'https://example.com/avatar.jpg'
-    },
-    coordinates: {
-      latitude: 6.9271,
-      longitude: 79.8612
-    }
-  },
-  // Add more sample reports as needed
-];
 
 const Feed = ({
   initialReports = sampleReports,
