@@ -15,18 +15,15 @@ export default function DisasterFeed() {
   const [selectedTab, setSelectedTab] = useState("all");
   const theme = useTheme();
 
-  isLoading: propIsLoading,
-  error: propError,
-}) => {
-  const [refreshing, setRefreshing] = useState(false);
-  const [reports, setReports] = useState(initialReports);
-  const [loading, setLoading] = useState(propIsLoading || false);
-  const [error, setError] = useState(propError || null);
-
+  useEffect(() => {
+    const fetchActiveWarnings = async () => {
+      try {
+        const warnings = await warningApi.getActiveWarnings();
+        setActiveWarnings(warnings);
+      } catch (error) {
+        console.error("Error fetching active warnings:", error);
       }
     };
-    return [newReport, ...reports];
-  };
 
   // Refresh handler
   const onRefresh = useCallback(async () => {
