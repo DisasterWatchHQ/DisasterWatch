@@ -31,8 +31,6 @@ const SignIn = () => {
     const newErrors = {};
     if (!form.email) newErrors.email = "Email is required";
     if (!form.password) newErrors.password = "Password is required";
-
-    // Basic email validation
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = "Please enter a valid email address";
     }
@@ -53,7 +51,6 @@ const SignIn = () => {
       });
 
       if (form.remember) {
-        // Store user session data
         await SecureStore.setItemAsync(
           "userSession",
           JSON.stringify({
@@ -69,7 +66,6 @@ const SignIn = () => {
         );
       }
 
-      // Check if user is verified
       if (!response.user.isVerified) {
         Alert.alert(
           "Account Not Verified",

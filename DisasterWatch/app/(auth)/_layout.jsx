@@ -4,13 +4,11 @@ import React from "react";
 import { PaperProvider, MD3DarkTheme } from "react-native-paper";
 import "../../global.css";
 
-// You can customize the theme if needed
 const theme = {
   ...MD3DarkTheme,
   colors: {
     ...MD3DarkTheme.colors,
     background: "#161622",
-    // Add any other color overrides here
   },
 };
 
