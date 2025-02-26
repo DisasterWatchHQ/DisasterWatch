@@ -107,7 +107,6 @@ const ReportScreen = () => {
     try {
       setIsSubmitting(true);
 
-      // Ensure location data is properly structured
       const formattedData = {
         ...data,
         location: {
@@ -120,12 +119,8 @@ const ReportScreen = () => {
         },
       };
 
-      console.log("Submitting data:", formattedData);
-
-      // Send both images and formatted report data
       const result = await uploadImages(images, formattedData);
 
-      // Clear form after successful submission
       reset();
       setImages([]);
       alert("Report submitted successfully!");
