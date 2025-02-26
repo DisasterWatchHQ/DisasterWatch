@@ -1,66 +1,74 @@
-import React, { useState } from "react";
-import { View, Button, Share, Linking, StyleSheet } from "react-native";
-import { Text } from "react-native-paper";
+import React, { useState, useEffect } from "react";
+import { View, ScrollView, ActivityIndicator, StyleSheet } from "react-native";
+import { Card, Button, Text, Chip } from "react-native-paper";
 
-const handleShare = async (report) => {
-  try {
-    const shareText = `${report.title} - ${report.description}`;
-    await Share.share({
-      message: shareText,
-      title: report.title,
-    });
-  } catch (error) {
-    console.error("Error sharing report:", error);
-  }
-};
+const DisasterFeed = () => {
+  const [loading, setLoading] = useState(false);
+  const [reports, setReports] = useState([]);
 
-const handleSocialShare = async (report, platform) => {
-  const shareText = encodeURIComponent(
-    `${report.title} - ${report.description}`,
-  );
+  useEffect(() => {
+    const fetchReports = async () => {
+      setLoading(true);
+      try {
+        // Example data fetching
+        setReports([
+          { id: 1, title: "Flood in Area X", description: "Severe flood reported", disaster_category: "flood", verification_status: "verified", timestamp: Date.now() },
+          { id: 2, title: "Fire in Area Y", description: "Fire alert", disaster_category: "fire", verification_status: "unverified", timestamp: Date.now() },
+        ]);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  switch (platform) {
-    case "twitter":
-      await Linking.openURL(
-        `https://twitter.com/intent/tweet?text=${shareText}`,
-      );
-      break;
-    case "facebook":
-      await Linking.openURL(
-        `https://www.facebook.com/sharer/sharer.php?u=${shareText}`,
-      );
-      break;
-    case "whatsapp":
-      await Linking.openURL(`whatsapp://send?text=${shareText}`);
-      break;
-  }
-};
-
-export default function DisasterFeed() {
-  const report = { title: "Disaster Alert", description: "A flood has occurred" };
+    fetchReports();
+  }, []);
 
   return (
     <View style={styles.container}>
       <Text variant="headlineMedium">Disaster Feed</Text>
-      <Button
-        title="Share Report"
-        onPress={() => handleShare(report)}
-      />
-      <Button
-        title="Share on Twitter"
-        onPress={() => handleSocialShare(report, "twitter")}
-      />
-      <Button
-        title="Share on Facebook"
-        onPress={() => handleSocialShare(report, "facebook")}
-      />
-      <Button
-        title="Share on WhatsApp"
-        onPress={() => handleSocialShare(report, "whatsapp")}
-      />
+
+      <ScrollView style={styles.reportsContainer}>
+        {loading ? (
+          <ActivityIndicator style={styles.loader} />
+        ) : (
+          reports.map((report) => (
+            <Card key={report.id} style={styles.reportCard}>
+              <Card.Title
+                title={report.title}
+                right={(props) => (
+                  <View style={styles.shareButtons}>
+                    <Button
+                      compact
+                      icon="twitter"
+                      onPress={() => handleSocialShare(report, "twitter")}
+                    />
+                    <Button
+                      compact
+                      icon="facebook"
+                      onPress={() => handleSocialShare(report, "facebook")}
+                    />
+                    <Button
+                      compact
+                      icon="whatsapp"
+                      onPress={() => handleSocialShare(report, "whatsapp")}
+                    />
+                  </View>
+                )}
+              />
+              <Card.Content>
+                <Text>{report.description}</Text>
+                <Chip>{report.disaster_category}</Chip>
+                <Chip>{report.verification_status}</Chip>
+              </Card.Content>
+            </Card>
+          ))
+        )}
+      </ScrollView>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -68,4 +76,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 40,
   },
+  reportsContainer: {
+    flex: 1,
+    paddingHorizontal: 12,
+  },
+  loader: {
+    marginTop: 20,
+  },
+  reportCard: {
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  shareButtons: {
+    flexDirection: "row",
+  },
 });
+
+export default DisasterFeed;
