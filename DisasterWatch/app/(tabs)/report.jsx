@@ -78,3 +78,55 @@ const ReportScreen = () => {
     },
   });
   
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Sorry, we need camera roll permissions to upload images.");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+  
+    if (!result.canceled) {
+      setImages([...images, result.assets[0].uri]);
+    }
+  };
+  
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+  
+  const onSubmit = async (data) => {
+    try {
+      setIsSubmitting(true);
+  
+      const formattedData = {
+        ...data,
+        location: {
+          address: {
+            city: data.location.address.city,
+            district: data.location.address.district,
+            province: data.location.address.province,
+            details: data.location.address.details || "",
+          },
+        },
+      };
+  
+      console.log("Submitting data:", formattedData);
+      await uploadImages(images, formattedData);
+  
+      reset();
+      setImages([]);
+      alert("Report submitted successfully!");
+    } catch (error) {
+      alert("Failed to submit report: " + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
