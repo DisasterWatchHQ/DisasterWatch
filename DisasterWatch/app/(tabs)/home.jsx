@@ -95,18 +95,16 @@ const Home = () => {
     // Fetch the location initially
     fetchLocation();
 
-    // Set an interval to fetch the location every 1 hour (3600000 milliseconds)
+    // Set an interval to fetch the location every 1 hour
     const locationInterval = setInterval(() => {
       fetchLocation();
-    }, 3600000); // 1 hour
+    }, 3600000);
 
-    // Cleanup interval when component unmounts
     return () => clearInterval(locationInterval);
   }, []);
 
   const handleWarningPress = async (warning) => {
     try {
-      // Add validation for warning ID
       if (!warning?._id && !warning?.id) {
         console.error("Warning ID is missing:", warning);
         setError("Invalid warning data");
@@ -127,17 +125,13 @@ const Home = () => {
       setModalVisible(true);
     } catch (err) {
       console.error("Failed to fetch warning details:", err);
-      // Log more details about the error
       if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error("Error response:", {
           data: err.response.data,
           status: err.response.status,
           headers: err.response.headers,
         });
       } else if (err.request) {
-        // The request was made but no response was received
         console.error("No response received:", err.request);
       }
       setError(
@@ -185,8 +179,8 @@ const Home = () => {
     try {
       setLoading(true);
       const facilities = await facilityApi.getNearbyFacilities({
-        latitude: location?.coords.latitude || 6.9271, // Use current user's latitude
-        longitude: location?.coords.longitude || 79.8612, // Use current user's longitude
+        latitude: location?.coords.latitude || 6.9271, 
+        longitude: location?.coords.longitude || 79.8612,
       });
       setNearbyFacilities(facilities);
     } catch (err) {
@@ -200,7 +194,7 @@ const Home = () => {
   useEffect(() => {
     fetchActiveWarnings();
     fetchNearbyFacilities();
-  }, [location]); // Fetch warnings and facilities when location changes
+  }, [location]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
@@ -365,11 +359,11 @@ const styles = {
   modalContainer: {
     flex: 1,
     margin: 16,
-    justifyContent: "center", // Add this
-    backgroundColor: "white", // Optional: for better visibility
-    maxHeight: "90%", // Add this to prevent full screen
-    marginTop: 50, // Add some top margin
-    marginBottom: 50, // Add some bottom margin
+    justifyContent: "center", 
+    backgroundColor: "white",
+    maxHeight: "90%",
+    marginTop: 50,
+    marginBottom: 50,
     borderRadius: 16,
   },
 };
