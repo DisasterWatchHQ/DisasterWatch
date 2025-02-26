@@ -3,12 +3,29 @@ import { View, SafeAreaView, ScrollView, ActivityIndicator } from "react-native"
 import { Card, Text, Button } from "react-native-paper";
 import HeaderBar from "../../components/headerBar";
 import { useRouter } from "expo-router";
+import { warningApi } from "../../services/warningApi";
 
 const Home = () => {
   const router = useRouter();
   const [activeWarnings, setActiveWarnings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const fetchActiveWarnings = async () => {
+    try {
+      setLoading(true);
+      const warnings = await warningApi.getActiveWarnings();
+      setActiveWarnings(warnings);
+    } catch (err) {
+      setError("Failed to load warnings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActiveWarnings();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
@@ -34,8 +51,14 @@ const Home = () => {
             <ActivityIndicator size="large" style={{ padding: 20 }} />
           ) : error ? (
             <Text style={{ color: "red", padding: 20 }}>{error}</Text>
-          ) : (
+          ) : activeWarnings.length === 0 ? (
             <Text style={{ padding: 20 }}>No active warnings</Text>
+          ) : (
+            activeWarnings.map((warning) => (
+              <Card key={warning._id} style={styles.warningCard}>
+                <Card.Title title={warning.title} />
+              </Card>
+            ))
           )}
         </View>
       </ScrollView>
@@ -58,6 +81,9 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
+  },
+  warningCard: {
+    marginBottom: 8,
   },
 };
 
