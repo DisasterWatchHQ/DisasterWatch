@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -19,16 +19,14 @@ import { Stack } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// Import components
 import { GuideCard } from "../../components/resources/GuideCard";
 import { EmergencyContactCard } from "../../components/resources/EmergencyContactCard";
 import { FacilityCard } from "../../components/resources/FacilityCard";
 import { FilterHeader } from "../../components/resources/FilterHeader";
 import HeaderBar from "../../components/headerBar";
+import { facilityApi } from "../../services/resourceApi";
 
-// Import mock data and constants
 import {
-  MOCK_DATA,
   FACILITY_TYPES,
   STATUS_TYPES,
   GUIDE_CATEGORIES,
@@ -38,8 +36,13 @@ const ResourcesScreen = () => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
+  const [data, setData] = useState({
+    guides: { data: [] },
+      contacts: { data: [] },
+      facilities: { data: [] }
+  });
+  const [error, setError] = useState(null);
 
-  // State management
   const [activeSection, setActiveSection] = useState("guides");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,14 +53,12 @@ const ResourcesScreen = () => {
     status: "all",
   });
 
-  // Animation values
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [120, 60],
     extrapolate: "clamp",
   });
 
-  // Navigation segments
   const navigationSegments = [
     {
       value: "guides",
@@ -76,13 +77,11 @@ const ResourcesScreen = () => {
     },
   ];
 
-  // Filter handlers
   const handleSearch = (query) => {
     setSearchQuery(query);
   };
 
   const handleFilterChange = (value) => {
-    // Check which type of filter was selected
     if (FACILITY_TYPES.some((t) => t.value === value)) {
       setFilters((prev) => ({ ...prev, facilities: value }));
     } else if (STATUS_TYPES.some((s) => s.value === value)) {
@@ -92,88 +91,139 @@ const ResourcesScreen = () => {
     }
   };
 
+  const fetchGuides = async () => {
+    try {
+      setLoading(true);
+      const response = await facilityApi.getGuides({
+        type: filters.guides !== "all" ? filters.guides : undefined,
+        page: 1,
+        limit: 20,
+      });
+      setData((prev) => ({ ...prev, guides: { data: response.data || [] } }));
+    } catch (error) {
+      setError("Error fetching guides.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEmergencyContacts = async () => {
+    try {
+      setLoading(true);
+      const response = await facilityApi.getEmergencyContacts({});
+      setData((prev) => ({ ...prev, contacts: { data: response.data || [] } }));
+    } catch (error) {
+      setError("Error fetching emergency contacts.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFacilities = async () => {
+    try {
+      setLoading(true);
+      const response = await facilityApi.getFacilities({
+        type: filters.facilities !== "all" ? filters.facilities : undefined,
+        availability_status:
+          filters.status !== "all" ? filters.status : undefined,
+        limit: 20,
+        page: 1,
+      });
+      setData((prev) => ({ ...prev, facilities: { data: response.data || [] } }));
+    } catch (error) {
+      setError("Error fetching facilities.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      switch (activeSection) {
+        case "guides":
+          await fetchGuides();
+          break;
+        case "contacts":
+          await fetchEmergencyContacts();
+          break;
+        case "facilities":
+          await fetchFacilities();
+          break;
+      }
+    };
+
+    fetchData();
+  }, [activeSection, filters]);
+
   const getFiltersForSection = () => {
     switch (activeSection) {
       case "guides":
         return GUIDE_CATEGORIES.map((category) => ({
           ...category,
           selected: filters.guides === category.value,
-          key: `guide-${category.value}` // Add unique key prefix
+          key: `guide-${category.value}`,
         }));
       case "facilities":
         return [
           ...FACILITY_TYPES.map((type) => ({
             ...type,
             selected: filters.facilities === type.value,
-            key: `facility-${type.value}` // Add unique key prefix
+            key: `facility-${type.value}`,
           })),
           ...STATUS_TYPES.map((status) => ({
             ...status,
             selected: filters.status === status.value,
-            key: `status-${status.value}` // Add unique key prefix
-          }))
+            key: `status-${status.value}`,
+          })),
         ];
       default:
         return [];
     }
   };
 
-  // Refresh handler
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // Refresh data here
+      switch (activeSection) {
+        case 'guides':
+          await fetchGuides();
+          break;
+        case 'contacts':
+          await fetchEmergencyContacts();
+          break;
+        case 'facilities':
+          await fetchFacilities();
+          break;
+      }
     } catch (error) {
-      console.error("Error refreshing:", error);
+      console.error('Error refreshing:', error);
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [activeSection]);
 
-  // Filter data based on search query and filters
   const getFilteredData = () => {
-    let data = [];
+    const searchLower = searchQuery.toLowerCase();
     switch (activeSection) {
-      case "guides":
-        data = MOCK_DATA.guides.filter((guide) => {
-          const matchesSearch =
-            guide.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            guide.description.toLowerCase().includes(searchQuery.toLowerCase());
-          const matchesFilter =
-            filters.guides === "all" || guide.type === filters.guides;
-          return matchesSearch && matchesFilter;
-        });
-        break;
-      case "contacts":
-        data = MOCK_DATA.contacts.filter(
-          (contact) =>
-            contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            contact.description
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()),
+      case 'guides':
+        return (data.guides.data || []).filter(guide =>
+          guide.name.toLowerCase().includes(searchLower) ||
+          guide.description.toLowerCase().includes(searchLower)
         );
-        break;
-      case "facilities":
-        data = MOCK_DATA.facilities.filter((facility) => {
-          const matchesSearch = facility.name
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase());
-          const matchesType =
-            filters.facilities === "all" ||
-            facility.type === filters.facilities;
-          const matchesStatus =
-            filters.status === "all" ||
-            facility.availability_status === filters.status;
-          return matchesSearch && matchesType && matchesStatus;
-        });
-        break;
+      case 'contacts':
+        return (data.contacts.data || []).filter(contact =>
+          contact.name.toLowerCase().includes(searchLower) ||
+          contact.description.toLowerCase().includes(searchLower)
+        );
+      case 'facilities':
+        return (data.facilities.data || []).filter(facility =>
+          facility.name.toLowerCase().includes(searchLower)
+        );
+      default:
+        return [];
     }
-    return data;
   };
 
-  // Render list items
   const renderItem = ({ item }) => {
     switch (activeSection) {
       case "guides":
@@ -194,12 +244,11 @@ const ResourcesScreen = () => {
 
       <HeaderBar
         title="Emergency Resources"
-        subtitle="Guides, contacts and facilities"
+        subtitle="Guides, contacts, and facilities"
         showBack={false}
         containerStyle={{ marginTop: 32 }}
       />
 
-      {/* Combine SegmentedButtons and FilterHeader into a more compact header */}
       <View style={styles.subHeader}>
         <SegmentedButtons
           value={activeSection}
@@ -209,13 +258,13 @@ const ResourcesScreen = () => {
             icon: (props) => (
               <MaterialCommunityIcons
                 name={segment.icon}
-                size={20} // Reduced icon size
+                size={20}
                 color={props.color}
               />
             ),
           }))}
           style={styles.segmentedButtons}
-          dense // Add dense prop for more compact buttons
+          dense
         />
 
         <FilterHeader
@@ -224,7 +273,7 @@ const ResourcesScreen = () => {
           filters={getFiltersForSection()}
           onFilterChange={handleFilterChange}
           placeholder={`Search ${activeSection}...`}
-          compact // Add a compact prop to your FilterHeader component
+          compact
         />
       </View>
 
@@ -247,7 +296,9 @@ const ResourcesScreen = () => {
               size={48}
               color={theme.colors.onSurfaceDisabled}
             />
-            <Text style={styles.emptyText}>No results found</Text>
+            <Text style={styles.emptyText}>
+              {error || "No results found"}
+            </Text>
           </View>
         )}
       />
