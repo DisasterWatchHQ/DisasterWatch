@@ -3,16 +3,31 @@ import { View, SafeAreaView, ScrollView, ActivityIndicator } from "react-native"
 import { Card, Text, Button } from "react-native-paper";
 import HeaderBar from "../../components/headerBar";
 import { useRouter } from "expo-router";
+import * as Location from "expo-location";
+import MapWindow from "../../components/mapwindow";
 import { warningApi } from "../../services/warningApi";
-import WarningDetailsModal from "../../components/warnings/WarningDetailsModal";
 
 const Home = () => {
   const router = useRouter();
   const [activeWarnings, setActiveWarnings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedWarning, setSelectedWarning] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [markers, setMarkers] = useState([]);
+
+  const fetchLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setError("Permission to access location was denied");
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc);
+    } catch (err) {
+      setError("Failed to fetch location");
+    }
+  };
 
   const fetchActiveWarnings = async () => {
     try {
@@ -26,17 +41,8 @@ const Home = () => {
     }
   };
 
-  const handleWarningPress = async (warning) => {
-    try {
-      const warningDetails = await warningApi.getWarningById(warning._id);
-      setSelectedWarning(warningDetails);
-      setModalVisible(true);
-    } catch (err) {
-      setError("Failed to load warning details");
-    }
-  };
-
   useEffect(() => {
+    fetchLocation();
     fetchActiveWarnings();
   }, []);
 
@@ -64,27 +70,22 @@ const Home = () => {
             <ActivityIndicator size="large" style={{ padding: 20 }} />
           ) : error ? (
             <Text style={{ color: "red", padding: 20 }}>{error}</Text>
-          ) : activeWarnings.length === 0 ? (
-            <Text style={{ padding: 20 }}>No active warnings</Text>
           ) : (
-            activeWarnings.map((warning) => (
-              <Card
-                key={warning._id}
-                style={styles.warningCard}
-                onPress={() => handleWarningPress(warning)}
-              >
-                <Card.Title title={warning.title} />
-              </Card>
-            ))
+            <Text style={{ padding: 20 }}>No active warnings</Text>
           )}
         </View>
-      </ScrollView>
 
-      <WarningDetailsModal
-        visible={modalVisible}
-        warning={selectedWarning}
-        onDismiss={() => setModalVisible(false)}
-      />
+        {/* Map Overview */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text variant="titleMedium">Disaster Map</Text>
+            <Button mode="text" onPress={() => router.push("/map")}>
+              Full Map
+            </Button>
+          </View>
+          <MapWindow markers={markers} height={200} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -104,9 +105,6 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
-  },
-  warningCard: {
-    marginBottom: 8,
   },
 };
 
