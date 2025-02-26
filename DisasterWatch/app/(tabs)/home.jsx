@@ -4,12 +4,15 @@ import { Card, Text, Button } from "react-native-paper";
 import HeaderBar from "../../components/headerBar";
 import { useRouter } from "expo-router";
 import { warningApi } from "../../services/warningApi";
+import WarningDetailsModal from "../../components/warnings/WarningDetailsModal";
 
 const Home = () => {
   const router = useRouter();
   const [activeWarnings, setActiveWarnings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedWarning, setSelectedWarning] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const fetchActiveWarnings = async () => {
     try {
@@ -20,6 +23,16 @@ const Home = () => {
       setError("Failed to load warnings");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleWarningPress = async (warning) => {
+    try {
+      const warningDetails = await warningApi.getWarningById(warning._id);
+      setSelectedWarning(warningDetails);
+      setModalVisible(true);
+    } catch (err) {
+      setError("Failed to load warning details");
     }
   };
 
@@ -55,13 +68,23 @@ const Home = () => {
             <Text style={{ padding: 20 }}>No active warnings</Text>
           ) : (
             activeWarnings.map((warning) => (
-              <Card key={warning._id} style={styles.warningCard}>
+              <Card
+                key={warning._id}
+                style={styles.warningCard}
+                onPress={() => handleWarningPress(warning)}
+              >
                 <Card.Title title={warning.title} />
               </Card>
             ))
           )}
         </View>
       </ScrollView>
+
+      <WarningDetailsModal
+        visible={modalVisible}
+        warning={selectedWarning}
+        onDismiss={() => setModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };
