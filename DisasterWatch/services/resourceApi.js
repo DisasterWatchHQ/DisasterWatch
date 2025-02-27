@@ -10,66 +10,56 @@ const apiClient = axios.create({
 });
 
 export const facilityApi = {
-  getFacilities: async ({
-    type,
-    availability_status,
-    city,
-    district,
-    province,
-    status,
-    tags,
-    limit = 10,
-    page = 1,
-  }) => {
+  getFacilities: async ({ ...params }) => {
     try {
       const response = await apiClient.get("/resources/facilities", {
-        params: {
-          type,
-          availability_status,
-          city,
-          district,
-          province,
-          status,
-          tags,
-          limit,
-          page,
-        },
+        params,
       });
-      return response.data;
+      return {
+        data: response.data.resources,
+        pagination: {
+          currentPage: response.data.currentPage,
+          totalPages: response.data.totalPages,
+          totalResults: response.data.totalResults,
+        },
+      };
     } catch (error) {
-      console.error("Error fetching facilities:", error);
-      throw error;
+      throw new Error(
+        error.response?.data?.error || "Error fetching facilities",
+      );
     }
   },
 
-  getGuides: async ({ type, tags, limit = 10, page = 1 }) => {
+  getGuides: async ({ ...params }) => {
     try {
       const response = await apiClient.get("/resources/guides", {
-        params: {
-          type,
-          tags,
-          limit,
-          page,
-        },
+        params,
       });
-      return response.data;
+      return {
+        data: response.data.resources,
+        pagination: {
+          currentPage: response.data.currentPage,
+          totalPages: response.data.totalPages,
+          totalResults: response.data.totalResults,
+        },
+      };
     } catch (error) {
-      console.error("Error fetching guides:", error);
-      throw error;
+      throw new Error(error.response?.data?.error || "Error fetching guides");
     }
   },
 
-  getEmergencyContacts: async ({ emergency_level }) => {
+  getEmergencyContacts: async ({ ...params }) => {
     try {
       const response = await apiClient.get("/resources/emergency-contacts", {
-        params: {
-          emergency_level,
-        },
+        params,
       });
-      return response.data;
+      return {
+        data: response.data.resources,
+      };
     } catch (error) {
-      console.error("Error fetching emergency contacts:", error);
-      throw error;
+      throw new Error(
+        error.response?.data?.error || "Error fetching emergency contacts",
+      );
     }
   },
 
@@ -100,10 +90,17 @@ export const facilityApi = {
   getResourceById: async (id) => {
     try {
       const response = await apiClient.get(`/resources/${id}`);
+      if (!response.data.success) {
+        throw new Error(response.data.error || "Failed to fetch resource");
+      }
       return response.data;
     } catch (error) {
       console.error("Error fetching resource by ID:", error);
-      throw error;
+      throw new Error(
+        error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch resource details",
+      );
     }
   },
 };
