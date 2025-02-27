@@ -7,20 +7,29 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "notification": {
+      "sound": false
+    },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.disasterwatch.disasterwatch"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
       "package": "com.disasterwatch.disasterwatch",
       "config": {
         "googleMaps": {
@@ -43,13 +52,21 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
+          "icon": "./assets/icon.png",
           "color": "#ffffff",
-          "sounds": ["./assets/notification-sound.wav"]
+          "sounds": []
         }
       ]
     ],
     "newArchEnabled": true,
-    "permissions": ["INTERNET"]
+    "extra": {
+      "apiUrl": "https://disastercatcher.onrender.com/api",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "6e1decad-13be-4745-9c6a-6163234a8c4f"
+      }
+    }
   }
 }
