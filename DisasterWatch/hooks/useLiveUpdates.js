@@ -3,27 +3,32 @@ import { fetchFeedStats, fetchLiveUpdates } from '../services/api';
 
 export const useLiveUpdates = () => {
   const [updates, setUpdates] = useState([]);
-  const [activeWarnings, setActiveWarnings] = useState([]);
+  const [activeWarnings, setActiveWarnings] = useState(0);
+  const [warningStats, setWarningStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const loadUpdates = async () => {
     try {
       setLoading(true);
-      const [updatesResponse, statsResponse] = await Promise.all([
+      const [updatesData, statsData] = await Promise.all([
         fetchLiveUpdates(),
         fetchFeedStats(),
       ]);
 
-      if (updatesResponse.success) {
-        setUpdates(updatesResponse.data.updates);
+      // Handle updates response
+      if (updatesData.success && updatesData.data?.updates) {
+        setUpdates(updatesData.data.updates);
       }
 
-      if (statsResponse.success) {
-        setActiveWarnings(statsResponse.data.warningStats.filter(w => w.active_warnings > 0));
+      // Handle stats response
+      if (statsData.success && statsData.data) {
+        setActiveWarnings(statsData.data.activeWarnings);
+        setWarningStats(statsData.data.warningStats);
       }
     } catch (err) {
       setError(err.message);
+      console.error('Error loading updates:', err);
     } finally {
       setLoading(false);
     }
@@ -31,14 +36,16 @@ export const useLiveUpdates = () => {
 
   useEffect(() => {
     loadUpdates();
-    const interval = setInterval(loadUpdates, 30000); // Refresh every 30 seconds
+    const interval = setInterval(loadUpdates, 30000);
     return () => clearInterval(interval);
   }, []);
 
   return {
     updates,
     activeWarnings,
+    warningStats,
     loading,
     error,
+    refresh: loadUpdates,
   };
 };

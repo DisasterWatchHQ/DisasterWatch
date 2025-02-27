@@ -2,23 +2,29 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 export const submitReport = async (reportData, images) => {
   try {
-    const formattedReport = {
-      ...reportData,
-      images: images,
-      date_time: new Date(),
-    };
+    const formData = new FormData();
+
+    Object.keys(reportData).forEach((key) => {
+      if (key === "location") {
+        formData.append(key, JSON.stringify(reportData[key]));
+      } else {
+        formData.append(key, reportData[key]);
+      }
+    });
+
+    if (images && images.length) {
+      images.forEach((image) => {
+        formData.append("images", image);
+      });
+    }
 
     const response = await fetch(`${API_URL}/userReport`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formattedReport),
+      body: formData,
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Error response:", errorData);
       throw new Error(errorData.error || "Failed to submit report");
     }
 
@@ -34,19 +40,24 @@ export const fetchReports = async (filters) => {
     const queryParams = new URLSearchParams({
       page: filters.page || 1,
       limit: filters.limit || 10,
-      ...(filters.disaster_category && { disaster_category: filters.disaster_category }),
+      ...(filters.disaster_category && {
+        disaster_category: filters.disaster_category,
+      }),
       ...(filters.verified_only && { verified_only: true }),
+      ...(filters.district && { district: filters.district }),
     }).toString();
 
-    const response = await fetch(`${API_URL}/userReport/reports?${queryParams}`);
-    
+    const response = await fetch(
+      `${API_URL}/userReport/reports?${queryParams}`,
+    );
+
     if (!response.ok) {
-      throw new Error('Failed to fetch reports');
+      throw new Error("Failed to fetch reports");
     }
-    
+
     return await response.json();
   } catch (error) {
-    console.error('Fetch reports error:', error);
+    console.error("Fetch reports error:", error);
     throw error;
   }
 };
@@ -54,29 +65,35 @@ export const fetchReports = async (filters) => {
 export const fetchFeedStats = async () => {
   try {
     const response = await fetch(`${API_URL}/userReport/feedstats`);
-    
+
     if (!response.ok) {
-      throw new Error('Failed to fetch feed stats');
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch feed stats");
     }
-    
-    return await response.json();
+
+    const data = await response.json();
+    return data.success ? data.data : data;
   } catch (error) {
-    console.error('Fetch stats error:', error);
+    console.error("Fetch stats error:", error);
     throw error;
   }
 };
 
 export const fetchLiveUpdates = async (minutes = 30) => {
   try {
-    const response = await fetch(`${API_URL}/userReport/updates?minutes=${minutes}`);
-    
+    const response = await fetch(
+      `${API_URL}/userReport/updates?minutes=${minutes}`,
+    );
+
     if (!response.ok) {
-      throw new Error('Failed to fetch updates');
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch updates");
     }
-    
-    return await response.json();
+
+    const data = await response.json();
+    return data.success ? data.data : data;
   } catch (error) {
-    console.error('Fetch updates error:', error);
+    console.error("Fetch updates error:", error);
     throw error;
   }
 };
