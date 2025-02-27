@@ -1,7 +1,7 @@
 import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import {
   Text,
@@ -27,6 +27,48 @@ const SignIn = () => {
     remember: true,
   });
 
+  const saveSession = async (userData) => {
+    try {
+      if (form.remember) {
+        await SecureStore.setItemAsync("userSession", JSON.stringify(userData));
+        await SecureStore.setItemAsync(
+          "rememberedCredentials",
+          JSON.stringify({
+            email: form.email.toLowerCase(),
+            remember: true,
+          }),
+        );
+      } else {
+        await SecureStore.setItemAsync("userSession", JSON.stringify(userData));
+        await SecureStore.deleteItemAsync("rememberedCredentials");
+      }
+    } catch (error) {
+      console.error("Error saving session:", error);
+    }
+  };
+
+  useEffect(() => {
+    const checkRememberedCredentials = async () => {
+      try {
+        const savedCredentials = await SecureStore.getItemAsync(
+          "rememberedCredentials",
+        );
+        if (savedCredentials) {
+          const { email, remember } = JSON.parse(savedCredentials);
+          setForm((prev) => ({
+            ...prev,
+            email,
+            remember,
+          }));
+        }
+      } catch (error) {
+        console.error("Error loading remembered credentials:", error);
+      }
+    };
+
+    checkRememberedCredentials();
+  }, []);
+
   const validateForm = () => {
     const newErrors = {};
     if (!form.email) newErrors.email = "Email is required";
@@ -48,6 +90,17 @@ const SignIn = () => {
       const response = await authApi.login({
         email: form.email.toLowerCase(),
         password: form.password,
+      });
+
+      await saveSession({
+        token: response.token,
+        user: {
+          id: response.user.id,
+          name: response.user.name,
+          email: response.user.email,
+          department: response.user.department,
+          isVerified: response.user.isVerified,
+        },
       });
 
       if (form.remember) {
@@ -87,8 +140,7 @@ const SignIn = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ padding: 20, flex: 1 }}>
-          {/* Header Section */}
-          <View style={{ marginBottom: 32 }}>
+          <View style={{ marginBottom: 140, marginTop: 40 }}>
             <Text
               variant="headlineMedium"
               style={{ color: theme.colors.primary, fontWeight: "bold" }}
@@ -97,14 +149,14 @@ const SignIn = () => {
             </Text>
             <Text
               variant="bodyLarge"
-              style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+              style={{ color: theme.colors.onSurfaceVariant, marginTop: 3 }}
             >
               Sign in to continue
             </Text>
           </View>
 
           {/* Form Section */}
-          <View style={{ gap: 16 }}>
+          <View style={{ gap: 10 }}>
             <TextInput
               label="Email"
               value={form.email}
@@ -138,8 +190,6 @@ const SignIn = () => {
             <HelperText type="error" visible={!!errors.password}>
               {errors.password}
             </HelperText>
-
-            {/* Remember Me & Forgot Password Row */}
             <View
               style={{
                 flexDirection: "row",
