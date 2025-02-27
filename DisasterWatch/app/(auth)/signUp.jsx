@@ -2,7 +2,6 @@ import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import * as SecureStore from "expo-secure-store";
 import {
   Text,
   TextInput,
@@ -21,10 +20,7 @@ const SignUp = () => {
   const router = useRouter();
   const theme = useTheme();
   const [departmentDialogVisible, setDepartmentDialogVisible] = useState(false);
-
-  // Replace districts with departments
   const departments = ["Fire Department", "Police", "Disaster Response Team"];
-
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -32,7 +28,6 @@ const SignUp = () => {
     workId: "",
     associated_department: "",
   });
-
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,12 +39,9 @@ const SignUp = () => {
     if (!form.workId) newErrors.workId = "Work ID is required";
     if (!form.associated_department)
       newErrors.associated_department = "Department is required";
-
-    // Basic email validation
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -81,8 +73,7 @@ const SignUp = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{ padding: 20, flex: 1 }}>
-          {/* Header Section */}
-          <View style={{ marginBottom: 32 }}>
+          <View style={{ marginBottom: 32, marginTop: 40 }}>
             <Text
               variant="headlineMedium"
               style={{ color: theme.colors.primary, fontWeight: "bold" }}
@@ -91,14 +82,12 @@ const SignUp = () => {
             </Text>
             <Text
               variant="bodyLarge"
-              style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}
+              style={{ color: theme.colors.onSurfaceVariant, marginTop: 3 }}
             >
               Join our platform
             </Text>
           </View>
-
-          {/* Form Section */}
-          <View style={{ gap: 16 }}>
+          <View style={{ gap: 10 }}>
             <TextInput
               label="Full Name"
               value={form.name}
@@ -162,9 +151,7 @@ const SignUp = () => {
               {errors.associated_department}
             </HelperText>
           </View>
-
-          {/* Action Buttons */}
-          <View style={{ marginTop: 24 }}>
+          <View style={{ marginTop: 10 }}>
             <Button
               mode="contained"
               onPress={handleSignUp}
@@ -174,7 +161,7 @@ const SignUp = () => {
               Sign Up
             </Button>
 
-            <Divider style={{ marginVertical: 24 }} />
+            <Divider style={{ marginVertical: 20 }} />
 
             <View
               style={{
@@ -196,8 +183,6 @@ const SignUp = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Department Selection Dialog */}
       <Portal>
         <Dialog
           visible={departmentDialogVisible}
