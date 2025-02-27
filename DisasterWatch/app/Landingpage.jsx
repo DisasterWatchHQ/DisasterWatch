@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { warningApi } from "../services/warningApi";
 import { router } from "expo-router";
 import { View, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -47,12 +48,46 @@ const warningData = [
     timestamp: new Date(),
   },
 ];
+
 const LandingPage = () => {
   const theme = useTheme();
-  const [warnings, setWarnings] = useState(warningData);
+  const [warnings, setWarnings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [emergencyDialogVisible, setEmergencyDialogVisible] = useState(false);
+
+  const fetchWarnings = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await warningApi.getActiveWarnings();
+
+      // Transform the API response to match your warning structure
+      const formattedWarnings = response.map((warning) => ({
+        id: warning.id,
+        type: warning.type || "alert",
+        text: warning.description || warning.title,
+        severity: warning.severity || "medium",
+        timestamp: new Date(warning.createdAt || Date.now()),
+      }));
+
+      setWarnings(formattedWarnings);
+    } catch (err) {
+      setError(err.message || "Failed to fetch warnings");
+      console.error("Error fetching warnings:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWarnings();
+  }, [fetchWarnings]);
+
+  // Add refresh functionality
+  const handleRefresh = () => {
+    fetchWarnings();
+  };
 
   const handleEmergency = useCallback(() => {
     setEmergencyDialogVisible(true);
@@ -60,27 +95,28 @@ const LandingPage = () => {
 
   const navigationButtons = [
     {
-      title: "Emergency",
+      title: "Report",
       color: theme.colors.error,
       onPress: handleEmergency,
-      icon: "alert-octagon", // More distinct emergency icon
+      icon: "alert-octagon",
       description: "Report Emergency",
     },
     {
       title: "Map",
-      color: theme.colors.primary, // Changed from warning to primary
-      onPress: () => router.push("/(tabs)/map"), // Update this route as needed
+      color: theme.colors.primary,
+      onPress: () => router.push("/(tabs)/map"),
       icon: "map",
       description: "View Disaster Map",
     },
     {
       title: "Dashboard",
-      color: theme.colors.tertiary, // Changed from success to tertiary
+      color: theme.colors.tertiary,
       onPress: () => router.push("/(tabs)/home"),
       icon: "view-dashboard",
       description: "View Statistics",
     },
   ];
+
   const getSeverityColor = (severity) => {
     switch (severity) {
       case "high":
@@ -148,9 +184,15 @@ const LandingPage = () => {
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <Text variant="headlineMedium">Something went wrong!</Text>
+        <Text
+          variant="bodyMedium"
+          style={{ marginTop: 8, textAlign: "center" }}
+        >
+          {error}
+        </Text>
         <Button
           mode="contained"
-          onPress={() => setError(null)}
+          onPress={handleRefresh}
           style={{ marginTop: 16 }}
         >
           Try Again
@@ -165,16 +207,22 @@ const LandingPage = () => {
         subtitle="Your safety companion"
         showBack={false}
         containerStyle={{ marginTop: 1 }}
+        rightAction={
+          <IconButton
+            icon="refresh"
+            onPress={handleRefresh}
+            disabled={isLoading}
+          />
+        }
       />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* Action Buttons */}
         <View style={{ marginBottom: 24 }}>
           <View
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
-              gap: 8, // Add gap between buttons
+              gap: 8,
             }}
           >
             {navigationButtons.map((button, index) => (
@@ -230,12 +278,25 @@ const LandingPage = () => {
           </View>
         </View>
 
-        {/* Warnings Section */}
-        <Text variant="titleLarge" style={{ marginBottom: 16 }}>
-          Recent Alerts
-        </Text>
-        {isLoading ? (
-          <ActivityIndicator animating={true} size="large" />
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <Text variant="titleLarge">Recent Alerts</Text>
+          {isLoading && <ActivityIndicator size="small" />}
+        </View>
+
+        {warnings.length === 0 && !isLoading ? (
+          <Text
+            variant="bodyMedium"
+            style={{ textAlign: "center", marginTop: 20 }}
+          >
+            No active warnings at the moment
+          </Text>
         ) : (
           warnings.map((warning) => (
             <WarningCard key={warning.id} warning={warning} />
@@ -243,7 +304,6 @@ const LandingPage = () => {
         )}
       </ScrollView>
 
-      {/* Emergency Dialog */}
       <Portal>
         <Dialog
           visible={emergencyDialogVisible}
@@ -262,7 +322,7 @@ const LandingPage = () => {
             <Button
               onPress={() => {
                 setEmergencyDialogVisible(false);
-                router.push("/DetailedAlert");
+                router.push("/report");
               }}
               textColor={theme.colors.error}
             >
