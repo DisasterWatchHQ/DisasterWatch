@@ -1,8 +1,13 @@
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Text, IconButton, useTheme } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, IconButton, useTheme } from "react-native-paper";
+import { useRouter } from "expo-router";
 
-const HeaderBar = ({ showBack = false, title = "DisasterWatch", subtitle, containerStyle }) => {
+const HeaderBar = ({
+  showBack = false,
+  title = "DisasterWatch",
+  subtitle,
+  containerStyle,
+}) => {
   const router = useRouter();
   const theme = useTheme();
 
@@ -40,7 +45,7 @@ const HeaderBar = ({ showBack = false, title = "DisasterWatch", subtitle, contai
             icon="cog"
             mode="text"
             size={20}
-            onPress={() => router.push('/settings')}
+            onPress={() => router.push("/settings")}
             style={styles.actionButton}
           />
         </View>
@@ -51,26 +56,26 @@ const HeaderBar = ({ showBack = false, title = "DisasterWatch", subtitle, contai
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
     padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: "#E5E7EB",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   headerButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   actionButton: {
@@ -80,7 +85,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     margin: 0,
-  }
+  },
 });
 
 export default HeaderBar;
