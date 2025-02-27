@@ -37,9 +37,25 @@ const ResourcesScreen = () => {
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
   const [data, setData] = useState({
-    guides: { data: [] },
-      contacts: { data: [] },
-      facilities: { data: [] }
+    guides: {
+      data: [],
+      pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        totalResults: 0,
+      },
+    },
+    contacts: {
+      data: [],
+    },
+    facilities: {
+      data: [],
+      pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        totalResults: 0,
+      },
+    },
   });
   const [error, setError] = useState(null);
 
@@ -94,14 +110,20 @@ const ResourcesScreen = () => {
   const fetchGuides = async () => {
     try {
       setLoading(true);
-      const response = await facilityApi.getGuides({
+      const { data, pagination } = await facilityApi.getGuides({
         type: filters.guides !== "all" ? filters.guides : undefined,
         page: 1,
         limit: 20,
       });
-      setData((prev) => ({ ...prev, guides: { data: response.data || [] } }));
+      setData((prev) => ({
+        ...prev,
+        guides: {
+          data: data || [],
+          pagination,
+        },
+      }));
     } catch (error) {
-      setError("Error fetching guides.");
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -129,7 +151,10 @@ const ResourcesScreen = () => {
         limit: 20,
         page: 1,
       });
-      setData((prev) => ({ ...prev, facilities: { data: response.data || [] } }));
+      setData((prev) => ({
+        ...prev,
+        facilities: { data: response.data || [] },
+      }));
     } catch (error) {
       setError("Error fetching facilities.");
     } finally {
@@ -185,18 +210,18 @@ const ResourcesScreen = () => {
     setRefreshing(true);
     try {
       switch (activeSection) {
-        case 'guides':
+        case "guides":
           await fetchGuides();
           break;
-        case 'contacts':
+        case "contacts":
           await fetchEmergencyContacts();
           break;
-        case 'facilities':
+        case "facilities":
           await fetchFacilities();
           break;
       }
     } catch (error) {
-      console.error('Error refreshing:', error);
+      console.error("Error refreshing:", error);
     } finally {
       setRefreshing(false);
     }
@@ -205,19 +230,21 @@ const ResourcesScreen = () => {
   const getFilteredData = () => {
     const searchLower = searchQuery.toLowerCase();
     switch (activeSection) {
-      case 'guides':
-        return (data.guides.data || []).filter(guide =>
-          guide.name.toLowerCase().includes(searchLower) ||
-          guide.description.toLowerCase().includes(searchLower)
+      case "guides":
+        return (data.guides.data || []).filter(
+          (guide) =>
+            guide.name.toLowerCase().includes(searchLower) ||
+            guide.description.toLowerCase().includes(searchLower),
         );
-      case 'contacts':
-        return (data.contacts.data || []).filter(contact =>
-          contact.name.toLowerCase().includes(searchLower) ||
-          contact.description.toLowerCase().includes(searchLower)
+      case "contacts":
+        return (data.contacts.data || []).filter(
+          (contact) =>
+            contact.name.toLowerCase().includes(searchLower) ||
+            contact.description.toLowerCase().includes(searchLower),
         );
-      case 'facilities':
-        return (data.facilities.data || []).filter(facility =>
-          facility.name.toLowerCase().includes(searchLower)
+      case "facilities":
+        return (data.facilities.data || []).filter((facility) =>
+          facility.name.toLowerCase().includes(searchLower),
         );
       default:
         return [];
@@ -296,9 +323,7 @@ const ResourcesScreen = () => {
               size={48}
               color={theme.colors.onSurfaceDisabled}
             />
-            <Text style={styles.emptyText}>
-              {error || "No results found"}
-            </Text>
+            <Text style={styles.emptyText}>{error || "No results found"}</Text>
           </View>
         )}
       />
