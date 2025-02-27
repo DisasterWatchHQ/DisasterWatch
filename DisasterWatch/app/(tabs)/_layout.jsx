@@ -1,7 +1,5 @@
-import { Text, View } from 'react-native';
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { useRouter } from 'expo-router';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import '../../global.css';
@@ -16,7 +14,7 @@ const TabsLayout = () => {
           backgroundColor: theme.colors.elevation.level2,
           borderTopColor: theme.colors.primary,
           borderTopWidth: 2,
-          height: 60,
+          height: 70,
           paddingBottom: 8,
           paddingTop: 8,
           elevation: 8,
@@ -34,6 +32,7 @@ const TabsLayout = () => {
           fontSize: 12,
           fontWeight: '500',
           marginTop: 2,
+          marginBottom: 2,
         },
         headerStyle: {
           backgroundColor: theme.colors.elevation.level2,
