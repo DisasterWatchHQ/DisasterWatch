@@ -40,7 +40,7 @@ const HeaderBar = ({ showBack = false, title = "DisasterWatch", subtitle, contai
             icon="cog"
             mode="text"
             size={20}
-            onPress={() => {}}
+            onPress={() => router.push('/settings')}
             style={styles.actionButton}
           />
         </View>
