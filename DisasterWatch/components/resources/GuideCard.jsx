@@ -3,18 +3,19 @@ import { View, StyleSheet, Animated } from "react-native";
 import { Card, Chip, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatDate } from "../../scripts/dateUtils";
+import { router } from "expo-router";
 
-export const GuideCard = ({ guide, onPress }) => {
+export const GuideCard = ({ guide }) => {
   const theme = useTheme();
   const scale = new Animated.Value(1);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high':
+      case "high":
         return theme.colors.error;
-      case 'medium':
+      case "medium":
         return theme.colors.warning;
-      case 'low':
+      case "low":
         return theme.colors.success;
       default:
         return theme.colors.surfaceVariant;
@@ -35,11 +36,26 @@ export const GuideCard = ({ guide, onPress }) => {
     }).start();
   };
 
+  // Get first 150 characters of content as preview, strip markdown
+  const contentPreview = guide.content
+    ? guide.content
+        .replace(/[#*`_~\[\]]/g, "") // Remove markdown symbols
+        .substring(0, 150)
+        .trim() + (guide.content.length > 150 ? "..." : "")
+    : "";
+
+  const handlePress = () => {
+    router.push({
+      pathname: "/resources/[id]",
+      params: { id: guide.id },
+    });
+  };
+
   return (
     <Animated.View style={[styles.cardContainer, { transform: [{ scale }] }]}>
       <Card
         mode="elevated"
-        onPress={onPress}
+        onPress={handlePress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
@@ -58,7 +74,7 @@ export const GuideCard = ({ guide, onPress }) => {
               mode="flat"
               style={[
                 styles.priorityChip,
-                { backgroundColor: getPriorityColor(guide.priority) }
+                { backgroundColor: getPriorityColor(guide.priority) },
               ]}
             >
               {guide.priority}
@@ -67,8 +83,14 @@ export const GuideCard = ({ guide, onPress }) => {
         />
         <Card.Content>
           <Text style={styles.description}>{guide.description}</Text>
+
+          {/* Content Preview */}
+          <Text style={styles.preview} numberOfLines={3}>
+            {contentPreview}
+          </Text>
+
           <View style={styles.tagsContainer}>
-            {guide.tags.map((tag) => (
+            {guide.tags?.map((tag) => (
               <Chip
                 key={tag}
                 style={styles.chip}
@@ -79,9 +101,13 @@ export const GuideCard = ({ guide, onPress }) => {
               </Chip>
             ))}
           </View>
-          <Text style={styles.lastUpdated}>
-            Last updated: {formatDate(guide.lastUpdated)}
-          </Text>
+
+          <View style={styles.footer}>
+            <Text style={styles.lastUpdated}>
+              Last updated: {formatDate(guide.lastUpdated)}
+            </Text>
+            <Text style={styles.readMore}>Read More →</Text>
+          </View>
         </Card.Content>
       </Card>
     </Animated.View>
@@ -102,6 +128,12 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 12,
   },
+  preview: {
+    fontSize: 13,
+    color: "#444",
+    marginBottom: 12,
+    lineHeight: 18,
+  },
   tagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -117,9 +149,19 @@ const styles = StyleSheet.create({
   priorityChip: {
     marginRight: 16,
   },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+  },
   lastUpdated: {
     fontSize: 12,
     color: "#999",
-    marginTop: 8,
+  },
+  readMore: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "500",
   },
 });
