@@ -38,9 +38,7 @@ export default function WelcomePage() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#262626" }}>
-      <StatusBar style="light" backgroundColor="#262626" />
-
+    <SafeAreaView style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
@@ -63,7 +61,6 @@ export default function WelcomePage() {
             <Text
               variant="headlineSmall"
               style={{
-                color: "#f5f5f5",
                 fontWeight: "bold",
                 textAlign: "center",
                 marginBottom: 8,
@@ -74,7 +71,6 @@ export default function WelcomePage() {
             <Text
               variant="displayMedium"
               style={{
-                color: "#f5f5f5",
                 fontWeight: "800",
                 textAlign: "center",
               }}
@@ -86,7 +82,6 @@ export default function WelcomePage() {
           <Text
             variant="bodyLarge"
             style={{
-              color: "#a3a3a3",
               textAlign: "center",
               marginBottom: 48,
             }}
@@ -114,21 +109,17 @@ export default function WelcomePage() {
 
             <Button
               mode="outlined"
-              onPress={() => {
-                /* navigation to info page */
-              }}
+              onPress={() => {}}
               contentStyle={{
                 height: 50,
               }}
               style={{
                 borderRadius: 12,
                 borderWidth: 2,
-                borderColor: "#a3a3a3",
               }}
               labelStyle={{
                 fontSize: 18,
                 fontWeight: "600",
-                color: "#f5f5f5",
               }}
             >
               Learn More
@@ -142,12 +133,10 @@ export default function WelcomePage() {
               style={{
                 borderRadius: 12,
                 borderWidth: 2,
-                borderColor: "#a3a3a3",
               }}
               labelStyle={{
                 fontSize: 18,
                 fontWeight: "600",
-                color: "#f5f5f5",
               }}
             >
               Sign In
