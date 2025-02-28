@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 
 const HeaderBar = ({
   showBack = false,
+  showBell = true, // New prop with default value true
+  showCog = true,
   title = "DisasterWatch",
   subtitle,
   containerStyle,
@@ -34,20 +36,24 @@ const HeaderBar = ({
           )}
         </View>
         <View style={styles.headerButtons}>
-          <IconButton
-            icon="bell"
-            mode="text"
-            size={20}
-            onPress={() => {}}
-            style={styles.actionButton}
-          />
-          <IconButton
-            icon="cog"
-            mode="text"
-            size={20}
-            onPress={() => router.push("/settings")}
-            style={styles.actionButton}
-          />
+          {showBell && ( // Conditional rendering of bell icon
+            <IconButton
+              icon="bell"
+              mode="text"
+              size={20}
+              onPress={() => {}}
+              style={styles.actionButton}
+            />
+          )}
+          {showCog && (
+            <IconButton
+              icon="cog"
+              mode="text"
+              size={20}
+              onPress={() => router.push("/settings")}
+              style={styles.actionButton}
+            />
+          )}
         </View>
       </View>
     </View>
