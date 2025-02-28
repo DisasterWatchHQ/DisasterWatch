@@ -17,6 +17,7 @@ import {
   Surface,
 } from "react-native-paper";
 import HeaderBar from "../components/headerBar";
+import WarningCard from "../components/warnings/WarningCard";
 
 const warningData = [
   {
@@ -96,6 +97,7 @@ const LandingPage = () => {
   const navigationButtons = [
     {
       title: "Report",
+      id: 1,
       color: theme.colors.error,
       onPress: handleEmergency,
       icon: "alert-octagon",
@@ -103,6 +105,7 @@ const LandingPage = () => {
     },
     {
       title: "Map",
+      id: 2,
       color: theme.colors.primary,
       onPress: () => router.push("/(tabs)/map"),
       icon: "map",
@@ -110,6 +113,7 @@ const LandingPage = () => {
     },
     {
       title: "Dashboard",
+      id: 3,
       color: theme.colors.tertiary,
       onPress: () => router.push("/(tabs)/home"),
       icon: "view-dashboard",
@@ -129,55 +133,10 @@ const LandingPage = () => {
         return theme.colors.primary;
     }
   };
-
-  const WarningCard = ({ warning }) => (
-    <Card
-      mode="outlined"
-      style={{ marginBottom: 12 }}
-      onPress={() => handleWarningPress(warning)}
-    >
-      <Card.Content>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
-              <IconButton
-                icon={warning.type === "alert" ? "alert-circle" : "alert"}
-                size={24}
-                iconColor={getSeverityColor(warning.severity)}
-              />
-              <Chip
-                mode="outlined"
-                textStyle={{ color: getSeverityColor(warning.severity) }}
-                style={{ borderColor: getSeverityColor(warning.severity) }}
-              >
-                {warning.severity.toUpperCase()}
-              </Chip>
-            </View>
-            <Text variant="titleMedium">{warning.text}</Text>
-            <Text
-              variant="bodySmall"
-              style={{ color: theme.colors.onSurfaceVariant }}
-            >
-              {warning.timestamp.toLocaleTimeString()}
-            </Text>
-          </View>
-          <IconButton icon="chevron-right" />
-        </View>
-      </Card.Content>
-    </Card>
-  );
+  const handleWarningPress = (warning) => {
+    // Add your warning press handler logic here
+    console.log("Warning pressed:", warning);
+  };
   if (error) {
     return (
       <SafeAreaView
@@ -225,9 +184,9 @@ const LandingPage = () => {
               gap: 8,
             }}
           >
-            {navigationButtons.map((button, index) => (
+            {navigationButtons.map((button) => (
               <Card
-                key={index}
+                key={button.id}
                 mode="elevated"
                 style={{
                   flex: 1,
@@ -299,7 +258,12 @@ const LandingPage = () => {
           </Text>
         ) : (
           warnings.map((warning) => (
-            <WarningCard key={warning.id} warning={warning} />
+            <WarningCard
+              key={warning.id || warning._id} // This ensures unique keys
+              warning={warning}
+              onPress={handleWarningPress}
+              getSeverityColor={getSeverityColor}
+            />
           ))
         )}
       </ScrollView>
