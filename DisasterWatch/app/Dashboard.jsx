@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Alert } from "react-native";
+import { View, ScrollView, Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Text,
@@ -8,6 +8,7 @@ import {
   useTheme,
   ActivityIndicator,
   Divider,
+  Surface,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import HeaderBar from "../components/headerBar";
@@ -20,19 +21,18 @@ const StatsCard = ({ title, value, icon, color }) => {
   const theme = useTheme();
 
   return (
-    <Card style={{ margin: 5, flex: 1 }}>
+    <Card style={styles.statsCard}>
       <Card.Content>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <MaterialCommunityIcons name={icon} size={24} color={color} />
-          <Text variant="titleMedium">{value}</Text>
+        <View style={styles.statsCardHeader}>
+          <MaterialCommunityIcons name={icon} size={28} color={color} />
+          <Text
+            variant="headlineMedium"
+            style={{ color: color, fontWeight: "bold" }}
+          >
+            {value}
+          </Text>
         </View>
-        <Text variant="bodySmall" style={{ marginTop: 5 }}>
+        <Text variant="bodyMedium" style={styles.statsCardTitle}>
           {title}
         </Text>
       </Card.Content>
@@ -42,29 +42,33 @@ const StatsCard = ({ title, value, icon, color }) => {
 
 const PendingReportCard = ({ report, onVerify, onReject }) => {
   return (
-    <Card style={{ marginVertical: 5 }}>
+    <Card style={styles.reportCard}>
       <Card.Content>
-        <Text variant="titleMedium">{report.title}</Text>
-        <Text variant="bodySmall">{`${report.type} - ${report.location}`}</Text>
-        <Text variant="bodySmall">
+        <Text variant="titleMedium" style={styles.reportTitle}>
+          {report.title}
+        </Text>
+        <Text variant="bodyMedium" style={styles.reportDetails}>
+          {`${report.type} - ${report.location}`}
+        </Text>
+        <Text variant="bodySmall" style={styles.reportTimestamp}>
           {new Date(report.timestamp).toLocaleString()}
         </Text>
 
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "flex-end",
-            marginTop: 10,
-          }}
-        >
+        <View style={styles.reportActions}>
           <Button
-            mode="outlined"
+            mode="contained"
             onPress={() => onVerify(report.id)}
-            style={{ marginRight: 10 }}
+            style={styles.actionButton}
+            labelStyle={styles.buttonLabel}
           >
             Verify
           </Button>
-          <Button mode="outlined" onPress={() => onReject(report.id)}>
+          <Button
+            mode="outlined"
+            onPress={() => onReject(report.id)}
+            style={styles.actionButton}
+            labelStyle={styles.buttonLabel}
+          >
             Reject
           </Button>
         </View>
@@ -181,18 +185,15 @@ const Dashboard = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView style={styles.container}>
       <HeaderBar
         title="Dashboard"
         showBack={false}
         subtitle="Disaster Management Overview"
       />
 
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* Stats Grid */}
-        <View
-          style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}
-        >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.statsGrid}>
           <StatsCard
             title="Pending Verification"
             value={dashboardStats.pendingCount}
@@ -219,26 +220,25 @@ const Dashboard = () => {
           />
         </View>
 
-        <Divider style={{ marginVertical: 16 }} />
-
-        <View style={{ marginTop: 16 }}>
+        <Surface style={styles.section}>
+          <Text variant="headlineMedium" style={styles.sectionTitle}>
+            Active Warnings
+          </Text>
           <CreateWarningDialog />
-        </View>
-
-        <View style={{ marginTop: 16 }}>
-          <Text variant="titleLarge">Active Warnings</Text>
           {activeWarnings.map((warning) => (
-            <Card key={warning._id} style={{ marginTop: 8 }}>
+            <Card key={warning._id} style={styles.warningCard}>
               <Card.Content>
-                <Text variant="titleMedium">{warning.title}</Text>
-                <Text variant="bodySmall">
+                <Text variant="titleMedium" style={styles.warningTitle}>
+                  {warning.title}
+                </Text>
+                <Text variant="bodyMedium" style={styles.warningDetails}>
                   {warning.disaster_category} - Severity: {warning.severity}
                 </Text>
-                <Text variant="bodySmall">
+                <Text variant="bodySmall" style={styles.warningTimestamp}>
                   Created: {new Date(warning.created_at).toLocaleString()}
                 </Text>
                 {warning.updates.length > 0 && (
-                  <Text variant="bodySmall">
+                  <Text variant="bodyMedium" style={styles.warningUpdate}>
                     Last update:{" "}
                     {warning.updates[warning.updates.length - 1].update_text}
                   </Text>
@@ -250,35 +250,126 @@ const Dashboard = () => {
               </Card.Content>
             </Card>
           ))}
-        </View>
+        </Surface>
 
-        {/* Pending Reports Section */}
-        <Text variant="titleLarge" style={{ marginBottom: 16 }}>
-          Pending Reports
-        </Text>
-
-        {pendingReports.length > 0 ? (
-          pendingReports.map((report) => (
-            <PendingReportCard
-              key={report.id}
-              report={report}
-              onVerify={handleVerifyReport}
-              onReject={handleRejectReport}
-            />
-          ))
-        ) : (
-          <Text
-            style={{
-              textAlign: "center",
-              color: theme.colors.onSurfaceVariant,
-            }}
-          >
-            No pending reports to verify
+        <Surface style={styles.section}>
+          <Text variant="headlineMedium" style={styles.sectionTitle}>
+            Pending Reports
           </Text>
-        )}
+          {pendingReports.length > 0 ? (
+            pendingReports.map((report) => (
+              <PendingReportCard
+                key={report.id}
+                report={report}
+                onVerify={handleVerifyReport}
+                onReject={handleRejectReport}
+              />
+            ))
+          ) : (
+            <Text style={styles.emptyMessage}>
+              No pending reports to verify
+            </Text>
+          )}
+        </Surface>
       </ScrollView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5", // Light background color
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 16,
+    marginBottom: 24,
+  },
+  statsCard: {
+    width: "47%",
+    elevation: 2,
+    borderRadius: 12,
+  },
+  statsCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  statsCardTitle: {
+    opacity: 0.8,
+  },
+  section: {
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 1,
+  },
+  sectionTitle: {
+    marginBottom: 16,
+    fontWeight: "bold",
+  },
+  reportCard: {
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  reportTitle: {
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  reportDetails: {
+    opacity: 0.8,
+    marginBottom: 4,
+  },
+  reportTimestamp: {
+    opacity: 0.6,
+  },
+  reportActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 12,
+    gap: 8,
+  },
+  actionButton: {
+    minWidth: 100,
+  },
+  buttonLabel: {
+    fontSize: 14,
+  },
+  warningCard: {
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  warningTitle: {
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  warningDetails: {
+    opacity: 0.8,
+    marginBottom: 4,
+  },
+  warningTimestamp: {
+    opacity: 0.6,
+    marginBottom: 8,
+  },
+  warningUpdate: {
+    opacity: 0.8,
+    marginBottom: 12,
+    fontStyle: "italic",
+  },
+  emptyMessage: {
+    textAlign: "center",
+    opacity: 0.6,
+    marginTop: 16,
+  },
+});
 
 export default Dashboard;
