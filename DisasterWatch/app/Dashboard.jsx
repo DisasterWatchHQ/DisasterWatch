@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
-import { View, ScrollView, RefreshControl, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Text,
@@ -7,26 +7,74 @@ import {
   Button,
   useTheme,
   ActivityIndicator,
-  Portal,
-  Modal,
-  TextInput,
-  SegmentedButtons,
+  Divider,
 } from "react-native-paper";
-import { UserContext } from "../constants/globalProvider";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import HeaderBar from "../components/headerBar";
 import api from "../services/dash";
-import WarningForm from "../components/warnings/WarningForm";
+import wardash from "../services/wardash";
+import CreateWarningDialog from "../components/warnings/CreateWarningDialog";
+import { WarningActions } from "../components/warnings/WarningActions";
+
+const StatsCard = ({ title, value, icon, color }) => {
+  const theme = useTheme();
+
+  return (
+    <Card style={{ margin: 5, flex: 1 }}>
+      <Card.Content>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <MaterialCommunityIcons name={icon} size={24} color={color} />
+          <Text variant="titleMedium">{value}</Text>
+        </View>
+        <Text variant="bodySmall" style={{ marginTop: 5 }}>
+          {title}
+        </Text>
+      </Card.Content>
+    </Card>
+  );
+};
+
+const PendingReportCard = ({ report, onVerify, onReject }) => {
+  return (
+    <Card style={{ marginVertical: 5 }}>
+      <Card.Content>
+        <Text variant="titleMedium">{report.title}</Text>
+        <Text variant="bodySmall">{`${report.type} - ${report.location}`}</Text>
+        <Text variant="bodySmall">
+          {new Date(report.timestamp).toLocaleString()}
+        </Text>
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            marginTop: 10,
+          }}
+        >
+          <Button
+            mode="outlined"
+            onPress={() => onVerify(report.id)}
+            style={{ marginRight: 10 }}
+          >
+            Verify
+          </Button>
+          <Button mode="outlined" onPress={() => onReject(report.id)}>
+            Reject
+          </Button>
+        </View>
+      </Card.Content>
+    </Card>
+  );
+};
 
 const Dashboard = () => {
   const theme = useTheme();
-  const { user } = useContext(UserContext);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isWarningModalVisible, setWarningModalVisible] = useState(false);
-  const [isUpdateModalVisible, setUpdateModalVisible] = useState(false);
-  const [selectedWarning, setSelectedWarning] = useState(null);
-  const [updateText, setUpdateText] = useState("");
-  const [severityChange, setSeverityChange] = useState("");
-
   const [dashboardStats, setDashboardStats] = useState({
     pendingCount: 0,
     verifiedToday: 0,
@@ -34,7 +82,18 @@ const Dashboard = () => {
     avgVerificationTime: 0,
   });
   const [pendingReports, setPendingReports] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeWarnings, setActiveWarnings] = useState([]);
+
+  const fetchActiveWarnings = async () => {
+    try {
+      const response = await wardash.get("/warning/active");
+      setActiveWarnings(response.data.data);
+    } catch (error) {
+      console.error("Error fetching active warnings:", error);
+      Alert.alert("Error", "Failed to fetch active warnings");
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -44,7 +103,7 @@ const Dashboard = () => {
           api.get("/userReport/public", {
             params: { verification_status: "pending", limit: 5 },
           }),
-          api.get("/warning/active"),
+          wardash.get("/warning/active"),
         ]);
 
       setDashboardStats({
@@ -56,337 +115,168 @@ const Dashboard = () => {
 
       setPendingReports(
         reportsResponse.data.reports.map((report) => ({
+          id: report.id, // Make sure this matches your API response
           title: report.title,
-          id: report.id,
           type: report.disaster_category,
-          location: `${report.location.address.district}, ${report.location.address.city}`,
-          timestamp: new Date(report.date_time).toLocaleString(),
-          urgency: report.verification?.severity || "Medium",
+          location: report.location?.address
+            ? `${report.location.address.district || ""}, ${report.location.address.city || ""}`
+            : "Location not specified",
+          timestamp: report.date_time,
         })),
       );
-
       setActiveWarnings(warningsResponse.data.data);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
       Alert.alert("Error", "Failed to fetch dashboard data");
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  const handleReportAction = async (reportId, action) => {
+  const handleVerifyReport = async (reportId) => {
     try {
-      if (action === "verify") {
-        await api.post(`/userReport/${reportId}/verify`, {
-          severity: "medium",
-          notes: "Verified through mobile dashboard",
-        });
-      } else if (action === "dismiss") {
-        await api.post(`/userReport/${reportId}/dismiss`, {
-          notes: "Dismissed through mobile dashboard",
-        });
-      }
-
-      // Refresh the dashboard data after action
-      fetchDashboardData();
-      Alert.alert(
-        "Success",
-        `Report ${action === "verify" ? "verified" : "dismissed"} successfully`,
-      );
+      await api.post(`/userReport/${reportId}/verify`, {
+        severity: "medium",
+        notes: "Verified through dashboard",
+      });
+      fetchDashboardData(); // Refresh data after verification
+      Alert.alert("Success", "Report verified successfully");
     } catch (error) {
-      console.error(`Error ${action}ing report:`, error);
-      Alert.alert("Error", `Failed to ${action} report. Please try again.`);
+      console.error("Error verifying report:", error);
+      Alert.alert("Error", "Failed to verify report");
     }
   };
 
-  const handleWarningUpdate = async (warningId) => {
+  const handleRejectReport = async (reportId) => {
     try {
-      const updateData = {
-        update_text: updateText,
-        updated_by: user.id,
-        updated_at: new Date(),
-        severity_change: severityChange || undefined,
-      };
-
-      await api.post(`/warning/${warningId}/updates`, updateData);
-
-      setUpdateModalVisible(false);
-      setUpdateText("");
-      setSeverityChange("");
-      fetchDashboardData();
-      Alert.alert("Success", "Warning updated successfully");
+      await api.post(`/userReport/${reportId}/dismiss`, {
+        notes: "Dismissed through dashboard",
+      });
+      fetchDashboardData(); // Refresh data after rejection
+      Alert.alert("Success", "Report rejected successfully");
     } catch (error) {
-      console.error("Error updating warning:", error);
-      Alert.alert("Error", "Failed to update warning");
-    }
-  };
-
-  const handleResolveWarning = async (warningId) => {
-    try {
-      const resolutionData = {
-        status: "resolved",
-        resolved_by: user.id,
-        resolution_notes: "Warning resolved through mobile dashboard",
-        resolved_at: new Date(),
-      };
-
-      await api.post(`/warning/${warningId}/resolve`, resolutionData);
-      fetchDashboardData();
-      Alert.alert("Success", "Warning resolved successfully");
-    } catch (error) {
-      console.error("Error resolving warning:", error);
-      Alert.alert("Error", "Failed to resolve warning");
+      console.error("Error rejecting report:", error);
+      Alert.alert("Error", "Failed to reject report");
     }
   };
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 300000); // Refresh every 5 minutes
+    return () => clearInterval(interval);
   }, []);
 
-  const showUpdateModal = (warning) => {
-    setSelectedWarning(warning);
-    setUpdateModalVisible(true);
-  };
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
+        <HeaderBar title="Dashboard" showBack={false} />
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={fetchDashboardData}
+      <HeaderBar
+        title="Dashboard"
+        showBack={false}
+        subtitle="Disaster Management Overview"
+      />
+
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        {/* Stats Grid */}
+        <View
+          style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}
+        >
+          <StatsCard
+            title="Pending Verification"
+            value={dashboardStats.pendingCount}
+            icon="clock-outline"
+            color={theme.colors.warning}
           />
-        }
-      >
-        <View style={{ padding: 16 }}>
-          {/* Stats Cards */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            <Card style={{ flex: 1, minWidth: "48%" }}>
-              <Card.Content>
-                <Text variant="titleMedium">Pending</Text>
-                <Text variant="headlineMedium">
-                  {dashboardStats.pendingCount}
-                </Text>
-              </Card.Content>
-            </Card>
-
-            <Card style={{ flex: 1, minWidth: "48%" }}>
-              <Card.Content>
-                <Text variant="titleMedium">Verified Today</Text>
-                <Text variant="headlineMedium">
-                  {dashboardStats.verifiedToday}
-                </Text>
-              </Card.Content>
-            </Card>
-
-            <Card style={{ flex: 1, minWidth: "48%" }}>
-              <Card.Content>
-                <Text variant="titleMedium">Active Incidents</Text>
-                <Text variant="headlineMedium">
-                  {dashboardStats.activeIncidents}
-                </Text>
-              </Card.Content>
-            </Card>
-
-            <Card style={{ flex: 1, minWidth: "48%" }}>
-              <Card.Content>
-                <Text variant="titleMedium">Avg Response Time</Text>
-                <Text variant="headlineMedium">
-                  {dashboardStats.avgVerificationTime}h
-                </Text>
-              </Card.Content>
-            </Card>
-          </View>
-          <Button
-            mode="contained"
-            onPress={() => setWarningModalVisible(true)}
-            style={{ marginVertical: 16 }}
-          >
-            Create Warning
-          </Button>
-
-          {/* Active Warnings */}
-          <Card style={{ marginTop: 16 }}>
-            <Card.Title title="Active Warnings" />
-            <Card.Content>
-              {activeWarnings.map((warning) => (
-                <View
-                  key={warning._id}
-                  style={{
-                    padding: 12,
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.colors.outlineVariant,
-                  }}
-                >
-                  <Text variant="titleMedium">{warning.title}</Text>
-                  <Text variant="bodyMedium">
-                    {warning.disaster_category} - Severity: {warning.severity}
-                  </Text>
-                  <Text variant="bodySmall">
-                    Created: {new Date(warning.created_at).toLocaleString()}
-                  </Text>
-
-                  <View style={{ flexDirection: "row", marginTop: 8, gap: 8 }}>
-                    <Button
-                      mode="outlined"
-                      onPress={() => showUpdateModal(warning)}
-                    >
-                      Add Update
-                    </Button>
-                    {warning.status !== "resolved" && (
-                      <Button
-                        mode="outlined"
-                        onPress={() => handleResolveWarning(warning._id)}
-                      >
-                        Resolve
-                      </Button>
-                    )}
-                  </View>
-                </View>
-              ))}
-            </Card.Content>
-          </Card>
-
-          {/* Pending Reports */}
-          <Card style={{ marginTop: 16 }}>
-            <Card.Title title="Pending Reports" />
-            <Card.Content>
-              {pendingReports.map((report) => (
-                <View
-                  key={report.id}
-                  style={{
-                    padding: 12,
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.colors.outlineVariant,
-                  }}
-                >
-                  <Text variant="titleMedium">{report.title}</Text>
-                  <Text
-                    variant="bodyMedium"
-                    style={{ color: theme.colors.onSurfaceVariant }}
-                  >
-                    {report.type} - {report.location}
-                  </Text>
-                  <Text
-                    variant="bodySmall"
-                    style={{ color: theme.colors.onSurfaceVariant }}
-                  >
-                    {report.timestamp}
-                  </Text>
-                  <View style={{ flexDirection: "row", marginTop: 8, gap: 8 }}>
-                    <Button
-                      mode="outlined"
-                      onPress={() => handleReportAction(report.id, "verify")}
-                      compact
-                    >
-                      Verify
-                    </Button>
-                    <Button
-                      mode="outlined"
-                      onPress={() => handleReportAction(report.id, "dismiss")}
-                      compact
-                    >
-                      Dismiss
-                    </Button>
-                  </View>
-                </View>
-              ))}
-              {pendingReports.length === 0 && (
-                <Text
-                  variant="bodyMedium"
-                  style={{
-                    textAlign: "center",
-                    color: theme.colors.onSurfaceVariant,
-                  }}
-                >
-                  No pending reports
-                </Text>
-              )}
-            </Card.Content>
-          </Card>
+          <StatsCard
+            title="Verified Today"
+            value={dashboardStats.verifiedToday}
+            icon="check-circle-outline"
+            color={theme.colors.success}
+          />
+          <StatsCard
+            title="Active Incidents"
+            value={dashboardStats.activeIncidents}
+            icon="alert-outline"
+            color={theme.colors.error}
+          />
+          <StatsCard
+            title="Avg Response Time"
+            value={`${dashboardStats.avgVerificationTime}h`}
+            icon="clock-alert-outline"
+            color={theme.colors.primary}
+          />
         </View>
-      </ScrollView>
 
-      <Portal>
-        <Modal
-          visible={isWarningModalVisible}
-          onDismiss={() => setWarningModalVisible(false)}
-          contentContainerStyle={{
-            backgroundColor: theme.colors.background,
-            padding: 20,
-            margin: 20,
-            borderRadius: 8,
-          }}
-        >
-          <WarningForm
-            onSubmit={async (data) => {
-              try {
-                await api.post("/warning", data);
-                setWarningModalVisible(false);
-                fetchDashboardData();
-                Alert.alert("Success", "Warning created successfully");
-              } catch (error) {
-                Alert.alert("Error", "Failed to create warning");
-              }
+        <Divider style={{ marginVertical: 16 }} />
+
+        <View style={{ marginTop: 16 }}>
+          <CreateWarningDialog />
+        </View>
+
+        <View style={{ marginTop: 16 }}>
+          <Text variant="titleLarge">Active Warnings</Text>
+          {activeWarnings.map((warning) => (
+            <Card key={warning._id} style={{ marginTop: 8 }}>
+              <Card.Content>
+                <Text variant="titleMedium">{warning.title}</Text>
+                <Text variant="bodySmall">
+                  {warning.disaster_category} - Severity: {warning.severity}
+                </Text>
+                <Text variant="bodySmall">
+                  Created: {new Date(warning.created_at).toLocaleString()}
+                </Text>
+                {warning.updates.length > 0 && (
+                  <Text variant="bodySmall">
+                    Last update:{" "}
+                    {warning.updates[warning.updates.length - 1].update_text}
+                  </Text>
+                )}
+                <WarningActions
+                  warning={warning}
+                  onUpdate={() => fetchActiveWarnings()}
+                />
+              </Card.Content>
+            </Card>
+          ))}
+        </View>
+
+        {/* Pending Reports Section */}
+        <Text variant="titleLarge" style={{ marginBottom: 16 }}>
+          Pending Reports
+        </Text>
+
+        {pendingReports.length > 0 ? (
+          pendingReports.map((report) => (
+            <PendingReportCard
+              key={report.id}
+              report={report}
+              onVerify={handleVerifyReport}
+              onReject={handleRejectReport}
+            />
+          ))
+        ) : (
+          <Text
+            style={{
+              textAlign: "center",
+              color: theme.colors.onSurfaceVariant,
             }}
-            onCancel={() => setWarningModalVisible(false)}
-          />
-        </Modal>
-      </Portal>
-
-      {/* Warning Update Modal */}
-      <Portal>
-        <Modal
-          visible={isUpdateModalVisible}
-          onDismiss={() => setUpdateModalVisible(false)}
-          contentContainerStyle={{
-            backgroundColor: theme.colors.background,
-            padding: 20,
-            margin: 20,
-            borderRadius: 8,
-          }}
-        >
-          <Text variant="titleLarge" style={{ marginBottom: 16 }}>
-            Add Warning Update
-          </Text>
-          <TextInput
-            label="Update Details"
-            value={updateText}
-            onChangeText={setUpdateText}
-            multiline
-            numberOfLines={4}
-            style={{ marginBottom: 16 }}
-          />
-          <SegmentedButtons
-            value={severityChange}
-            onValueChange={setSeverityChange}
-            buttons={[
-              { value: "low", label: "Low" },
-              { value: "medium", label: "Medium" },
-              { value: "high", label: "High" },
-              { value: "critical", label: "Critical" },
-            ]}
-            style={{ marginBottom: 16 }}
-          />
-          <View
-            style={{ flexDirection: "row", justifyContent: "flex-end", gap: 8 }}
           >
-            <Button
-              mode="outlined"
-              onPress={() => setUpdateModalVisible(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              mode="contained"
-              onPress={() => handleWarningUpdate(selectedWarning._id)}
-              disabled={!updateText.trim()}
-            >
-              Submit Update
-            </Button>
-          </View>
-        </Modal>
-      </Portal>
+            No pending reports to verify
+          </Text>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
