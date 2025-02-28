@@ -18,7 +18,9 @@ import {
 import { Stack } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import { UserContext } from "../../constants/globalProvider";
+import { FAB, Modal } from "react-native-paper";
+import AddGuideModal from "../../components/resources/AddGuideModal";
 import { GuideCard } from "../../components/resources/GuideCard";
 import { EmergencyContactCard } from "../../components/resources/EmergencyContactCard";
 import { FacilityCard } from "../../components/resources/FacilityCard";
@@ -58,7 +60,8 @@ const ResourcesScreen = () => {
     },
   });
   const [error, setError] = useState(null);
-
+  const { user, isAuthenticated } = React.useContext(UserContext);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [activeSection, setActiveSection] = useState("guides");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -92,6 +95,9 @@ const ResourcesScreen = () => {
       icon: "hospital-building",
     },
   ];
+
+  const showAddModal = () => setIsAddModalVisible(true);
+  const hideAddModal = () => setIsAddModalVisible(false);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -336,11 +342,45 @@ const ResourcesScreen = () => {
           </View>
         </Portal>
       )}
+
+      {isAuthenticated && activeSection === "guides" && (
+        <Portal>
+          <FAB
+            icon="plus"
+            style={styles.fab}
+            onPress={showAddModal}
+            label="Add Guide"
+          />
+        </Portal>
+      )}
+
+      <AddGuideModal
+        visible={isAddModalVisible}
+        onDismiss={hideAddModal}
+        onSubmit={async (guideData) => {
+          try {
+            setLoading(true);
+            await facilityApi.createGuide(guideData);
+            await fetchGuides();
+            hideAddModal();
+          } catch (error) {
+            console.error("Error creating guide:", error);
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 80,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
