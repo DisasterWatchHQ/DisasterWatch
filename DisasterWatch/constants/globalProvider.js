@@ -1,5 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import React, { createContext, useState, useEffect } from "react";
+import * as SecureStore from "expo-secure-store";
 
 const UserContext = createContext();
 
@@ -10,13 +10,14 @@ const UserProvider = ({ children }) => {
   // Load user from secure storage
   const loadUser = async () => {
     try {
-      const session = await SecureStore.getItemAsync('userSession');
+      const session = await SecureStore.getItemAsync("userSession");
       if (session) {
-        const parsedUser = JSON.parse(session);
-        setUser(parsedUser);
+        const sessionData = JSON.parse(session);
+        console.log("Loaded session data:", sessionData); // Debug log
+        setUser(sessionData);
       }
     } catch (error) {
-      console.log('Error loading user:', error);
+      console.log("Error loading user:", error);
     } finally {
       setLoading(false);
     }
@@ -25,12 +26,19 @@ const UserProvider = ({ children }) => {
   // Sign in function
   const signIn = async (credentials) => {
     try {
+      const userSession = {
+        user: credentials.user,
+        token: credentials.token,
+      };
       // Store user session
-      await SecureStore.setItemAsync('userSession', JSON.stringify(credentials));
-      setUser(credentials);
+      await SecureStore.setItemAsync(
+        "userSession",
+        JSON.stringify(userSession),
+      );
+      setUser(credentials.user);
       return true;
     } catch (error) {
-      console.log('Error signing in:', error);
+      console.log("Error signing in:", error);
       return false;
     }
   };
@@ -38,10 +46,10 @@ const UserProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      await SecureStore.deleteItemAsync('userSession');
+      await SecureStore.deleteItemAsync("userSession");
       setUser(null);
     } catch (error) {
-      console.log('Error logging out:', error);
+      console.log("Error logging out:", error);
     }
   };
 
@@ -51,14 +59,16 @@ const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ 
-      user, 
-      loading, 
-      setUser, 
-      signIn,
-      logout,
-      isAuthenticated: !!user 
-    }}>
+    <UserContext.Provider
+      value={{
+        user,
+        loading,
+        setUser,
+        signIn,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
