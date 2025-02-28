@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Divider,
   Surface,
+  FAB,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import HeaderBar from "../components/headerBar";
@@ -16,6 +17,7 @@ import api from "../services/dash";
 import wardash from "../services/wardash";
 import CreateWarningDialog from "../components/warnings/CreateWarningDialog";
 import { WarningActions } from "../components/warnings/WarningActions";
+import { useNavigation } from "@react-navigation/native";
 
 const StatsCard = ({ title, value, icon, color }) => {
   const theme = useTheme();
@@ -88,7 +90,7 @@ const Dashboard = () => {
   const [pendingReports, setPendingReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeWarnings, setActiveWarnings] = useState([]);
-
+  const navigation = useNavigation();
   const fetchActiveWarnings = async () => {
     try {
       const response = await wardash.get("/warning/active");
@@ -272,11 +274,23 @@ const Dashboard = () => {
           )}
         </Surface>
       </ScrollView>
+      <FAB
+        icon="tab"
+        style={styles.fab}
+        onPress={() => navigation.navigate("(tabs)")}
+        label="Go to Tabs"
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5", // Light background color
