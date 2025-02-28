@@ -14,7 +14,7 @@ import Geocoder from "react-native-geocoding";
 
 export const PreferencesContext = React.createContext();
 
-Geocoder.init(process.env.GMAPS_API_KEY)
+Geocoder.init(process.env.GMAPS_API_KEY);
 SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
@@ -54,6 +54,7 @@ const RootLayout = () => {
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="profile" />
             <Stack.Screen name="settings" />
+            <Stack.Screen name="Dashboard" />
           </Stack>
         </UserProvider>
         <StatusBar style={isDarkMode ? "light" : "dark"} />
