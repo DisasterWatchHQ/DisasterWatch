@@ -59,6 +59,8 @@ const GuideDetailScreen = () => {
         subtitle={guide?.type}
         showBack={false}
         containerStyle={styles.headerBar}
+        showBell={false}
+        showCog={false}
       />
       
       <ScrollView 
