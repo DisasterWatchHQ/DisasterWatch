@@ -128,7 +128,7 @@ const SignIn = () => {
         return;
       }
 
-      router.replace("/Landingpage");
+      router.replace("/Dashboard");
     } catch (error) {
       Alert.alert("Error", error.message || "Invalid email or password");
     } finally {
