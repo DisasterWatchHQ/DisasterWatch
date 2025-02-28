@@ -84,7 +84,6 @@ const MapWindow = ({
 
   return (
     <Surface style={[styles.container, style]} elevation={1}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.locationInfo}>
           <IconButton
@@ -116,7 +115,6 @@ const MapWindow = ({
         />
       </View>
 
-      {/* Map */}
       <View style={[styles.mapContainer, { height }]}>
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -138,7 +136,7 @@ const MapWindow = ({
                 title={marker.title}
                 description={marker.description}
                 pinColor={marker.color}
-                image={marker.icon} // Add custom icons for markers if available
+                image={marker.icon}
               />
             ))}
           </MapView>
@@ -156,26 +154,39 @@ const MapWindow = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   locationInfo: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    gap: 8,
   },
   locationIcon: {
     margin: 0,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 8,
   },
   mapContainer: {
     overflow: "hidden",
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
   map: {
     flex: 1,
@@ -185,12 +196,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#ffffff",
   },
   errorContainer: {
-    flex:1,
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8d7da",
+    backgroundColor: "#fff5f5",
+    padding: 16,
+  },
+  errorText: {
+    color: "#dc2626",
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
 

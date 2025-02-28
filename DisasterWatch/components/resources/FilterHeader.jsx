@@ -3,7 +3,13 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { Searchbar, Chip, Surface } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export const FilterHeader = ({ searchQuery, onSearchChange, filters, onFilterChange, placeholder }) => {
+export const FilterHeader = ({
+  searchQuery,
+  onSearchChange,
+  filters,
+  onFilterChange,
+  placeholder,
+}) => {
   return (
     <View style={styles.container}>
       <Searchbar
@@ -12,8 +18,8 @@ export const FilterHeader = ({ searchQuery, onSearchChange, filters, onFilterCha
         value={searchQuery}
         style={styles.searchBar}
       />
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.filterScroll}
         contentContainerStyle={styles.filterContainer}
@@ -35,13 +41,15 @@ export const FilterHeader = ({ searchQuery, onSearchChange, filters, onFilterCha
 
 const styles = StyleSheet.create({
   container: {
-    padding: 8,
+    padding: 6,
   },
   compactContainer: {
     padding: 4,
   },
   searchBar: {
-    marginBottom: 8,
+    marginBottom: 6,
+    borderRadius: 8,
+    elevation: 1,
   },
   compactSearchBar: {
     height: 40,
@@ -54,11 +62,12 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   filterContainer: {
-    gap: 8,
-    paddingHorizontal: 4,
+    gap: 6,
+    paddingHorizontal: 2,
   },
   filterChip: {
     marginRight: 4,
+    borderRadius: 8,
   },
   compactChip: {
     height: 28,

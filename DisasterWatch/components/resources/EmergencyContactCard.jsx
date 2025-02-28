@@ -1,5 +1,11 @@
 import React from "react";
-import { View, StyleSheet, Animated, Linking, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Linking,
+  TouchableOpacity,
+} from "react-native";
 import { Card, Chip, Text, IconButton, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -26,10 +32,10 @@ export const EmergencyContactCard = ({ contact }) => {
             style={styles.contactButton}
             onPress={() => Linking.openURL(`tel:${contact.contact.phone}`)}
           >
-            <MaterialCommunityIcons 
-              name="phone" 
-              size={20} 
-              color={theme.colors.primary} 
+            <MaterialCommunityIcons
+              name="phone"
+              size={20}
+              color={theme.colors.primary}
             />
             <Text style={styles.contactText}>{contact.contact.phone}</Text>
             <Text style={styles.contactLabel}>Primary</Text>
@@ -39,14 +45,18 @@ export const EmergencyContactCard = ({ contact }) => {
           {contact.contact.alternate_phone && (
             <TouchableOpacity
               style={styles.contactButton}
-              onPress={() => Linking.openURL(`tel:${contact.contact.alternate_phone}`)}
+              onPress={() =>
+                Linking.openURL(`tel:${contact.contact.alternate_phone}`)
+              }
             >
-              <MaterialCommunityIcons 
-                name="phone-classic" 
-                size={20} 
-                color={theme.colors.primary} 
+              <MaterialCommunityIcons
+                name="phone-classic"
+                size={20}
+                color={theme.colors.primary}
               />
-              <Text style={styles.contactText}>{contact.contact.alternate_phone}</Text>
+              <Text style={styles.contactText}>
+                {contact.contact.alternate_phone}
+              </Text>
               <Text style={styles.contactLabel}>Alternate</Text>
             </TouchableOpacity>
           )}
@@ -56,10 +66,10 @@ export const EmergencyContactCard = ({ contact }) => {
             style={styles.contactButton}
             onPress={() => Linking.openURL(`mailto:${contact.contact.email}`)}
           >
-            <MaterialCommunityIcons 
-              name="email" 
-              size={20} 
-              color={theme.colors.primary} 
+            <MaterialCommunityIcons
+              name="email"
+              size={20}
+              color={theme.colors.primary}
             />
             <Text style={styles.contactText}>{contact.contact.email}</Text>
             <Text style={styles.contactLabel}>Email</Text>
@@ -74,18 +84,18 @@ export const EmergencyContactCard = ({ contact }) => {
           >
             {contact.available_hours}
           </Chip>
-          
+
           <Chip
             icon="alert"
             mode="outlined"
             style={[
               styles.emergencyLevelChip,
               {
-                backgroundColor: 
-                  contact.emergency_level === "high" 
-                    ? theme.colors.errorContainer 
-                    : theme.colors.surfaceVariant
-              }
+                backgroundColor:
+                  contact.emergency_level === "high"
+                    ? theme.colors.errorContainer
+                    : theme.colors.surfaceVariant,
+              },
             ]}
           >
             {contact.emergency_level} priority
@@ -100,21 +110,22 @@ export const EmergencyContactCard = ({ contact }) => {
 
 const styles = StyleSheet.create({
   contactCard: {
-    marginHorizontal: 16,
-    marginVertical: 8,
+    marginHorizontal: 12,
+    marginVertical: 6,
     borderRadius: 12,
+    elevation: 2,
   },
   contactDetails: {
-    gap: 12,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 12,
   },
   contactButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    backgroundColor: "#f5f5f5",
+    padding: 10,
+    backgroundColor: "#f8f9fa",
     borderRadius: 8,
-    gap: 12,
+    gap: 8,
   },
   contactText: {
     flex: 1,

@@ -143,13 +143,18 @@ export const FacilityCard = ({ facility }) => {
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 16,
-    marginVertical: 8,
+    marginHorizontal: 12,
+    marginVertical: 6,
     borderRadius: 12,
+    elevation: 2,
   },
   statusChip: {
-    marginRight: 16,
-    borderRadius: 16,
+    marginRight: 12,
+    borderRadius: 12,
+  },
+  actionButton: {
+    marginRight: 6,
+    borderRadius: 8,
   },
   statusText: {
     color: "white",

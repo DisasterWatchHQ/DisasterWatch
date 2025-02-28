@@ -116,38 +116,39 @@ export const GuideCard = ({ guide }) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    marginHorizontal: 16,
-    marginVertical: 8,
+    marginHorizontal: 12,
+    marginVertical: 6,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
   },
   description: {
     fontSize: 14,
     color: "#666",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   preview: {
     fontSize: 13,
     color: "#444",
-    marginBottom: 12,
+    marginBottom: 8,
     lineHeight: 18,
   },
   tagsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 8,
+    gap: 6,
+    marginBottom: 6,
   },
   chip: {
-    borderRadius: 16,
+    borderRadius: 8,
   },
   chipText: {
     fontSize: 12,
   },
   priorityChip: {
-    marginRight: 16,
+    marginRight: 12,
+    borderRadius: 8,
   },
   footer: {
     flexDirection: "row",
