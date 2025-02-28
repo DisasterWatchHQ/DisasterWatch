@@ -37,11 +37,9 @@ export async function registerForPushNotificationsAsync() {
       return;
     }
 
-    // For Expo Go
     token = await Notifications.getExpoPushTokenAsync();
     console.log("Push Token:", token.data);
 
-    // Send token to your backend
     try {
       await axios.post('YOUR_RENDER_URL/api/notifications/register-push-token', {
         pushToken: token.data

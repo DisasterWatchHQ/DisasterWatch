@@ -4,7 +4,6 @@ import { Text, Switch, useTheme } from "react-native-paper";
 import HeaderBar from "../components/headerBar";
 import { registerForPushNotificationsAsync } from "../services/notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { PreferencesContext } from "../context/PreferencesContext";
 import { PreferencesContext } from '../app/_layout';
 
 const Settings = () => {

@@ -7,13 +7,11 @@ const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from secure storage
   const loadUser = async () => {
     try {
       const session = await SecureStore.getItemAsync("userSession");
       if (session) {
         const sessionData = JSON.parse(session);
-        console.log("Loaded session data:", sessionData); // Debug log
         setUser(sessionData);
       }
     } catch (error) {
@@ -23,14 +21,12 @@ const UserProvider = ({ children }) => {
     }
   };
 
-  // Sign in function
   const signIn = async (credentials) => {
     try {
       const userSession = {
         user: credentials.user,
         token: credentials.token,
       };
-      // Store user session
       await SecureStore.setItemAsync(
         "userSession",
         JSON.stringify(userSession),
@@ -43,7 +39,6 @@ const UserProvider = ({ children }) => {
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync("userSession");
@@ -53,7 +48,6 @@ const UserProvider = ({ children }) => {
     }
   };
 
-  // Load user when component mounts
   useEffect(() => {
     loadUser();
   }, []);

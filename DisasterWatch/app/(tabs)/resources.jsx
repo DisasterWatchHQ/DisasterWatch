@@ -4,22 +4,19 @@ import {
   StyleSheet,
   Animated,
   RefreshControl,
-  StatusBar,
   FlatList,
 } from "react-native";
 import {
   useTheme,
   SegmentedButtons,
-  Surface,
   Portal,
   ActivityIndicator,
   Text,
+  FAB,
 } from "react-native-paper";
-import { Stack } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { UserContext } from "../../constants/globalProvider";
-import { FAB, Modal } from "react-native-paper";
 import AddGuideModal from "../../components/resources/AddGuideModal";
 import { GuideCard } from "../../components/resources/GuideCard";
 import { EmergencyContactCard } from "../../components/resources/EmergencyContactCard";

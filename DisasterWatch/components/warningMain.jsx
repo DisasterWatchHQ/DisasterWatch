@@ -18,26 +18,23 @@ const WarningMain = ({
   const router = useRouter();
   const theme = useTheme();
 
-  // Enhanced color function with more distinct colors
   const getSeverityColor = () => {
     switch (severity.toLowerCase()) {
       case "critical":
-        return "#DC2626"; // Deep red
+        return "#DC2626"; 
       case "high":
-        return "#F87171"; // Lighter red
+        return "#F87171"; 
       case "medium":
-        return "#FBBF24"; // Yellow
+        return "#FBBF24"; 
       case "low":
-        return "#34D399"; // Green
+        return "#34D399";
       default:
         return theme.colors.primary;
     }
   };
 
-  // Function to get background color with opacity
   const getBackgroundColor = () => {
     const color = getSeverityColor();
-    // Convert hex to RGB and add opacity
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
     if (result) {
       const r = parseInt(result[1], 16);
@@ -72,19 +69,18 @@ const WarningMain = ({
     return "Location unavailable";
   };
 
-  // Get disaster category color
   const getDisasterCategoryColor = () => {
     switch (disaster_category.toLowerCase()) {
       case "flood":
-        return "#3B82F6"; // Blue
+        return "#3B82F6"; 
       case "fire":
-        return "#EF4444"; // Red
+        return "#EF4444"; 
       case "earthquake":
-        return "#8B5CF6"; // Purple
+        return "#8B5CF6"; 
       case "landslide":
-        return "#D97706"; // Orange
+        return "#D97706"; 
       case "cyclone":
-        return "#6366F1"; // Indigo
+        return "#6366F1"; 
       default:
         return theme.colors.primary;
     }
@@ -102,7 +98,6 @@ const WarningMain = ({
         style,
       ]}
     >
-      {/* Status and Time */}
       <View style={styles.statusBar}>
         <Chip
           compact
@@ -121,7 +116,6 @@ const WarningMain = ({
         </Text>
       </View>
 
-      {/* Main Content */}
       <View style={styles.content}>
         <Text
           variant="titleMedium"
@@ -150,7 +144,7 @@ const WarningMain = ({
             {description}
           </Text>
         )}
-        {/* Location */}
+
         <View style={styles.locationContainer}>
           <IconButton
             icon="map-marker"
@@ -167,7 +161,6 @@ const WarningMain = ({
         </View>
       </View>
 
-      {/* Action Button */}
       <Button
         mode="contained"
         onPress={() =>

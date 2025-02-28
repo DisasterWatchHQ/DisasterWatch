@@ -15,11 +15,11 @@ export const useReports = () => {
     limit: 10,
     disaster_category: '',
     verified_only: false,
-    district: '', // Add district filter support
+    district: '', 
   });
 
   const updateFilters = (newFilters) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 })); // Reset page when filters change
+    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
   };
 
   const loadReports = async () => {

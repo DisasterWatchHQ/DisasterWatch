@@ -58,7 +58,7 @@ const MapFeed = ({ disasterMarkers = [] }) => {
       }
 
       let userLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced, // Changed to Balanced for faster response
+        accuracy: Location.Accuracy.Balanced, 
       });
       
       const newLocation = {
@@ -140,7 +140,6 @@ const MapFeed = ({ disasterMarkers = [] }) => {
         </MapView>
       )}
 
-      {/* Search Bar */}
       <View className="absolute top-4 w-11/12 self-center mt-8 z-10">
         <GooglePlacesAutocomplete
           placeholder="Search location..."
@@ -183,7 +182,6 @@ const MapFeed = ({ disasterMarkers = [] }) => {
         />
       </View>
 
-      {/* Map Controls */}
       <View className="absolute right-4 top-1/3 flex gap-2">
         <MapControl 
           icon="explore" 

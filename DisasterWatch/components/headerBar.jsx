@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 
 const HeaderBar = ({
   showBack = false,
-  showBell = true, // New prop with default value true
+  showBell = true, 
   showCog = true,
   title = "DisasterWatch",
   subtitle,
@@ -36,7 +36,7 @@ const HeaderBar = ({
           )}
         </View>
         <View style={styles.headerButtons}>
-          {showBell && ( // Conditional rendering of bell icon
+          {showBell && ( 
             <IconButton
               icon="bell"
               mode="text"

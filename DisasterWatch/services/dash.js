@@ -8,7 +8,6 @@ const api = axios.create({
   },
 });
 
-// Add a request interceptor to add the auth token
 api.interceptors.request.use(
   async (config) => {
     try {

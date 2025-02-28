@@ -192,10 +192,8 @@ const CreateWarningDialog = () => {
       }
       setVisible(false);
       reset();
-      // Add success notification here
     } catch (error) {
       console.error("Error creating warning:", error);
-      // Add error notification here
     } finally {
       setLoading(false);
     }
@@ -224,7 +222,6 @@ const CreateWarningDialog = () => {
           <Dialog.ScrollArea style={styles.scrollArea}>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               <View style={styles.formContainer}>
-                {/* Basic Information */}
                 <View style={styles.section}>
                   <Text variant="titleMedium" style={styles.sectionTitle}>
                     Basic Information
@@ -265,7 +262,6 @@ const CreateWarningDialog = () => {
                   />
                 </View>
 
-                {/* Disaster Category */}
                 <View style={styles.section}>
                   <Text variant="titleMedium" style={styles.sectionTitle}>
                     Disaster Category
@@ -319,7 +315,6 @@ const CreateWarningDialog = () => {
                   />
                 </View>
 
-                {/* Severity Level */}
                 <View style={styles.section}>
                   <Text variant="titleMedium" style={styles.sectionTitle}>
                     Severity Level
@@ -362,7 +357,6 @@ const CreateWarningDialog = () => {
                   />
                 </View>
 
-                {/* Location */}
                 {location && (
                   <View style={styles.section}>
                     <Text variant="titleMedium" style={styles.sectionTitle}>
@@ -390,7 +384,6 @@ const CreateWarningDialog = () => {
                   </View>
                 )}
 
-                {/* Address Details */}
                 {address && (
                   <View style={styles.section}>
                     <Text variant="titleMedium" style={styles.sectionTitle}>
@@ -402,7 +395,6 @@ const CreateWarningDialog = () => {
                   </View>
                 )}
 
-                {/* Duration */}
                 <View style={styles.section}>
                   <Text variant="titleMedium" style={styles.sectionTitle}>
                     Expected Duration

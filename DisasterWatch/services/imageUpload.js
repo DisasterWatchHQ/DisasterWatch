@@ -4,17 +4,14 @@ export const uploadImages = async (images, reportData) => {
   try {
     const formData = new FormData();
 
-    // Add report data to FormData
     Object.keys(reportData).forEach((key) => {
       if (key === "location") {
-        // Ensure location data is properly structured
         formData.append("location", JSON.stringify(reportData[key]));
       } else {
         formData.append(key, reportData[key]);
       }
     });
 
-    // Add images to FormData
     if (images && images.length > 0) {
       images.forEach((uri, index) => {
         if (!uri) return;
@@ -27,9 +24,6 @@ export const uploadImages = async (images, reportData) => {
         formData.append("images", imageFile);
       });
     }
-
-    // Debug log
-    console.log("Sending report data:", JSON.stringify(reportData, null, 2));
 
     const response = await fetch(`${API_URL}/userReport`, {
       method: "POST",

@@ -5,7 +5,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { Card, Text, Button, Surface } from "react-native-paper";
+import { Card, Text, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import MapWindow from "../../components/mapwindow";
@@ -91,11 +91,7 @@ const Home = () => {
         setLoading(false);
       }
     };
-
-    // Fetch the location initially
     fetchLocation();
-
-    // Set an interval to fetch the location every 1 hour
     const locationInterval = setInterval(() => {
       fetchLocation();
     }, 3600000);
@@ -205,8 +201,7 @@ const Home = () => {
         showBack={false}
         containerStyle={{ marginTop: 32 }}
       />
-
-      {/* Active Warnings Section */}
+      
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -237,14 +232,13 @@ const Home = () => {
                   key={warning._id}
                   {...warning}
                   style={styles.warningCard}
-                  handleWarningPress={() => handleWarningPress(warning)} // Pass the warning object directly
+                  handleWarningPress={() => handleWarningPress(warning)}
                 />
               ))}
             </ScrollView>
           )}
         </View>
 
-        {/* Nearby Facilities */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text variant="titleMedium">Nearby Facilities</Text>
@@ -290,7 +284,6 @@ const Home = () => {
           )}
         </View>
 
-        {/* Map Overview */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text variant="titleMedium">Disaster Map</Text>

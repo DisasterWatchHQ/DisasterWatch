@@ -13,42 +13,9 @@ import {
   Portal,
   Dialog,
   IconButton,
-  Chip,
-  Surface,
 } from "react-native-paper";
 import HeaderBar from "../components/headerBar";
 import WarningCard from "../components/warnings/WarningCard";
-
-const warningData = [
-  {
-    id: "1",
-    type: "alert",
-    text: "Flood broke out nearby",
-    severity: "high",
-    timestamp: new Date(),
-  },
-  {
-    id: "2",
-    type: "alert",
-    text: "Heavy rainfall expected",
-    severity: "medium",
-    timestamp: new Date(),
-  },
-  {
-    id: "3",
-    type: "warning",
-    text: "Possible landslide risk",
-    severity: "high",
-    timestamp: new Date(),
-  },
-  {
-    id: "4",
-    type: "warning",
-    text: "Strong winds expected",
-    severity: "low",
-    timestamp: new Date(),
-  },
-];
 
 const LandingPage = () => {
   const theme = useTheme();
@@ -62,8 +29,6 @@ const LandingPage = () => {
       setIsLoading(true);
       setError(null);
       const response = await warningApi.getActiveWarnings();
-
-      // Transform the API response to match your warning structure
       const formattedWarnings = response.map((warning) => ({
         id: warning.id,
         type: warning.type || "alert",
@@ -71,7 +36,6 @@ const LandingPage = () => {
         severity: warning.severity || "medium",
         timestamp: new Date(warning.createdAt || Date.now()),
       }));
-
       setWarnings(formattedWarnings);
     } catch (err) {
       setError(err.message || "Failed to fetch warnings");
@@ -85,7 +49,6 @@ const LandingPage = () => {
     fetchWarnings();
   }, [fetchWarnings]);
 
-  // Add refresh functionality
   const handleRefresh = () => {
     fetchWarnings();
   };
@@ -134,7 +97,7 @@ const LandingPage = () => {
     }
   };
   const handleWarningPress = (warning) => {
-    // Add your warning press handler logic here
+    // Add warning press handler logic here
     console.log("Warning pressed:", warning);
   };
   if (error) {
@@ -259,7 +222,7 @@ const LandingPage = () => {
         ) : (
           warnings.map((warning) => (
             <WarningCard
-              key={warning.id || warning._id} // This ensures unique keys
+              key={warning.id || warning._id}
               warning={warning}
               onPress={handleWarningPress}
               getSeverityColor={getSeverityColor}

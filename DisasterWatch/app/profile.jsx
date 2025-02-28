@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { ScrollView, Text, Alert, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-
-// Import components
 import ProfileOption from '../components/profile/ProfileOption';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import ProfileStats from '../components/profile/ProfileStats';
@@ -39,8 +37,6 @@ const Profile = () => {
       <ScrollView>
         <ProfileHeader user={user} />
         <ProfileStats />
-        
-        {/* Options */}
         <View className="mt-4">
           <ProfileOption
             icon="person-outline"
@@ -79,8 +75,6 @@ const Profile = () => {
             onPress={handleLogout}
           />
         </View>
-
-        {/* Version Info */}
         <Text className="text-neutral-500 text-center py-4 mt-4">
           Version 1.0.0
         </Text>

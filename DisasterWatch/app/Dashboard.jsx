@@ -7,7 +7,6 @@ import {
   Button,
   useTheme,
   ActivityIndicator,
-  Divider,
   Surface,
   FAB,
 } from "react-native-paper";
@@ -20,8 +19,6 @@ import { WarningActions } from "../components/warnings/WarningActions";
 import { useNavigation } from "@react-navigation/native";
 
 const StatsCard = ({ title, value, icon, color }) => {
-  const theme = useTheme();
-
   return (
     <Card style={styles.statsCard}>
       <Card.Content>
@@ -121,7 +118,7 @@ const Dashboard = () => {
 
       setPendingReports(
         reportsResponse.data.reports.map((report) => ({
-          id: report.id, // Make sure this matches your API response
+          id: report.id,
           title: report.title,
           type: report.disaster_category,
           location: report.location?.address
@@ -144,7 +141,7 @@ const Dashboard = () => {
         severity: "medium",
         notes: "Verified through dashboard",
       });
-      fetchDashboardData(); // Refresh data after verification
+      fetchDashboardData();
       Alert.alert("Success", "Report verified successfully");
     } catch (error) {
       console.error("Error verifying report:", error);
@@ -157,7 +154,7 @@ const Dashboard = () => {
       await api.post(`/userReport/${reportId}/dismiss`, {
         notes: "Dismissed through dashboard",
       });
-      fetchDashboardData(); // Refresh data after rejection
+      fetchDashboardData();
       Alert.alert("Success", "Report rejected successfully");
     } catch (error) {
       console.error("Error rejecting report:", error);
@@ -167,7 +164,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 300000); // Refresh every 5 minutes
+    const interval = setInterval(fetchDashboardData, 300000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -293,7 +290,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5", // Light background color
+    backgroundColor: "#f5f5f5",
   },
   scrollContent: {
     padding: 16,

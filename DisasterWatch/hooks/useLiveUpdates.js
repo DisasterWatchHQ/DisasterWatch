@@ -16,12 +16,10 @@ export const useLiveUpdates = () => {
         fetchFeedStats(),
       ]);
 
-      // Handle updates response
       if (updatesData.success && updatesData.data?.updates) {
         setUpdates(updatesData.data.updates);
       }
 
-      // Handle stats response
       if (statsData.success && statsData.data) {
         setActiveWarnings(statsData.data.activeWarnings);
         setWarningStats(statsData.data.warningStats);

@@ -26,7 +26,7 @@ export const FilterHeader = ({
       >
         {filters.map((filter) => (
           <Chip
-            key={filter.key} // Use the unique key here
+            key={filter.key}
             selected={filter.selected}
             onPress={() => onFilterChange(filter.value)}
             style={styles.filterChip}

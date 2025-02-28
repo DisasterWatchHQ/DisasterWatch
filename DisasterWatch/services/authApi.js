@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL; // Note: Expo uses EXPO_PUBLIC_ prefix
+const API_URL = process.env.REACT_APP_API_URL;
 
 const handleResponse = async (response) => {
   const data = await response.json();
@@ -9,7 +9,6 @@ const handleResponse = async (response) => {
 };
 
 export const authApi = {
-  // Register a new user
   register: async (userData) => {
     try {
       console.log("Registering user at:", `${API_URL}/user/register`);
@@ -27,7 +26,6 @@ export const authApi = {
     }
   },
 
-  // Login user
   login: async (credentials) => {
     try {
       const response = await fetch(`${API_URL}/user/login`, {
@@ -44,7 +42,6 @@ export const authApi = {
     }
   },
 
-  // Change password
   changePassword: async (userId, passwordData) => {
     try {
       const response = await fetch(`${API_URL}/user/${userId}/changepassword`, {
@@ -61,7 +58,6 @@ export const authApi = {
     }
   },
 
-  // Get user profile
   getUserProfile: async (userId) => {
     try {
       const response = await fetch(`${API_URL}/user/${userId}`, {
@@ -77,7 +73,6 @@ export const authApi = {
     }
   },
 
-  // Update user profile
   updateProfile: async (userId, profileData) => {
     try {
       const response = await fetch(`${API_URL}/user/${userId}`, {

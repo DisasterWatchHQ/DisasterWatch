@@ -36,10 +36,9 @@ export const GuideCard = ({ guide }) => {
     }).start();
   };
 
-  // Get first 150 characters of content as preview, strip markdown
   const contentPreview = guide.content
     ? guide.content
-        .replace(/[#*`_~\[\]]/g, "") // Remove markdown symbols
+        .replace(/[#*`_~\[\]]/g, "") 
         .substring(0, 150)
         .trim() + (guide.content.length > 150 ? "..." : "")
     : "";

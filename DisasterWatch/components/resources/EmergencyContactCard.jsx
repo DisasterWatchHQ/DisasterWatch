@@ -2,11 +2,10 @@ import React from "react";
 import {
   View,
   StyleSheet,
-  Animated,
   Linking,
   TouchableOpacity,
 } from "react-native";
-import { Card, Chip, Text, IconButton, useTheme } from "react-native-paper";
+import { Card, Chip, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export const EmergencyContactCard = ({ contact }) => {
@@ -41,7 +40,6 @@ export const EmergencyContactCard = ({ contact }) => {
             <Text style={styles.contactLabel}>Primary</Text>
           </TouchableOpacity>
 
-          {/* Alternate Phone if available */}
           {contact.contact.alternate_phone && (
             <TouchableOpacity
               style={styles.contactButton}
@@ -61,7 +59,6 @@ export const EmergencyContactCard = ({ contact }) => {
             </TouchableOpacity>
           )}
 
-          {/* Email */}
           <TouchableOpacity
             style={styles.contactButton}
             onPress={() => Linking.openURL(`mailto:${contact.contact.email}`)}
