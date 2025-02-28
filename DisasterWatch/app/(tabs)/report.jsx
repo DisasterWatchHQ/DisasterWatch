@@ -136,6 +136,8 @@ const ReportScreen = () => {
         subtitle="Report Disasters"
         showBack={false}
         containerStyle={{ marginTop: 32 }}
+        showBell={false}
+        showCog={false}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -315,6 +317,7 @@ const ReportScreen = () => {
                   onPress={() => removeImage(index)}
                   style={styles.removeImageButton}
                   contentStyle={styles.removeImageButtonContent}
+                  compact={true}
                 />
               </View>
             ))}
@@ -373,18 +376,19 @@ const ReportScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
   },
   scrollContent: {
     padding: 16,
     gap: 8,
+    paddingBottom: 75,
   },
   section: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
+    marginBottom: 10,
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 1,
@@ -395,46 +399,46 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 20,
-    color: '#2c3e50',
+    fontWeight: "700",
+    marginBottom: 10,
+    color: "#2c3e50",
     letterSpacing: 0.3,
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   input: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     fontSize: 16,
   },
   textArea: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     minHeight: 120,
     fontSize: 16,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     paddingTop: 12,
   },
   categoryButton: {
-    width: '100%',
+    width: "100%",
     marginVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: "#e0e0e0",
   },
   imageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 16,
     marginTop: 12,
   },
   imageWrapper: {
-    position: 'relative',
+    position: "relative",
     width: 140,
     height: 140,
     marginBottom: 16,
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -444,41 +448,43 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 12,
   },
   removeImageButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     padding: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    minWidth: 0,
   },
   removeImageButtonContent: {
-    width: 28,
-    height: 28,
+    width: 24,
+    height: 24,
     margin: 0,
+    left: 5,
   },
   addImageButton: {
     width: 140,
     height: 140,
-    justifyContent: 'center',
-    borderStyle: 'dashed',
+    justifyContent: "center",
+    borderStyle: "dashed",
     borderWidth: 2,
     borderRadius: 12,
-    borderColor: '#bdc3c7',
-    backgroundColor: '#f8f9fa',
+    borderColor: "#bdc3c7",
+    backgroundColor: "#f8f9fa",
   },
   submitButton: {
     marginVertical: 24,
     paddingVertical: 10,
     borderRadius: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -489,11 +495,11 @@ const styles = StyleSheet.create({
   dialogItem: {
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   helperText: {
     fontSize: 12,
-    color: '#e74c3c',
+    color: "#e74c3c",
     marginTop: 4,
     marginLeft: 4,
   },

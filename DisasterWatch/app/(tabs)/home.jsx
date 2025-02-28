@@ -179,7 +179,7 @@ const Home = () => {
     try {
       setLoading(true);
       const facilities = await facilityApi.getNearbyFacilities({
-        latitude: location?.coords.latitude || 6.9271, 
+        latitude: location?.coords.latitude || 6.9271,
         longitude: location?.coords.longitude || 79.8612,
       });
       setNearbyFacilities(facilities);
@@ -207,7 +207,10 @@ const Home = () => {
       />
 
       {/* Active Warnings Section */}
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text variant="titleMedium">Active Warnings</Text>
@@ -313,58 +316,85 @@ const Home = () => {
 const styles = {
   scrollView: {
     backgroundColor: "#ffffff",
+    flex: 1,
+  },
+  scrollViewContent: {
+    paddingBottom: 80,
   },
   section: {
     marginHorizontal: 16,
-    marginVertical: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    marginVertical: 12,
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    padding: 16,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
   quickActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 8,
+    gap: 12,
+    marginTop: 8,
   },
   actionButton: {
     flex: 1,
+    borderRadius: 12,
   },
   facilityCard: {
-    marginBottom: 8,
-    elevation: 1,
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 2,
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
   },
   statusText: {
-    fontWeight: "bold",
+    fontWeight: "600",
     marginRight: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   horizontalScroll: {
-    paddingVertical: 10,
+    paddingVertical: 8,
+    marginHorizontal: -4,
   },
   horizontalContent: {
     flexDirection: "row",
-    gap: 8,
+    gap: 12,
+    paddingHorizontal: 4,
   },
   warningCard: {
-    width: 250,
+    width: 280,
     marginRight: 8,
+    borderRadius: 12,
+    elevation: 2,
   },
   modalContainer: {
     flex: 1,
-    margin: 16,
-    justifyContent: "center", 
+    margin: 20,
     backgroundColor: "white",
-    maxHeight: "90%",
-    marginTop: 50,
-    marginBottom: 50,
-    borderRadius: 16,
+    maxHeight: "80%",
+    marginTop: 60,
+    marginBottom: 60,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
   },
 };
 

@@ -266,14 +266,12 @@ const ResourcesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <Stack.Screen options={{ headerShown: false }} />
-
       <HeaderBar
         title="Emergency Resources"
         subtitle="Guides, contacts, and facilities"
         showBack={false}
         containerStyle={{ marginTop: 32 }}
+        showBell={false}
       />
 
       <View style={styles.subHeader}>
@@ -308,7 +306,10 @@ const ResourcesScreen = () => {
         data={getFilteredData()}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: insets.bottom + 70 },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

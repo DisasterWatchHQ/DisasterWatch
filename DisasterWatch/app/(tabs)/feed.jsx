@@ -62,7 +62,7 @@ export default function DisasterFeed() {
   const handleDistrictSelect = (district) => {
     updateFilters({ district });
     setShowDistrictPicker(false);
-    setDistrictSearch(""); // Clear search when selection is made
+    setDistrictSearch("");
   };
 
   const currentDistrict = filters.district || "All Districts";
@@ -133,7 +133,6 @@ export default function DisasterFeed() {
           </Button>
           <IconButton
             icon="bell"
-            mode="outlined"
             size={20}
             onPress={() => setShowAlert(true)}
             style={styles.notificationButton}
@@ -436,6 +435,7 @@ const styles = StyleSheet.create({
   reportsContainer: {
     flex: 1,
     paddingHorizontal: 12,
+    paddingBottom: 80,
   },
   reportCard: {
     marginBottom: 12,
