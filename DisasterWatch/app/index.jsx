@@ -75,7 +75,7 @@ export default function WelcomePage() {
                 textAlign: "center",
               }}
             >
-              Disaster Watch
+              DisasterWatch
             </Text>
           </View>
 
