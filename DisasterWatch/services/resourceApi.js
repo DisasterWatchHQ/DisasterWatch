@@ -28,7 +28,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 export const facilityApi = {
@@ -40,7 +40,9 @@ export const facilityApi = {
         pagination: response.data.pagination,
       };
     } catch (error) {
-      throw new Error(error.response?.data?.error || "Error fetching facilities");
+      throw new Error(
+        error.response?.data?.error || "Error fetching facilities",
+      );
     }
   },
 
@@ -64,23 +66,35 @@ export const facilityApi = {
 
   getEmergencyContacts: async ({ ...params }) => {
     try {
-      const response = await apiClient.get("/resources/emergency-contacts", { params });
+      const response = await apiClient.get("/resources/emergency-contacts", {
+        params,
+      });
       return {
         data: response.data.resources,
       };
     } catch (error) {
-      throw new Error(error.response?.data?.error || "Error fetching emergency contacts");
+      throw new Error(
+        error.response?.data?.error || "Error fetching emergency contacts",
+      );
     }
   },
 
-  getNearbyFacilities: async ({ latitude, longitude, maxDistance = 10000, type, availability_status }) => {
+  getNearbyFacilities: async ({
+    latitude,
+    longitude,
+    maxDistance = 10000,
+    type,
+    availability_status,
+  }) => {
     try {
       const response = await apiClient.get("/resources/facilities/nearby", {
         params: { latitude, longitude, maxDistance, type, availability_status },
       });
       return response.data.data;
     } catch (error) {
-      throw new Error(error.response?.data?.error || "Error fetching nearby facilities");
+      throw new Error(
+        error.response?.data?.error || "Error fetching nearby facilities",
+      );
     }
   },
 
@@ -92,7 +106,9 @@ export const facilityApi = {
       }
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.error || "Failed to fetch resource details");
+      throw new Error(
+        error.response?.data?.error || "Failed to fetch resource details",
+      );
     }
   },
 
@@ -120,6 +136,41 @@ export const facilityApi = {
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.error || "Failed to update guide");
+    }
+  },
+  deleteResource: async (resourceId) => {
+    try {
+      const response = await apiClient.delete(`/resources/${resourceId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || "Failed to delete resource",
+      );
+    }
+  },
+
+  updateContact: async (contactId, contactData) => {
+    try {
+      const response = await apiClient.put(
+        `/resources/${contactId}`,
+        contactData,
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || "Failed to update contact",
+      );
+    }
+  },
+
+  createContact: async (contactData) => {
+    try {
+      const response = await apiClient.post("/resources", contactData);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || "Failed to create contact",
+      );
     }
   },
 };
