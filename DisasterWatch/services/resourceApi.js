@@ -173,4 +173,40 @@ export const facilityApi = {
       );
     }
   },
+
+  createFacility: async (facilityData) => {
+    try {
+      const response = await apiClient.post("/resources", facilityData);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || "Failed to create facility",
+      );
+    }
+  },
+
+  updateFacility: async (facilityId, facilityData) => {
+    try {
+      const response = await apiClient.put(
+        `/resources/${facilityId}`,
+        facilityData,
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || "Failed to update facility",
+      );
+    }
+  },
+
+  deleteFacility: async (facilityId) => {
+    try {
+      const response = await apiClient.delete(`/resources/${facilityId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || "Failed to delete facility",
+      );
+    }
+  },
 };

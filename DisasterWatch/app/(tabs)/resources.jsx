@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { UserContext } from "../../constants/globalProvider";
 import AddContactModal from "../../components/resources/AddContactModal";
 import AddGuideModal from "../../components/resources/AddGuideModal";
+import AddFacilityModal from "../../components/resources/AddFacilityModal";
 import { GuideCard } from "../../components/resources/GuideCard";
 import { EmergencyContactCard } from "../../components/resources/EmergencyContactCard";
 import { FacilityCard } from "../../components/resources/FacilityCard";
@@ -72,7 +73,7 @@ const ResourcesScreen = () => {
     status: "all",
   });
   const [editingContact, setEditingContact] = useState(null);
-
+  const [editingFacility, setEditingFacility] = useState(null);
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [120, 60],
@@ -100,6 +101,35 @@ const ResourcesScreen = () => {
   const showAddModal = () => setIsAddModalVisible(true);
   const hideAddModal = () => setIsAddModalVisible(false);
 
+  const handleEditFacility = (facility) => {
+    setEditingFacility(facility);
+    showAddModal();
+  };
+
+  const handleDeleteFacility = async (facilityId) => {
+    Alert.alert(
+      "Delete Facility",
+      "Are you sure you want to delete this facility?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await facilityApi.deleteFacility(facilityId);
+              await fetchFacilities();
+            } catch (error) {
+              console.error("Error deleting facility:", error);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  };
   const handleEditContact = (contact) => {
     setEditingContact(contact);
     showAddModal();
@@ -333,7 +363,13 @@ const ResourcesScreen = () => {
           />
         );
       case "facilities":
-        return <FacilityCard facility={item} />;
+        return (
+          <FacilityCard
+            facility={item}
+            onEdit={handleEditFacility}
+            onDelete={handleDeleteFacility}
+          />
+        );
       default:
         return null;
     }
@@ -413,13 +449,21 @@ const ResourcesScreen = () => {
       )}
 
       {isAuthenticated &&
-        (activeSection === "guides" || activeSection === "contacts") && (
+        (activeSection === "guides" ||
+          activeSection === "contacts" ||
+          activeSection === "facilities") && (
           <Portal>
             <FAB
               icon="plus"
               style={styles.fab}
               onPress={showAddModal}
-              label={activeSection === "guides" ? "Add Guide" : "Add Contact"}
+              label={
+                activeSection === "guides"
+                  ? "Add Guide"
+                  : activeSection === "contacts"
+                    ? "Add Contact"
+                    : "Add Facility"
+              }
             />
           </Portal>
         )}
@@ -450,7 +494,7 @@ const ResourcesScreen = () => {
             }
           }}
         />
-      ) : (
+      ) : activeSection === "contacts" ? (
         <AddContactModal
           visible={isAddModalVisible}
           onDismiss={() => {
@@ -471,6 +515,35 @@ const ResourcesScreen = () => {
               setEditingContact(null);
             } catch (error) {
               console.error("Error saving contact:", error);
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />
+      ) : (
+        <AddFacilityModal
+          visible={isAddModalVisible}
+          onDismiss={() => {
+            hideAddModal();
+            setEditingFacility(null);
+          }}
+          editingFacility={editingFacility}
+          onSubmit={async (facilityData) => {
+            try {
+              setLoading(true);
+              if (editingFacility) {
+                await facilityApi.updateFacility(
+                  editingFacility.id,
+                  facilityData,
+                );
+              } else {
+                await facilityApi.createFacility(facilityData);
+              }
+              await fetchFacilities();
+              hideAddModal();
+              setEditingFacility(null);
+            } catch (error) {
+              console.error("Error saving facility:", error);
             } finally {
               setLoading(false);
             }

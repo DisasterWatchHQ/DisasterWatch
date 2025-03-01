@@ -1,7 +1,16 @@
-import React from "react";
-import { View, StyleSheet, Animated, Linking } from "react-native";
-import { Card, Chip, Text, IconButton, useTheme } from "react-native-paper";
+import React, { useContext } from "react";
+import { View, StyleSheet, Linking } from "react-native";
+import {
+  Card,
+  Chip,
+  Text,
+  IconButton,
+  useTheme,
+  Menu,
+  Divider,
+} from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { UserContext } from "../../constants/globalProvider";
 
 const getFacilityIcon = (type) => {
   switch (type.toLowerCase()) {
@@ -24,8 +33,19 @@ const getFacilityIcon = (type) => {
   }
 };
 
-export const FacilityCard = ({ facility }) => {
+export const FacilityCard = ({ facility, onEdit, onDelete }) => {
   const theme = useTheme();
+  const { isAuthenticated } = useContext(UserContext);
+  const [menuVisible, setMenuVisible] = React.useState(false);
+
+  const showMenu = () => setMenuVisible(true);
+  const hideMenu = () => setMenuVisible(false);
+
+  const handleLongPress = () => {
+    if (isAuthenticated) {
+      showMenu();
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -52,96 +72,151 @@ export const FacilityCard = ({ facility }) => {
   };
 
   return (
-    <Card style={styles.card} mode="elevated">
-      <Card.Title
-        title={facility.name}
-        subtitle={facility.type}
-        left={(props) => (
-          <MaterialCommunityIcons
-            name={getFacilityIcon(facility.type)}
-            size={24}
-            color={theme.colors.primary}
-          />
-        )}
-        right={(props) => (
-          <Chip
-            mode="flat"
-            style={[
-              styles.statusChip,
-              { backgroundColor: getStatusColor(facility.availability_status) },
-            ]}
-            textStyle={styles.statusText}
-          >
-            {facility.availability_status}
-          </Chip>
-        )}
-      />
-      <Card.Content>
-        <View style={styles.detailsContainer}>
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons
-              name="map-marker"
-              size={20}
-              color={theme.colors.primary}
-            />
-            <Text style={styles.addressText}>
-              {facility.location.address.formatted_address}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons
-              name="account-group"
-              size={20}
-              color={theme.colors.primary}
-            />
-            <Text style={styles.capacityText}>
-              Capacity: {facility.capacity} ({facility.current_occupancy}{" "}
-              occupied)
-            </Text>
-          </View>
-
-          {facility.specialties && (
-            <View style={styles.specialtiesContainer}>
-              {facility.specialties.map((specialty) => (
-                <Chip
-                  key={specialty}
-                  style={styles.specialtyChip}
-                  textStyle={styles.specialtyText}
-                  icon="star"
-                >
-                  {specialty}
-                </Chip>
-              ))}
-            </View>
-          )}
-
-          <View style={styles.actionsContainer}>
-            <IconButton
-              icon="phone"
-              mode="contained"
-              onPress={() => handleCall(facility.contact.phone)}
-              style={styles.actionButton}
-            />
-            <IconButton
-              icon="directions"
-              mode="contained"
-              onPress={handleDirections}
-              style={styles.actionButton}
-            />
-            {facility.emergency_unit && (
-              <Chip icon="ambulance" mode="flat" style={styles.emergencyChip}>
-                24/7 Emergency
-              </Chip>
+    <Menu
+      visible={menuVisible}
+      onDismiss={hideMenu}
+      anchor={
+        <Card style={styles.card} mode="elevated" onLongPress={handleLongPress}>
+          {/* Existing Card content */}
+          <Card.Title
+            title={facility.name}
+            subtitle={facility.type.replace("_", " ")}
+            left={(props) => (
+              <MaterialCommunityIcons
+                name={getFacilityIcon(facility.type)}
+                size={24}
+                color={theme.colors.primary}
+              />
             )}
-          </View>
-        </View>
-      </Card.Content>
-    </Card>
+          />
+          <Card.Content>
+            <View style={styles.detailsContainer}>
+              {/* Location */}
+              <View style={styles.infoRow}>
+                <MaterialCommunityIcons
+                  name="map-marker"
+                  size={20}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.addressText}>
+                  {facility.location.address.formatted_address ||
+                    `${facility.location.address.city}, ${facility.location.address.province}`}
+                </Text>
+              </View>
+
+              {/* Contact Info */}
+              <View style={styles.infoRow}>
+                <MaterialCommunityIcons
+                  name="phone"
+                  size={20}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.contactText}>{facility.contact.phone}</Text>
+              </View>
+
+              {/* Capacity for shelters */}
+              {facility.type === "shelter" &&
+                facility.metadata?.capacity > 0 && (
+                  <View style={styles.infoRow}>
+                    <MaterialCommunityIcons
+                      name="account-group"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                    <Text style={styles.capacityText}>
+                      Capacity: {facility.metadata.capacity}
+                    </Text>
+                  </View>
+                )}
+
+              {/* Status */}
+              <View style={styles.statusContainer}>
+                <Chip
+                  mode="flat"
+                  style={[
+                    styles.statusChip,
+                    {
+                      backgroundColor: getStatusColor(
+                        facility.availability_status,
+                      ),
+                    },
+                  ]}
+                >
+                  {facility.availability_status.replace("_", " ")}
+                </Chip>
+              </View>
+
+              {/* Tags */}
+              {facility.tags && facility.tags.length > 0 && (
+                <View style={styles.tagsContainer}>
+                  {facility.tags.map((tag, index) => (
+                    <Chip key={index} mode="outlined" style={styles.tag}>
+                      {tag}
+                    </Chip>
+                  ))}
+                </View>
+              )}
+
+              {/* Actions */}
+              <View style={styles.actionsContainer}>
+                <IconButton
+                  icon="phone"
+                  mode="contained-tonal"
+                  onPress={() => handleCall(facility.contact.phone)}
+                />
+                <IconButton
+                  icon="map-marker"
+                  mode="contained-tonal"
+                  onPress={handleDirections}
+                />
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
+      }
+    >
+      <Menu.Item
+        onPress={() => {
+          hideMenu();
+          onEdit(facility);
+        }}
+        title="Edit"
+        leadingIcon="pencil"
+      />
+      <Divider />
+      <Menu.Item
+        onPress={() => {
+          hideMenu();
+          onDelete(facility.id);
+        }}
+        title="Delete"
+        leadingIcon="delete"
+        titleStyle={{ color: theme.colors.error }}
+      />
+    </Menu>
   );
 };
 
 const styles = StyleSheet.create({
+  statusContainer: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  tagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+  },
+  tag: {
+    marginRight: 4,
+    marginBottom: 4,
+  },
+  contactText: {
+    flex: 1,
+    fontSize: 14,
+    color: "#666",
+  },
   card: {
     marginHorizontal: 12,
     marginVertical: 6,
