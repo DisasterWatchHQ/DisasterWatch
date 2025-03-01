@@ -1,13 +1,19 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, StyleSheet, Animated } from "react-native";
-import { Card, Chip, Text, useTheme } from "react-native-paper";
+import { Card, Chip, Text, useTheme, Menu, Divider } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatDate } from "../../scripts/dateUtils";
 import { router } from "expo-router";
+import { UserContext } from "../../constants/globalProvider";
 
-export const GuideCard = ({ guide }) => {
+export const GuideCard = ({ guide, onEdit, onDelete }) => {
   const theme = useTheme();
   const scale = new Animated.Value(1);
+  const { isAuthenticated } = useContext(UserContext);
+  const [menuVisible, setMenuVisible] = React.useState(false);
+
+  const showMenu = () => setMenuVisible(true);
+  const hideMenu = () => setMenuVisible(false);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -38,7 +44,7 @@ export const GuideCard = ({ guide }) => {
 
   const contentPreview = guide.content
     ? guide.content
-        .replace(/[#*`_~\[\]]/g, "") 
+        .replace(/[#*`_~\[\]]/g, "")
         .substring(0, 150)
         .trim() + (guide.content.length > 150 ? "..." : "")
     : "";
@@ -50,66 +56,68 @@ export const GuideCard = ({ guide }) => {
     });
   };
 
+  const handleLongPress = () => {
+    if (isAuthenticated) {
+      showMenu();
+    }
+  };
+
   return (
-    <Animated.View style={[styles.cardContainer, { transform: [{ scale }] }]}>
-      <Card
-        mode="elevated"
-        onPress={handlePress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-      >
-        <Card.Title
-          title={guide.name}
-          titleStyle={styles.cardTitle}
-          left={(props) => (
-            <MaterialCommunityIcons
-              name="book-open-variant"
-              size={24}
-              color={theme.colors.primary}
+    <Menu
+      visible={menuVisible}
+      onDismiss={hideMenu}
+      anchor={
+        <Animated.View
+          style={[styles.cardContainer, { transform: [{ scale }] }]}
+        >
+          <Card
+            mode="elevated"
+            onPress={handlePress}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
+            onLongPress={handleLongPress}
+          >
+            <Card.Title
+              title={guide.name}
+              titleStyle={styles.cardTitle}
+              subtitle={guide.type}
             />
-          )}
-          right={(props) => (
-            <Chip
-              mode="flat"
-              style={[
-                styles.priorityChip,
-                { backgroundColor: getPriorityColor(guide.priority) },
-              ]}
-            >
-              {guide.priority}
-            </Chip>
-          )}
-        />
-        <Card.Content>
-          <Text style={styles.description}>{guide.description}</Text>
-
-          {/* Content Preview */}
-          <Text style={styles.preview} numberOfLines={3}>
-            {contentPreview}
-          </Text>
-
-          <View style={styles.tagsContainer}>
-            {guide.tags?.map((tag) => (
-              <Chip
-                key={tag}
-                style={styles.chip}
-                textStyle={styles.chipText}
-                icon="tag"
-              >
-                {tag}
-              </Chip>
-            ))}
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.lastUpdated}>
-              Last updated: {formatDate(guide.lastUpdated)}
-            </Text>
-            <Text style={styles.readMore}>Read More →</Text>
-          </View>
-        </Card.Content>
-      </Card>
-    </Animated.View>
+            <Card.Content>
+              <Text style={styles.description}>{guide.description}</Text>
+              <View style={styles.tagsContainer}>
+                {guide.tags?.map((tag) => (
+                  <Chip key={tag} style={styles.chip}>
+                    {tag}
+                  </Chip>
+                ))}
+              </View>
+              <Text style={styles.lastUpdated}>
+                Last updated: {formatDate(guide.metadata?.lastUpdated)}
+              </Text>
+            </Card.Content>
+          </Card>
+        </Animated.View>
+      }
+    >
+      <Menu.Item
+        onPress={() => {
+          hideMenu();
+          onEdit(guide);
+        }}
+        title="Edit"
+        leadingIcon="pencil"
+      />
+      <Divider />
+      <Menu.Item
+        onPress={() => {
+          hideMenu();
+          onDelete(guide.id);
+        }}
+        title="Delete"
+        leadingIcon="delete"
+        titleStyle={{ color: theme.colors.error }}
+      />
+    </Menu>
   );
 };
 
@@ -126,12 +134,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginBottom: 8,
-  },
-  preview: {
-    fontSize: 13,
-    color: "#444",
-    marginBottom: 8,
-    lineHeight: 18,
   },
   tagsContainer: {
     flexDirection: "row",
