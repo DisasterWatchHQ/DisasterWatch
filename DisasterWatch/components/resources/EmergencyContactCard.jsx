@@ -1,107 +1,137 @@
-import React from "react";
-import {
-  View,
-  StyleSheet,
-  Linking,
-  TouchableOpacity,
-} from "react-native";
-import { Card, Chip, Text, useTheme } from "react-native-paper";
+import React, { useContext } from "react";
+import { View, StyleSheet, Linking, TouchableOpacity } from "react-native";
+import { Card, Chip, Text, useTheme, Menu, Divider } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { UserContext } from "../../constants/globalProvider";
 
-export const EmergencyContactCard = ({ contact }) => {
+export const EmergencyContactCard = ({ contact, onEdit, onDelete }) => {
   const theme = useTheme();
+  const { isAuthenticated } = useContext(UserContext);
+  const [menuVisible, setMenuVisible] = React.useState(false);
+
+  const showMenu = () => setMenuVisible(true);
+  const hideMenu = () => setMenuVisible(false);
+
+  const handleLongPress = () => {
+    if (isAuthenticated) {
+      showMenu();
+    }
+  };
 
   return (
-    <Card style={styles.contactCard} mode="elevated">
-      <Card.Title
-        title={contact.name}
-        subtitle={`Response time: ${contact.response_time}`}
-        left={(props) => (
-          <MaterialCommunityIcons
-            name="phone-alert"
-            size={24}
-            color={theme.colors.error}
-          />
-        )}
-      />
-      <Card.Content>
-        <View style={styles.contactDetails}>
-          {/* Primary Phone */}
-          <TouchableOpacity
-            style={styles.contactButton}
-            onPress={() => Linking.openURL(`tel:${contact.contact.phone}`)}
-          >
-            <MaterialCommunityIcons
-              name="phone"
-              size={20}
-              color={theme.colors.primary}
-            />
-            <Text style={styles.contactText}>{contact.contact.phone}</Text>
-            <Text style={styles.contactLabel}>Primary</Text>
-          </TouchableOpacity>
-
-          {contact.contact.alternate_phone && (
-            <TouchableOpacity
-              style={styles.contactButton}
-              onPress={() =>
-                Linking.openURL(`tel:${contact.contact.alternate_phone}`)
-              }
-            >
+    <Menu
+      visible={menuVisible}
+      onDismiss={hideMenu}
+      anchor={
+        <Card
+          style={styles.contactCard}
+          mode="elevated"
+          onLongPress={handleLongPress}
+        >
+          <Card.Title
+            title={contact.name}
+            subtitle={contact.metadata?.serviceHours || "24/7"}
+            left={(props) => (
               <MaterialCommunityIcons
-                name="phone-classic"
-                size={20}
-                color={theme.colors.primary}
+                name="phone-alert"
+                size={24}
+                color={theme.colors.error}
               />
-              <Text style={styles.contactText}>
-                {contact.contact.alternate_phone}
-              </Text>
-              <Text style={styles.contactLabel}>Alternate</Text>
-            </TouchableOpacity>
-          )}
+            )}
+          />
+          <Card.Content>
+            <View style={styles.contactDetails}>
+              <TouchableOpacity
+                style={styles.contactButton}
+                onPress={() => Linking.openURL(`tel:${contact.contact.phone}`)}
+              >
+                <MaterialCommunityIcons
+                  name="phone"
+                  size={20}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.contactText}>{contact.contact.phone}</Text>
+                <Text style={styles.contactLabel}>Primary</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.contactButton}
-            onPress={() => Linking.openURL(`mailto:${contact.contact.email}`)}
-          >
-            <MaterialCommunityIcons
-              name="email"
-              size={20}
-              color={theme.colors.primary}
-            />
-            <Text style={styles.contactText}>{contact.contact.email}</Text>
-            <Text style={styles.contactLabel}>Email</Text>
-          </TouchableOpacity>
-        </View>
+              {contact.contact.email && (
+                <TouchableOpacity
+                  style={styles.contactButton}
+                  onPress={() =>
+                    Linking.openURL(`mailto:${contact.contact.email}`)
+                  }
+                >
+                  <MaterialCommunityIcons
+                    name="email"
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                  <Text style={styles.contactText}>
+                    {contact.contact.email}
+                  </Text>
+                  <Text style={styles.contactLabel}>Email</Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
-        <View style={styles.infoContainer}>
-          <Chip
-            icon="clock-outline"
-            mode="outlined"
-            style={styles.availabilityChip}
-          >
-            {contact.available_hours}
-          </Chip>
+            <View style={styles.infoContainer}>
+              <Chip
+                icon="clock-outline"
+                mode="outlined"
+                style={styles.availabilityChip}
+              >
+                {contact.metadata?.serviceHours || "24/7"}
+              </Chip>
 
-          <Chip
-            icon="alert"
-            mode="outlined"
-            style={[
-              styles.emergencyLevelChip,
-              {
-                backgroundColor:
-                  contact.emergency_level === "high"
-                    ? theme.colors.errorContainer
-                    : theme.colors.surfaceVariant,
-              },
-            ]}
-          >
-            {contact.emergency_level} priority
-          </Chip>
-        </View>
+              <Chip
+                icon="alert"
+                mode="outlined"
+                style={[
+                  styles.emergencyLevelChip,
+                  {
+                    backgroundColor:
+                      contact.emergency_level === "high"
+                        ? theme.colors.errorContainer
+                        : theme.colors.surfaceVariant,
+                  },
+                ]}
+              >
+                {contact.emergency_level} priority
+              </Chip>
+            </View>
 
-        <Text style={styles.description}>{contact.description}</Text>
-      </Card.Content>
-    </Card>
+            {contact.tags && contact.tags.length > 0 && (
+              <View style={styles.tagsContainer}>
+                {contact.tags.map((tag, index) => (
+                  <Chip key={index} mode="outlined" style={styles.tag}>
+                    {tag}
+                  </Chip>
+                ))}
+              </View>
+            )}
+          </Card.Content>
+        </Card>
+      }
+    >
+      <Menu.Item
+        onPress={() => {
+          hideMenu();
+          onEdit(contact);
+        }}
+        title="Edit"
+        leadingIcon="pencil"
+      />
+      <Divider />
+      <Menu.Item
+        onPress={() => {
+          hideMenu();
+          onDelete(contact.id);
+        }}
+        title="Delete"
+        leadingIcon="delete"
+        titleStyle={{ color: theme.colors.error }}
+      />
+    </Menu>
   );
 };
 
@@ -115,6 +145,16 @@ const styles = StyleSheet.create({
   contactDetails: {
     gap: 8,
     marginBottom: 12,
+  },
+  tagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12,
+  },
+  tag: {
+    marginRight: 4,
+    marginBottom: 4,
   },
   contactButton: {
     flexDirection: "row",
