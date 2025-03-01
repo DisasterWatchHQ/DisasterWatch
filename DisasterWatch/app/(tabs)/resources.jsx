@@ -24,6 +24,7 @@ import { FacilityCard } from "../../components/resources/FacilityCard";
 import { FilterHeader } from "../../components/resources/FilterHeader";
 import HeaderBar from "../../components/headerBar";
 import { facilityApi } from "../../services/resourceApi";
+import { Alert } from "react-native";
 
 import {
   FACILITY_TYPES,
@@ -63,6 +64,7 @@ const ResourcesScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [editingGuide, setEditingGuide] = useState(null);
   const [filters, setFilters] = useState({
     guides: "all",
     facilities: "all",
@@ -100,6 +102,34 @@ const ResourcesScreen = () => {
     setSearchQuery(query);
   };
 
+  const handleEditGuide = (guide) => {
+    setEditingGuide(guide);
+    showAddModal();
+  };
+
+  const handleDeleteGuide = async (guideId) => {
+    Alert.alert("Delete Guide", "Are you sure you want to delete this guide?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setLoading(true);
+            await facilityApi.deleteGuide(guideId);
+            await fetchGuides(); // Refresh the list
+          } catch (error) {
+            console.error("Error deleting guide:", error);
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
+  };
   const handleFilterChange = (value) => {
     if (FACILITY_TYPES.some((t) => t.value === value)) {
       setFilters((prev) => ({ ...prev, facilities: value }));
@@ -113,16 +143,14 @@ const ResourcesScreen = () => {
   const fetchGuides = async () => {
     try {
       setLoading(true);
-      const { data, pagination } = await facilityApi.getGuides({
+      const response = await facilityApi.getGuides({
         type: filters.guides !== "all" ? filters.guides : undefined,
-        page: 1,
-        limit: 20,
       });
       setData((prev) => ({
         ...prev,
         guides: {
-          data: data || [],
-          pagination,
+          data: response.data,
+          pagination: response.pagination,
         },
       }));
     } catch (error) {
@@ -257,7 +285,13 @@ const ResourcesScreen = () => {
   const renderItem = ({ item }) => {
     switch (activeSection) {
       case "guides":
-        return <GuideCard guide={item} />;
+        return (
+          <GuideCard
+            guide={item}
+            onEdit={handleEditGuide}
+            onDelete={handleDeleteGuide}
+          />
+        );
       case "contacts":
         return <EmergencyContactCard contact={item} />;
       case "facilities":
@@ -353,15 +387,24 @@ const ResourcesScreen = () => {
 
       <AddGuideModal
         visible={isAddModalVisible}
-        onDismiss={hideAddModal}
+        onDismiss={() => {
+          hideAddModal();
+          setEditingGuide(null);
+        }}
+        editingGuide={editingGuide}
         onSubmit={async (guideData) => {
           try {
             setLoading(true);
-            await facilityApi.createGuide(guideData);
+            if (editingGuide) {
+              await facilityApi.updateGuide(editingGuide.id, guideData);
+            } else {
+              await facilityApi.createGuide(guideData);
+            }
             await fetchGuides();
             hideAddModal();
+            setEditingGuide(null);
           } catch (error) {
-            console.error("Error creating guide:", error);
+            console.error("Error saving guide:", error);
           } finally {
             setLoading(false);
           }
