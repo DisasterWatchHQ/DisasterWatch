@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import "../global.css";
 import { UserProvider } from "../constants/globalProvider";
 import {
-  Provider as PaperProvider,
+  Provider,
   MD3LightTheme,
   MD3DarkTheme,
 } from "react-native-paper";
@@ -45,7 +45,7 @@ const RootLayout = () => {
 
   return (
     <PreferencesContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <PaperProvider theme={theme}>
+      <Provider theme={theme}>
         <UserProvider>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
@@ -58,7 +58,7 @@ const RootLayout = () => {
           </Stack>
         </UserProvider>
         <StatusBar style={isDarkMode ? "light" : "dark"} />
-      </PaperProvider>
+      </Provider>
     </PreferencesContext.Provider>
   );
 };
