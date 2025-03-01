@@ -17,6 +17,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { UserContext } from "../../constants/globalProvider";
+import AddContactModal from "../../components/resources/AddContactModal";
 import AddGuideModal from "../../components/resources/AddGuideModal";
 import { GuideCard } from "../../components/resources/GuideCard";
 import { EmergencyContactCard } from "../../components/resources/EmergencyContactCard";
@@ -70,6 +71,7 @@ const ResourcesScreen = () => {
     facilities: "all",
     status: "all",
   });
+  const [editingContact, setEditingContact] = useState(null);
 
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 100],
@@ -97,6 +99,36 @@ const ResourcesScreen = () => {
 
   const showAddModal = () => setIsAddModalVisible(true);
   const hideAddModal = () => setIsAddModalVisible(false);
+
+  const handleEditContact = (contact) => {
+    setEditingContact(contact);
+    showAddModal();
+  };
+
+  const handleDeleteContact = async (contactId) => {
+    Alert.alert(
+      "Delete Contact",
+      "Are you sure you want to delete this contact?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await facilityApi.deleteResource(contactId);
+              await fetchEmergencyContacts();
+            } catch (error) {
+              console.error("Error deleting contact:", error);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -293,7 +325,13 @@ const ResourcesScreen = () => {
           />
         );
       case "contacts":
-        return <EmergencyContactCard contact={item} />;
+        return (
+          <EmergencyContactCard
+            contact={item}
+            onEdit={handleEditContact}
+            onDelete={handleDeleteContact}
+          />
+        );
       case "facilities":
         return <FacilityCard facility={item} />;
       default:
@@ -374,42 +412,71 @@ const ResourcesScreen = () => {
         </Portal>
       )}
 
-      {isAuthenticated && activeSection === "guides" && (
-        <Portal>
-          <FAB
-            icon="plus"
-            style={styles.fab}
-            onPress={showAddModal}
-            label="Add Guide"
-          />
-        </Portal>
-      )}
+      {isAuthenticated &&
+        (activeSection === "guides" || activeSection === "contacts") && (
+          <Portal>
+            <FAB
+              icon="plus"
+              style={styles.fab}
+              onPress={showAddModal}
+              label={activeSection === "guides" ? "Add Guide" : "Add Contact"}
+            />
+          </Portal>
+        )}
 
-      <AddGuideModal
-        visible={isAddModalVisible}
-        onDismiss={() => {
-          hideAddModal();
-          setEditingGuide(null);
-        }}
-        editingGuide={editingGuide}
-        onSubmit={async (guideData) => {
-          try {
-            setLoading(true);
-            if (editingGuide) {
-              await facilityApi.updateGuide(editingGuide.id, guideData);
-            } else {
-              await facilityApi.createGuide(guideData);
-            }
-            await fetchGuides();
+      {activeSection === "guides" ? (
+        <AddGuideModal
+          visible={isAddModalVisible}
+          onDismiss={() => {
             hideAddModal();
             setEditingGuide(null);
-          } catch (error) {
-            console.error("Error saving guide:", error);
-          } finally {
-            setLoading(false);
-          }
-        }}
-      />
+          }}
+          editingGuide={editingGuide}
+          onSubmit={async (guideData) => {
+            try {
+              setLoading(true);
+              if (editingGuide) {
+                await facilityApi.updateGuide(editingGuide.id, guideData);
+              } else {
+                await facilityApi.createGuide(guideData);
+              }
+              await fetchGuides();
+              hideAddModal();
+              setEditingGuide(null);
+            } catch (error) {
+              console.error("Error saving guide:", error);
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />
+      ) : (
+        <AddContactModal
+          visible={isAddModalVisible}
+          onDismiss={() => {
+            hideAddModal();
+            setEditingContact(null);
+          }}
+          editingContact={editingContact}
+          onSubmit={async (contactData) => {
+            try {
+              setLoading(true);
+              if (editingContact) {
+                await facilityApi.updateContact(editingContact.id, contactData);
+              } else {
+                await facilityApi.createContact(contactData);
+              }
+              await fetchEmergencyContacts();
+              hideAddModal();
+              setEditingContact(null);
+            } catch (error) {
+              console.error("Error saving contact:", error);
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />
+      )}
     </View>
   );
 };
