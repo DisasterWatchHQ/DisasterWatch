@@ -7,9 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "notification": {
-      "sound": false
-    },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -56,7 +53,8 @@
           "color": "#ffffff",
           "sounds": []
         }
-      ]
+      ],
+      "expo-font"
     ],
     "newArchEnabled": true,
     "extra": {
