@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Portal,
@@ -10,44 +10,76 @@ import {
 } from "react-native-paper";
 import { View, ScrollView, StyleSheet } from "react-native";
 
-const AddGuideModal = ({ visible, onDismiss, onSubmit }) => {
+const AddGuideModal = ({ visible, onDismiss, onSubmit, editingGuide }) => {
   const [formData, setFormData] = useState({
     name: "",
+    category: "guide",
+    type: "disaster_guide",
     description: "",
     content: "",
-    type: "disaster_guide",
+    contact: {
+      phone: "",
+      email: "",
+    },
+    metadata: {
+      lastUpdated: new Date().toISOString(),
+    },
     tags: [],
-    priority: "medium",
+    status: "active",
   });
 
   const [tag, setTag] = useState("");
 
+  useEffect(() => {
+    if (visible) {
+      if (editingGuide) {
+        setFormData(editingGuide);
+      } else {
+        setFormData({
+          name: "",
+          category: "guide",
+          type: "disaster_guide",
+          description: "",
+          content: "",
+          contact: {
+            phone: "",
+            email: "",
+          },
+          metadata: {
+            lastUpdated: new Date().toISOString(),
+          },
+          tags: [],
+          status: "active",
+        });
+      }
+    }
+  }, [visible, editingGuide]);
+
   const handleSubmit = () => {
-    onSubmit(formData);
-    setFormData({
-      name: "",
-      description: "",
-      content: "",
-      type: "disaster_guide",
-      tags: [],
-      priority: "medium",
-    });
+    const updatedData = {
+      ...formData,
+      metadata: {
+        ...formData.metadata,
+        lastUpdated: new Date().toISOString(),
+      },
+    };
+    onSubmit(updatedData);
   };
 
   const addTag = () => {
     if (tag && !formData.tags.includes(tag)) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, tag]
+        tags: [...prev.tags, tag],
       }));
       setTag("");
     }
   };
 
   const removeTag = (tagToRemove) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter(t => t !== tagToRemove)
+      tags: prev.tags.filter((t) => t !== tagToRemove),
     }));
   };
 
@@ -59,19 +91,24 @@ const AddGuideModal = ({ visible, onDismiss, onSubmit }) => {
         contentContainerStyle={styles.modal}
       >
         <ScrollView>
-          <Text style={styles.title}>Add New Guide</Text>
-          
+          <Text style={styles.title}>
+            {editingGuide ? "Edit Guide" : "Add New Guide"}
+          </Text>
           <TextInput
             label="Title"
             value={formData.name}
-            onChangeText={text => setFormData(prev => ({ ...prev, name: text }))}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, name: text }))
+            }
             style={styles.input}
           />
 
           <TextInput
             label="Description"
             value={formData.description}
-            onChangeText={text => setFormData(prev => ({ ...prev, description: text }))}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, description: text }))
+            }
             multiline
             style={styles.input}
           />
@@ -79,10 +116,37 @@ const AddGuideModal = ({ visible, onDismiss, onSubmit }) => {
           <TextInput
             label="Content"
             value={formData.content}
-            onChangeText={text => setFormData(prev => ({ ...prev, content: text }))}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, content: text }))
+            }
             multiline
             numberOfLines={4}
             style={styles.input}
+          />
+
+          <TextInput
+            label="Contact Phone"
+            value={formData.contact.phone}
+            onChangeText={(text) =>
+              setFormData((prev) => ({
+                ...prev,
+                contact: { ...prev.contact, phone: text },
+              }))
+            }
+            style={styles.input}
+          />
+
+          <TextInput
+            label="Contact Email"
+            value={formData.contact.email}
+            onChangeText={(text) =>
+              setFormData((prev) => ({
+                ...prev,
+                contact: { ...prev.contact, email: text },
+              }))
+            }
+            style={styles.input}
+            keyboardType="email-address"
           />
 
           <View style={styles.tagsContainer}>
@@ -94,7 +158,7 @@ const AddGuideModal = ({ visible, onDismiss, onSubmit }) => {
               right={<TextInput.Icon icon="plus" onPress={addTag} />}
             />
             <View style={styles.tagsList}>
-              {formData.tags.map(tag => (
+              {formData.tags.map((tag) => (
                 <Chip
                   key={tag}
                   onClose={() => removeTag(tag)}
@@ -107,13 +171,15 @@ const AddGuideModal = ({ visible, onDismiss, onSubmit }) => {
           </View>
 
           <View style={styles.buttons}>
-            <Button onPress={onDismiss} style={styles.button}>Cancel</Button>
-            <Button 
-              mode="contained" 
+            <Button onPress={onDismiss} style={styles.button}>
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
               onPress={handleSubmit}
               style={styles.button}
             >
-              Create Guide
+              {editingGuide ? "Update Guide" : "Create Guide"}
             </Button>
           </View>
         </ScrollView>
@@ -124,15 +190,15 @@ const AddGuideModal = ({ visible, onDismiss, onSubmit }) => {
 
 const styles = StyleSheet.create({
   modal: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     margin: 20,
     padding: 20,
     borderRadius: 8,
-    maxHeight: '80%',
+    maxHeight: "80%",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   input: {
@@ -142,8 +208,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tagsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginTop: 8,
   },
@@ -151,8 +217,8 @@ const styles = StyleSheet.create({
     margin: 4,
   },
   buttons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 8,
     marginTop: 16,
   },
