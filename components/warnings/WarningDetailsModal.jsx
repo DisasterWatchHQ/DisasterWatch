@@ -17,19 +17,43 @@ const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
     return null;
   }
   console.log(warning);
-  const getTimeAgo = (timestamp) => {
-    const now = new Date();
-    const created = new Date(timestamp);
-    const diffInMinutes = Math.floor((now - created) / (1000 * 60));
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minutes ago`;
-    } else if (diffInMinutes < 1440) {
-      const hours = Math.floor(diffInMinutes / 60);
-      return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
-    } else {
-      const days = Math.floor(diffInMinutes / 1440);
-      return `${days} ${days === 1 ? "day" : "days"} ago`;
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.error("Invalid date:", dateString);
+        return "Date unavailable";
+      }
+      return date.toLocaleString();
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Date unavailable";
+    }
+  };
+
+  const getTimeAgo = (timestamp) => {
+    try {
+      const now = new Date();
+      const created = new Date(timestamp);
+      if (isNaN(created.getTime())) {
+        console.error("Invalid timestamp:", timestamp);
+        return "Time unavailable";
+      }
+      const diffInMinutes = Math.floor((now - created) / (1000 * 60));
+
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes} minutes ago`;
+      } else if (diffInMinutes < 1440) {
+        const hours = Math.floor(diffInMinutes / 60);
+        return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+      } else {
+        const days = Math.floor(diffInMinutes / 1440);
+        return `${days} ${days === 1 ? "day" : "days"} ago`;
+      }
+    } catch (error) {
+      console.error("Error calculating time ago:", error);
+      return "Time unavailable";
     }
   };
 
@@ -130,15 +154,13 @@ const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
                 Expected Duration
               </Text>
               <Text variant="bodyMedium">
-                From:{" "}
-                {new Date(
-                  warning.expected_duration.start_time,
-                ).toLocaleString()}
+                From: {formatDate(warning.expected_duration?.start_time)}
               </Text>
-              <Text variant="bodyMedium">
-                To:{" "}
-                {new Date(warning.expected_duration.end_time).toLocaleString()}
-              </Text>
+              {warning.expected_duration?.end_time && (
+                <Text variant="bodyMedium">
+                  To: {formatDate(warning.expected_duration.end_time)}
+                </Text>
+              )}
             </View>
 
             <View style={styles.section}>

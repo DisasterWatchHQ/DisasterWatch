@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, ScrollView, StyleSheet } from "react-native";
+import { View, ScrollView, StyleSheet, Alert } from "react-native";
 import {
   Button,
   Dialog,
@@ -45,10 +45,6 @@ const formSchema = z.object({
       }),
     )
     .min(1, "At least one location must be specified"),
-  expected_duration: z.object({
-    start_time: z.string(),
-    end_time: z.string().optional(),
-  }),
 });
 
 const CreateWarningDialog = () => {
@@ -57,9 +53,7 @@ const CreateWarningDialog = () => {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState(null);
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [address, setAddress] = useState(null);
-  const [endTime, setEndTime] = useState(new Date());
 
   const {
     control,
@@ -86,10 +80,6 @@ const CreateWarningDialog = () => {
           },
         },
       ],
-      expected_duration: {
-        start_time: new Date().toISOString(),
-        end_time: "",
-      },
     },
   });
 
@@ -103,6 +93,26 @@ const CreateWarningDialog = () => {
 
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation.coords);
+      setValue("affected_locations.0.latitude", currentLocation.coords.latitude);
+      setValue("affected_locations.0.longitude", currentLocation.coords.longitude);
+      
+      // Get initial address
+      const response = await Location.reverseGeocodeAsync({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
+
+      if (response[0]) {
+        const addressData = response[0];
+        const initialAddress = {
+          city: addressData.city || addressData.subregion || "",
+          district: addressData.district || addressData.region || "",
+          province: addressData.region || "",
+          details: `${addressData.street || ""} ${addressData.name || ""}`.trim(),
+        };
+        setAddress(initialAddress);
+        setValue("affected_locations.0.address", initialAddress);
+      }
     })();
   }, []);
 
@@ -144,10 +154,6 @@ const CreateWarningDialog = () => {
     reverseGeocode(latitude, longitude);
   };
 
-  const handleEndTimeInput = (text) => {
-    setValue("expected_duration.end_time", text);
-  };
-
   const onSubmit = async (data) => {
     setLoading(true);
     try {
@@ -156,14 +162,14 @@ const CreateWarningDialog = () => {
         throw new Error("User not authenticated");
       }
 
+      // Log form data for debugging
+      console.log("Form data:", data);
+
       const formattedData = {
         ...data,
         created_by: user.user.id,
         expected_duration: {
-          start_time: new Date(data.expected_duration.start_time),
-          end_time: data.expected_duration.end_time
-            ? new Date(data.expected_duration.end_time)
-            : undefined,
+          start_time: new Date(),
         },
         affected_locations: [
           {
@@ -176,24 +182,27 @@ const CreateWarningDialog = () => {
 
       try {
         console.log("Submitting data:", formattedData); // Debug log
-        const response = await wardash.post("/warning/", formattedData);
+        const response = await wardash.post("/warnings", formattedData);
         console.log("Response:", response.data);
         if (response.data) {
+          setVisible(false);
+          reset();
+          Alert.alert("Success", "Warning created successfully");
           return response.data;
         }
       } catch (error) {
         console.error("Error creating warning:", error);
         if (error.response) {
+          console.error("Error response:", error.response.data);
           throw new Error(
             error.response.data.error || "Failed to create warning",
           );
         }
         throw error;
       }
-      setVisible(false);
-      reset();
     } catch (error) {
       console.error("Error creating warning:", error);
+      Alert.alert("Error", error.message || "Failed to create warning");
     } finally {
       setLoading(false);
     }
@@ -260,6 +269,9 @@ const CreateWarningDialog = () => {
                       />
                     )}
                   />
+                  {errors.description && (
+                    <Text style={styles.errorText}>{errors.description.message}</Text>
+                  )}
                 </View>
 
                 <View style={styles.section}>
@@ -390,29 +402,82 @@ const CreateWarningDialog = () => {
                       Address Details
                     </Text>
                     <View style={styles.addressFields}>
-                      {/* ... address input fields ... */}
+                      <Controller
+                        control={control}
+                        name="affected_locations.0.address.city"
+                        render={({ field: { onChange, value } }) => (
+                          <TextInput
+                            label="City"
+                            value={value}
+                            onChangeText={onChange}
+                            error={!!errors.affected_locations?.[0]?.address?.city}
+                            mode="outlined"
+                            style={styles.input}
+                          />
+                        )}
+                      />
+                      {errors.affected_locations?.[0]?.address?.city && (
+                        <Text style={styles.errorText}>
+                          {errors.affected_locations[0].address.city.message}
+                        </Text>
+                      )}
+
+                      <Controller
+                        control={control}
+                        name="affected_locations.0.address.district"
+                        render={({ field: { onChange, value } }) => (
+                          <TextInput
+                            label="District"
+                            value={value}
+                            onChangeText={onChange}
+                            error={!!errors.affected_locations?.[0]?.address?.district}
+                            mode="outlined"
+                            style={styles.input}
+                          />
+                        )}
+                      />
+                      {errors.affected_locations?.[0]?.address?.district && (
+                        <Text style={styles.errorText}>
+                          {errors.affected_locations[0].address.district.message}
+                        </Text>
+                      )}
+
+                      <Controller
+                        control={control}
+                        name="affected_locations.0.address.province"
+                        render={({ field: { onChange, value } }) => (
+                          <TextInput
+                            label="Province"
+                            value={value}
+                            onChangeText={onChange}
+                            error={!!errors.affected_locations?.[0]?.address?.province}
+                            mode="outlined"
+                            style={styles.input}
+                          />
+                        )}
+                      />
+                      {errors.affected_locations?.[0]?.address?.province && (
+                        <Text style={styles.errorText}>
+                          {errors.affected_locations[0].address.province.message}
+                        </Text>
+                      )}
+
+                      <Controller
+                        control={control}
+                        name="affected_locations.0.address.details"
+                        render={({ field: { onChange, value } }) => (
+                          <TextInput
+                            label="Additional Details"
+                            value={value}
+                            onChangeText={onChange}
+                            mode="outlined"
+                            style={styles.input}
+                          />
+                        )}
+                      />
                     </View>
                   </View>
                 )}
-
-                <View style={styles.section}>
-                  <Text variant="titleMedium" style={styles.sectionTitle}>
-                    Expected Duration
-                  </Text>
-                  <Controller
-                    control={control}
-                    name="expected_duration.end_time"
-                    render={({ field: { onChange, value } }) => (
-                      <TextInput
-                        label="End Time (YYYY-MM-DD HH:MM)"
-                        value={value}
-                        onChangeText={onChange}
-                        mode="outlined"
-                        style={styles.input}
-                      />
-                    )}
-                  />
-                </View>
               </View>
             </ScrollView>
           </Dialog.ScrollArea>

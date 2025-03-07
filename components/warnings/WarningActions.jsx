@@ -6,6 +6,7 @@ import {
   Portal,
   TextInput,
   SegmentedButtons,
+  Alert,
 } from "react-native-paper";
 import * as SecureStore from "expo-secure-store";
 import wardash from "../../services/wardash";
@@ -32,16 +33,24 @@ export const WarningActions = ({ warning, onUpdate }) => {
         severity_change: severityChange || undefined,
       };
 
+      console.log("Submitting update:", updateData); // Debug log
       const response = await wardash.post(
-        `/warning/${warning._id}/updates`,
+        `/warnings/${warning._id}/updates`,
         updateData,
       );
+      console.log("Update response:", response.data); // Debug log
       onUpdate && onUpdate(response.data);
       setVisible(false);
       setUpdateText("");
       setSeverityChange("");
     } catch (error) {
       console.error("Error adding update:", error);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        Alert.alert("Error", error.response.data.error || "Failed to add update");
+      } else {
+        Alert.alert("Error", "Failed to add update");
+      }
     }
   };
 
@@ -55,14 +64,28 @@ export const WarningActions = ({ warning, onUpdate }) => {
         return;
       }
 
-      await wardash.post(`/warning/${warning._id}/resolve`, {
-        resolved_by: user.user.id,
+      const resolutionData = {
         resolution_notes: "Warning resolved through dashboard",
-      });
+        resolved_by: user.user.id,
+        resolved_at: new Date(),
+      };
 
-      onUpdate && onUpdate();
+      console.log("Submitting resolution:", resolutionData); // Debug log
+      const response = await wardash.post(
+        `/warnings/${warning._id}/resolve`,
+        resolutionData,
+      );
+      console.log("Resolution response:", response.data); // Debug log
+
+      onUpdate && onUpdate(response.data);
     } catch (error) {
       console.error("Error resolving warning:", error);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        Alert.alert("Error", error.response.data.error || "Failed to resolve warning");
+      } else {
+        Alert.alert("Error", "Failed to resolve warning");
+      }
     }
   };
 
