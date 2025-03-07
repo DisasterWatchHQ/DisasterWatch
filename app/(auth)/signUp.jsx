@@ -42,6 +42,9 @@ const SignUp = () => {
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = "Please enter a valid email address";
     }
+    if (form.password && form.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -56,7 +59,6 @@ const SignUp = () => {
 
       Alert.alert(
         "Success",
-        "Account created successfully! Awaiting verification.",
         [{ text: "OK", onPress: () => router.replace("/signIn") }],
       );
     } catch (error) {
@@ -120,6 +122,8 @@ const SignUp = () => {
               keyboardType="email-address"
               error={!!errors.email}
               left={<TextInput.Icon icon="email" />}
+              autoCapitalize="none"
+              autoComplete="email"
             />
             <HelperText type="error" visible={!!errors.email}>
               {errors.email}

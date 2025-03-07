@@ -44,6 +44,7 @@ const SignIn = () => {
       }
     } catch (error) {
       console.error("Error saving session:", error);
+      Alert.alert("Error", "Failed to save session. Please try again.");
     }
   };
 
@@ -99,34 +100,8 @@ const SignIn = () => {
           name: response.user.name,
           email: response.user.email,
           department: response.user.department,
-          isVerified: response.user.isVerified,
         },
       });
-
-      if (form.remember) {
-        await SecureStore.setItemAsync(
-          "userSession",
-          JSON.stringify({
-            token: response.token,
-            user: {
-              id: response.user.id,
-              name: response.user.name,
-              email: response.user.email,
-              department: response.user.department,
-              isVerified: response.user.isVerified,
-            },
-          }),
-        );
-      }
-
-      if (!response.user.isVerified) {
-        Alert.alert(
-          "Account Not Verified",
-          "Your account is pending verification. Please contact your administrator.",
-          [{ text: "OK" }],
-        );
-        return;
-      }
 
       router.replace("/Dashboard");
     } catch (error) {
