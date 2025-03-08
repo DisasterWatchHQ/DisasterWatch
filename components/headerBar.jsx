@@ -1,6 +1,9 @@
 import { View, TouchableOpacity, StyleSheet } from "react-native";
-import { Text, IconButton, useTheme } from "react-native-paper";
+import { Text, IconButton, useTheme, Badge } from "react-native-paper";
 import { useRouter } from "expo-router";
+import { useState, useEffect } from "react";
+import NotificationMenu from "./notifications/NotificationMenu";
+import wardash from "../services/wardash";
 
 const HeaderBar = ({
   showBack = false,
@@ -12,6 +15,23 @@ const HeaderBar = ({
 }) => {
   const router = useRouter();
   const theme = useTheme();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (showBell) {
+      fetchUnreadCount();
+    }
+  }, [showBell]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await wardash.get('/notifications/unread-count');
+      setUnreadCount(response.data.count);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -36,14 +56,24 @@ const HeaderBar = ({
           )}
         </View>
         <View style={styles.headerButtons}>
-          {showBell && ( 
-            <IconButton
-              icon="bell"
-              mode="text"
-              size={20}
-              onPress={() => {}}
-              style={styles.actionButton}
-            />
+          {showBell && (
+            <View style={styles.bellContainer}>
+              <IconButton
+                icon="bell"
+                mode="text"
+                size={20}
+                onPress={() => setShowNotifications(true)}
+                style={styles.actionButton}
+              />
+              {unreadCount > 0 && (
+                <Badge
+                  size={20}
+                  style={[styles.badge, { backgroundColor: theme.colors.error }]}
+                >
+                  {unreadCount}
+                </Badge>
+              )}
+            </View>
           )}
           {showCog && (
             <IconButton
@@ -56,6 +86,11 @@ const HeaderBar = ({
           )}
         </View>
       </View>
+
+      <NotificationMenu
+        visible={showNotifications}
+        onDismiss={() => setShowNotifications(false)}
+      />
     </View>
   );
 };
@@ -91,6 +126,15 @@ const styles = StyleSheet.create({
   },
   backButton: {
     margin: 0,
+  },
+  bellContainer: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 1,
   },
 });
 
