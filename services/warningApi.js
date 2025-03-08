@@ -12,7 +12,11 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     console.log("API Request:", config.method.toUpperCase(), config.url);
     return config;
   },
@@ -34,35 +38,34 @@ apiClient.interceptors.response.use(
         error.response.status,
         error.response.data,
       );
+      throw new Error(error.response.data.message || 'Server error occurred');
     } else if (error.request) {
       console.error("No Response Received:", error.message);
+      throw new Error('No response received from server');
     } else {
       console.error("Request Setup Error:", error.message);
+      throw new Error('Failed to make request');
     }
-    return Promise.reject(error);
   },
 );
-
-const getAuthHeader = async () => {
-  const token = await AsyncStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
 
 export const warningApi = {
   getActiveWarnings: async () => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/warnings/active`, {
-        headers,
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch active warnings');
+      const response = await apiClient.get('/warnings/active');
+      
+      // Ensure we return the array of warnings
+      if (response.data?.data?.warnings) {
+        return response.data.data.warnings;
+      } else if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else if (response.data?.success && Array.isArray(response.data?.data)) {
+        return response.data.data;
       }
-      return data;
+      
+      throw new Error('Invalid response format from server');
     } catch (error) {
       console.error('Get active warnings error:', error);
       throw error;
@@ -71,20 +74,8 @@ export const warningApi = {
 
   getWarnings: async (filters = {}) => {
     try {
-      const headers = await getAuthHeader();
-      const queryParams = new URLSearchParams({
-        ...filters,
-      }).toString();
-
-      const response = await fetch(
-        `${API_URL}/warnings?${queryParams}`,
-        { headers }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch warnings');
-      }
-      return data;
+      const response = await apiClient.get('/warnings', { params: filters });
+      return response.data;
     } catch (error) {
       console.error('Get warnings error:', error);
       throw error;
@@ -93,35 +84,30 @@ export const warningApi = {
 
   getWarningsByLocation: async (latitude, longitude, radius) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(
-        `${API_URL}/warnings?latitude=${latitude}&longitude=${longitude}&radius=${radius}`,
-        { headers }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch location-based warnings');
-      }
-      return data;
+      const response = await apiClient.get('/warnings', {
+        params: { latitude, longitude, radius }
+      });
+      return response.data;
     } catch (error) {
       console.error('Get location warnings error:', error);
       throw error;
     }
   },
 
+  getWarningById: async (warningId) => {
+    try {
+      const response = await apiClient.get(`/warnings/${warningId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get warning details error:', error);
+      throw error;
+    }
+  },
+
   createWarning: async (warningData) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/warnings`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(warningData),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create warning');
-      }
-      return data;
+      const response = await apiClient.post('/warnings', warningData);
+      return response.data;
     } catch (error) {
       console.error('Create warning error:', error);
       throw error;
@@ -130,17 +116,8 @@ export const warningApi = {
 
   updateWarning: async (warningId, updateData) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/warnings/${warningId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(updateData),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update warning');
-      }
-      return data;
+      const response = await apiClient.put(`/warnings/${warningId}`, updateData);
+      return response.data;
     } catch (error) {
       console.error('Update warning error:', error);
       throw error;
@@ -149,16 +126,8 @@ export const warningApi = {
 
   resolveWarning: async (warningId) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/warnings/${warningId}/resolve`, {
-        method: 'POST',
-        headers,
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to resolve warning');
-      }
-      return data;
+      const response = await apiClient.post(`/warnings/${warningId}/resolve`);
+      return response.data;
     } catch (error) {
       console.error('Resolve warning error:', error);
       throw error;
@@ -167,17 +136,10 @@ export const warningApi = {
 
   addWarningUpdate: async (warningId, updateMessage) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/warnings/${warningId}/updates`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ message: updateMessage }),
+      const response = await apiClient.post(`/warnings/${warningId}/updates`, {
+        message: updateMessage
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to add warning update');
-      }
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Add warning update error:', error);
       throw error;

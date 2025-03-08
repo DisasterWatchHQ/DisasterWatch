@@ -1,203 +1,219 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
+  Alert,
+  RefreshControl,
 } from "react-native";
 import { Card, Text, Button, FAB } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import MapWindow from "../../components/mapwindow";
 import WarningMain from "../../components/warningMain";
 import HeaderBar from "../../components/headerBar";
 import { useRouter } from "expo-router";
 import { warningApi } from "../../services/warningApi";
-import { facilityApi } from "../../services/resourceApi";
+import { resourceApi } from "../../services/resourceApi";
 import WarningDetailsModal from "../../components/warnings/WarningDetailsModal";
 import { useNavigation } from "@react-navigation/native";
+import { getDisasterCategoryColor } from "../../utils/disasterUtils";
 
 const Home = () => {
   const router = useRouter();
+  const navigation = useNavigation();
+  
+  // State management
   const [activeWarnings, setActiveWarnings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [markers, setMarkers] = useState([]);
   const [nearbyFacilities, setNearbyFacilities] = useState([]);
   const [location, setLocation] = useState(null);
   const [selectedWarning, setSelectedWarning] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
   
+  // Loading and error states
+  const [loadingStates, setLoadingStates] = useState({
+    location: false,
+    warnings: false,
+    facilities: false
+  });
+  const [errors, setErrors] = useState({
+    location: null,
+    warnings: null,
+    facilities: null
+  });
 
-  const getMarkerColor = (disasterCategory, severity) => {
-    if (severity) {
-      switch (severity.toLowerCase()) {
-        case "high":
-          return "red";
-        case "medium":
-          return "orange";
-        case "low":
-          return "yellow";
+  const isLoading = Object.values(loadingStates).some(state => state);
+  const hasError = Object.values(errors).some(error => error !== null);
+
+  const fetchLocation = useCallback(async () => {
+    try {
+      setLoadingStates(prev => ({ ...prev, location: true }));
+      setErrors(prev => ({ ...prev, location: null }));
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        throw new Error("Location permission denied");
       }
-    }
 
-    switch (disasterCategory?.toLowerCase()) {
-      case "flood":
-        return "blue";
-      case "fire":
-        return "red";
-      case "landslide":
-        return "brown";
-      case "tsunami":
-        return "teal";
-      case "earthquake":
-        return "orange";
-      default:
-        return "gray";
-    }
-  };
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced
+      });
 
-  const getMarkerIcon = (disasterCategory) => {
-    switch (disasterCategory?.toLowerCase()) {
-      case "flood":
-        return require("../../assets/icons/flood.png");
-      case "fire":
-        return require("../../assets/icons/fire.png");
-      case "landslide":
-        return require("../../assets/icons/landslide.png");
-      case "tsunami":
-        return require("../../assets/icons/tsunami.png");
-      case "earthquake":
-        return require("../../assets/icons/earthquake.png");
-      default:
-        return null;
-    }
-  };
+      // Get address details using reverse geocoding
+      const [geocodeResult] = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
 
-  useEffect(() => {
-    const fetchLocation = async () => {
-      try {
-        setLoading(true);
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          setError("Permission to access location was denied");
-          return;
+      if (!geocodeResult) {
+        throw new Error("Failed to get location details");
+      }
+
+      setLocation({
+        ...location,
+        address: {
+          district: geocodeResult.district || geocodeResult.subregion || geocodeResult.region,
+          city: geocodeResult.city,
+          region: geocodeResult.region,
         }
-
-        const location = await Location.getCurrentPositionAsync({});
-        setLocation(location);
-      } catch (err) {
-        setError("Failed to fetch location");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLocation();
-    const locationInterval = setInterval(() => {
-      fetchLocation();
-    }, 3600000);
-
-    return () => clearInterval(locationInterval);
+      });
+    } catch (err) {
+      console.error("Location fetch error:", err);
+      setErrors(prev => ({ 
+        ...prev, 
+        location: "Failed to access location. Please enable location services."
+      }));
+    } finally {
+      setLoadingStates(prev => ({ ...prev, location: false }));
+    }
   }, []);
 
-  const handleWarningPress = async (warning) => {
+  const fetchActiveWarnings = useCallback(async () => {
+    try {
+      setLoadingStates(prev => ({ ...prev, warnings: true }));
+      setErrors(prev => ({ ...prev, warnings: null }));
+
+      const response = await warningApi.getActiveWarnings();
+      
+      // Check if response has the expected structure
+      if (!response || !Array.isArray(response)) {
+        throw new Error('Invalid response format from server');
+      }
+
+      setActiveWarnings(response);
+    } catch (err) {
+      console.error("Warning fetch error:", err);
+      setErrors(prev => ({ 
+        ...prev, 
+        warnings: err.message || "Failed to load warnings. Please try again later."
+      }));
+    } finally {
+      setLoadingStates(prev => ({ ...prev, warnings: false }));
+    }
+  }, []);
+
+  const fetchNearbyFacilities = useCallback(async () => {
+    if (!location?.coords || !location?.address?.district) return;
+
+    try {
+      setLoadingStates(prev => ({ ...prev, facilities: true }));
+      setErrors(prev => ({ ...prev, facilities: null }));
+
+      const response = await resourceApi.getNearbyFacilities({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        district: location.address.district,
+        maxDistance: 5 // 5km radius
+      });
+
+      if (!response || !response.success || !Array.isArray(response.data)) {
+        throw new Error('Invalid facilities response format');
+      }
+
+      // Sort facilities by distance if available
+      const sortedFacilities = response.data.sort((a, b) => {
+        if (a.distance && b.distance) {
+          return parseFloat(a.distance) - parseFloat(b.distance);
+        }
+        return 0;
+      });
+
+      setNearbyFacilities(sortedFacilities);
+    } catch (err) {
+      console.error("Facilities fetch error:", err);
+      setErrors(prev => ({ 
+        ...prev, 
+        facilities: err.message || "Failed to load nearby facilities."
+      }));
+    } finally {
+      setLoadingStates(prev => ({ ...prev, facilities: false }));
+    }
+  }, [location?.coords, location?.address?.district]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        fetchLocation(),
+        fetchActiveWarnings(),
+        location?.coords && fetchNearbyFacilities()
+      ]);
+    } catch (err) {
+      console.error("Refresh error:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchLocation, fetchActiveWarnings, fetchNearbyFacilities, location?.coords]);
+
+  const handleWarningPress = useCallback(async (warning) => {
     try {
       if (!warning?._id && !warning?.id) {
-        console.error("Warning ID is missing:", warning);
-        setError("Invalid warning data");
-        return;
+        throw new Error("Invalid warning data");
       }
 
       const warningId = warning._id || warning.id;
-      console.log("Fetching warning details for ID:", warningId);
-
       const warningDetails = await warningApi.getWarningById(warningId);
-      console.log("Warning details received:", warningDetails);
 
       if (!warningDetails) {
-        throw new Error("No warning details returned");
+        throw new Error("Warning details not found");
       }
 
       setSelectedWarning(warningDetails);
       setModalVisible(true);
     } catch (err) {
-      console.error("Failed to fetch warning details:", err);
-      if (err.response) {
-        console.error("Error response:", {
-          data: err.response.data,
-          status: err.response.status,
-          headers: err.response.headers,
-        });
-      } else if (err.request) {
-        console.error("No response received:", err.request);
-      }
-      setError(
-        "Failed to load warning details: " + (err.message || "Unknown error"),
+      console.error("Warning details fetch error:", err);
+      Alert.alert(
+        "Error",
+        "Failed to load warning details. Please try again."
       );
     }
-  };
+  }, []);
 
-  const fetchActiveWarnings = async () => {
-    try {
-      setLoading(true);
-      const warnings = await warningApi.getActiveWarnings();
-      setActiveWarnings(warnings);
-
-      const warningMarkers = warnings.flatMap((warning) =>
-        warning.affected_locations.map((location) => ({
-          coordinate: {
-            latitude: location.latitude || location.coordinates[1],
-            longitude: location.longitude || location.coordinates[0],
-          },
-          title: warning.title,
-          description: `${warning.disaster_category} - ${warning.severity} severity`,
-          color: getMarkerColor(warning.disaster_category, warning.severity),
-          icon: getMarkerIcon(warning.disaster_category),
-          metadata: {
-            status: warning.status,
-            createdAt: warning.created_at,
-            severity: warning.severity,
-            category: warning.disaster_category,
-            address: location.address,
-          },
-        })),
-      );
-
-      setMarkers(warningMarkers);
-    } catch (err) {
-      console.error("Failed to fetch warnings:", err);
-      setError("Failed to load warnings");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchNearbyFacilities = async () => {
-    try {
-      setLoading(true);
-      const facilities = await facilityApi.getNearbyFacilities({
-        latitude: location?.coords.latitude || 6.9271,
-        longitude: location?.coords.longitude || 79.8612,
-      });
-      setNearbyFacilities(facilities);
-    } catch (err) {
-      console.error("Failed to fetch nearby facilities:", err);
-      setError("Failed to load facilities");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Initial data fetch
   useEffect(() => {
+    fetchLocation();
     fetchActiveWarnings();
-    fetchNearbyFacilities();
-  }, [location]);
+    
+    // Set up periodic updates
+    const locationInterval = setInterval(fetchLocation, 300000); // 5 minutes
+    const warningsInterval = setInterval(fetchActiveWarnings, 60000); // 1 minute
+    
+    return () => {
+      clearInterval(locationInterval);
+      clearInterval(warningsInterval);
+    };
+  }, []);
+
+  // Fetch facilities when location changes
+  useEffect(() => {
+    if (location?.coords) {
+      fetchNearbyFacilities();
+    }
+  }, [location?.coords]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
-      {/* Header */}
       <HeaderBar
         title="DisasterWatch"
         subtitle="Your safety companion"
@@ -208,6 +224,16 @@ const Home = () => {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={["#2563EB"]} // Primary blue color
+            tintColor="#2563EB"
+            title="Pull to refresh"
+            titleColor="#6B7280"
+          />
+        }
       >
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -217,10 +243,10 @@ const Home = () => {
             </Button>
           </View>
 
-          {loading ? (
+          {isLoading ? (
             <ActivityIndicator size="large" style={{ padding: 20 }} />
-          ) : error ? (
-            <Text style={{ color: "red", padding: 20 }}>{error}</Text>
+          ) : hasError ? (
+            <Text style={{ color: "red", padding: 20 }}>{errors.warnings}</Text>
           ) : activeWarnings.length === 0 ? (
             <Text style={{ padding: 20 }}>No active warnings</Text>
           ) : (
@@ -249,10 +275,10 @@ const Home = () => {
               View All
             </Button>
           </View>
-          {loading ? (
+          {isLoading ? (
             <ActivityIndicator size="large" style={{ padding: 20 }} />
-          ) : error ? (
-            <Text style={{ color: "red", padding: 20 }}>{error}</Text>
+          ) : hasError ? (
+            <Text style={{ color: "red", padding: 20 }}>{errors.facilities}</Text>
           ) : nearbyFacilities.length === 0 ? (
             <Text style={{ padding: 20 }}>No nearby facilities</Text>
           ) : (
@@ -285,16 +311,6 @@ const Home = () => {
               </Card>
             ))
           )}
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text variant="titleMedium">Disaster Map</Text>
-            <Button mode="text" onPress={() => router.push("/map")}>
-              Full Map
-            </Button>
-          </View>
-          <MapWindow markers={markers} height={200} />
         </View>
       </ScrollView>
       <WarningDetailsModal

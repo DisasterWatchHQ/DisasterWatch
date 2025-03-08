@@ -29,17 +29,27 @@ const LandingPage = () => {
       setIsLoading(true);
       setError(null);
       const response = await warningApi.getActiveWarnings();
+      
+      // Handle the response directly since it's already in the correct format
+      if (!response || !Array.isArray(response)) {
+        throw new Error('Invalid response format from server');
+      }
+
       const formattedWarnings = response.map((warning) => ({
-        id: warning.id,
-        type: warning.type || "alert",
-        text: warning.description || warning.title,
+        id: warning._id || warning.id,
+        title: warning.title,
+        description: warning.description,
+        disaster_category: warning.disaster_category,
         severity: warning.severity || "medium",
-        timestamp: new Date(warning.createdAt || Date.now()),
+        created_at: warning.created_at || warning.createdAt,
+        status: warning.status,
+        affected_locations: warning.affected_locations || []
       }));
+      
       setWarnings(formattedWarnings);
     } catch (err) {
-      setError(err.message || "Failed to fetch warnings");
       console.error("Error fetching warnings:", err);
+      setError(err.message || "Failed to fetch warnings. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -47,6 +57,9 @@ const LandingPage = () => {
 
   useEffect(() => {
     fetchWarnings();
+    // Set up auto-refresh every 5 minutes
+    const refreshInterval = setInterval(fetchWarnings, 300000);
+    return () => clearInterval(refreshInterval);
   }, [fetchWarnings]);
 
   const handleRefresh = () => {
@@ -85,9 +98,11 @@ const LandingPage = () => {
   ];
 
   const getSeverityColor = (severity) => {
-    switch (severity) {
-      case "high":
+    switch (severity?.toLowerCase()) {
+      case "critical":
         return theme.colors.error;
+      case "high":
+        return "#F87171";
       case "medium":
         return theme.colors.warning;
       case "low":
@@ -96,10 +111,15 @@ const LandingPage = () => {
         return theme.colors.primary;
     }
   };
+
   const handleWarningPress = (warning) => {
-    // Add warning press handler logic here
-    console.log("Warning pressed:", warning);
+    // Navigate to warning details
+    router.push({
+      pathname: "/(tabs)/warnings/[id]",
+      params: { id: warning.id }
+    });
   };
+
   if (error) {
     return (
       <SafeAreaView
