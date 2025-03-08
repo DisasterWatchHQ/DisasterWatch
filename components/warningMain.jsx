@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { Text, Button, IconButton, useTheme, Chip } from "react-native-paper";
 import { useRouter } from "expo-router";
+import { getDisasterCategoryColor } from '../utils/disasterUtils';
 
 const WarningMain = ({
   disaster_category,
@@ -70,20 +71,7 @@ const WarningMain = ({
   };
 
   const getDisasterCategoryColor = () => {
-    switch (disaster_category.toLowerCase()) {
-      case "flood":
-        return "#3B82F6"; 
-      case "fire":
-        return "#EF4444"; 
-      case "earthquake":
-        return "#8B5CF6"; 
-      case "landslide":
-        return "#D97706"; 
-      case "cyclone":
-        return "#6366F1"; 
-      default:
-        return theme.colors.primary;
-    }
+    return getDisasterCategoryColor(disaster_category);
   };
 
   return (

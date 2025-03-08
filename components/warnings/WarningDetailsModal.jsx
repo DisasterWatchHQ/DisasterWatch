@@ -11,6 +11,7 @@ import {
 import { View, ScrollView, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getDisasterCategoryColor } from '../../utils/disasterUtils';
 
 const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
   if (!warning) {
@@ -73,20 +74,7 @@ const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
   };
 
   const getDisasterCategoryColor = (category) => {
-    switch (category?.toLowerCase()) {
-      case "flood":
-        return "#3B82F6";
-      case "fire":
-        return "#EF4444";
-      case "earthquake":
-        return "#8B5CF6";
-      case "landslide":
-        return "#D97706";
-      case "cyclone":
-        return "#6366F1";
-      default:
-        return "#6B7280";
-    }
+    return getDisasterCategoryColor(category);
   };
 
   return (
