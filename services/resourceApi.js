@@ -1,102 +1,130 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-const getAuthHeader = async () => {
-  const token = await AsyncStorage.getItem('token');
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
 
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000,
 });
 
-// Add request interceptor for authentication
 apiClient.interceptors.request.use(
   async (config) => {
-    try {
-      const session = await SecureStore.getItemAsync("userSession");
-      if (session) {
-        const { token } = JSON.parse(session);
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-      }
-      return config;
-    } catch (error) {
-      return config;
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log("API Request:", config.method.toUpperCase(), config.url);
+    return config;
   },
   (error) => {
+    console.error("Request Error:", error);
     return Promise.reject(error);
+  },
+);
+
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log("API Response:", response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    if (error.response) {
+      console.error(
+        "Response Error:",
+        error.response.status,
+        error.response.data,
+      );
+      throw new Error(error.response.data.message || 'Server error occurred');
+    } else if (error.request) {
+      console.error("No Response Received:", error.message);
+      throw new Error('No response received from server');
+    } else {
+      console.error("Request Setup Error:", error.message);
+      throw new Error('Failed to make request');
+    }
   },
 );
 
 export const resourceApi = {
   getFacilities: async (filters = {}) => {
     try {
-      const headers = await getAuthHeader();
-      const queryParams = new URLSearchParams({
-        ...filters,
-      }).toString();
-
-      const response = await fetch(
-        `${API_URL}/resources/facilities?${queryParams}`,
-        { headers }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch facilities');
-      }
-      return data;
+      const response = await apiClient.get('/resources/facilities', {
+        params: filters
+      });
+      return response.data;
     } catch (error) {
       console.error('Get facilities error:', error);
       throw error;
     }
   },
 
-  getNearbyFacilities: async (latitude, longitude, maxDistance) => {
+  getNearbyFacilities: async (params) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(
-        `${API_URL}/resources/facilities/nearby?latitude=${latitude}&longitude=${longitude}&maxDistance=${maxDistance}`,
-        { headers }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch nearby facilities');
+      const { latitude, longitude, district, maxDistance } = params;
+      
+      if (!latitude || !longitude || !district) {
+        throw new Error('Missing required parameters: latitude, longitude, and district are required');
       }
-      return data;
+
+      const response = await apiClient.get('/resources/facilities/nearby', {
+        params: {
+          latitude,
+          longitude,
+          district,
+          maxDistance: maxDistance || 5
+        }
+      });
+      
+      // Handle different response formats
+      if (response.data?.data?.facilities) {
+        return {
+          success: true,
+          data: response.data.data.facilities.map(facility => ({
+            ...facility,
+            distance: facility.distance ? `${(facility.distance).toFixed(1)} km` : 'Unknown'
+          }))
+        };
+      } else if (Array.isArray(response.data)) {
+        return {
+          success: true,
+          data: response.data.map(facility => ({
+            ...facility,
+            distance: facility.distance ? `${(facility.distance).toFixed(1)} km` : 'Unknown'
+          }))
+        };
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        return {
+          success: true,
+          data: response.data.data.map(facility => ({
+            ...facility,
+            distance: facility.distance ? `${(facility.distance).toFixed(1)} km` : 'Unknown'
+          }))
+        };
+      }
+      
+      throw new Error('Invalid response format from server');
     } catch (error) {
       console.error('Get nearby facilities error:', error);
+      if (error.response?.status === 404) {
+        return {
+          success: true,
+          data: [] // Return empty array if no facilities found
+        };
+      }
       throw error;
     }
   },
 
   getGuides: async (filters = {}) => {
     try {
-      const headers = await getAuthHeader();
-      const queryParams = new URLSearchParams({
-        ...filters,
-      }).toString();
-
-      const response = await fetch(
-        `${API_URL}/resources/guides?${queryParams}`,
-        { headers }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch guides');
-      }
-      return data;
+      const response = await apiClient.get('/resources/guides', {
+        params: filters
+      });
+      return response.data;
     } catch (error) {
       console.error('Get guides error:', error);
       throw error;
@@ -105,20 +133,10 @@ export const resourceApi = {
 
   getEmergencyContacts: async (filters = {}) => {
     try {
-      const headers = await getAuthHeader();
-      const queryParams = new URLSearchParams({
-        ...filters,
-      }).toString();
-
-      const response = await fetch(
-        `${API_URL}/resources/emergency-contacts?${queryParams}`,
-        { headers }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch emergency contacts');
-      }
-      return data;
+      const response = await apiClient.get('/resources/emergency-contacts', {
+        params: filters
+      });
+      return response.data;
     } catch (error) {
       console.error('Get emergency contacts error:', error);
       throw error;
@@ -127,17 +145,8 @@ export const resourceApi = {
 
   createResource: async (resourceData) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/resources`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(resourceData),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create resource');
-      }
-      return data;
+      const response = await apiClient.post('/resources', resourceData);
+      return response.data;
     } catch (error) {
       console.error('Create resource error:', error);
       throw error;
@@ -146,17 +155,8 @@ export const resourceApi = {
 
   updateResource: async (resourceId, updateData) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/resources/${resourceId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(updateData),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update resource');
-      }
-      return data;
+      const response = await apiClient.put(`/resources/${resourceId}`, updateData);
+      return response.data;
     } catch (error) {
       console.error('Update resource error:', error);
       throw error;
@@ -165,16 +165,8 @@ export const resourceApi = {
 
   deleteResource: async (resourceId) => {
     try {
-      const headers = await getAuthHeader();
-      const response = await fetch(`${API_URL}/resources/${resourceId}`, {
-        method: 'DELETE',
-        headers,
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete resource');
-      }
-      return data;
+      const response = await apiClient.delete(`/resources/${resourceId}`);
+      return response.data;
     } catch (error) {
       console.error('Delete resource error:', error);
       throw error;
