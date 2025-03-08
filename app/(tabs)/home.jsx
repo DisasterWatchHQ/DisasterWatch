@@ -7,7 +7,7 @@ import {
   Alert,
   RefreshControl,
 } from "react-native";
-import { Card, Text, Button, FAB } from "react-native-paper";
+import { Card, Text, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import WarningMain from "../../components/warningMain";
@@ -17,7 +17,6 @@ import { warningApi } from "../../services/warningApi";
 import { resourceApi } from "../../services/resourceApi";
 import WarningDetailsModal from "../../components/warnings/WarningDetailsModal";
 import { useNavigation } from "@react-navigation/native";
-import { getDisasterCategoryColor } from "../../utils/disasterUtils";
 
 const Home = () => {
   const router = useRouter();
@@ -321,23 +320,11 @@ const Home = () => {
           setSelectedWarning(null);
         }}
       />
-      <FAB
-        icon="tab"
-        style={styles.fab}
-        onPress={() => navigation.navigate("Dashboard")}
-        label="Go to Dash"
-      />
     </SafeAreaView>
   );
 };
 
 const styles = {
-  fab: {
-    position: "absolute",
-    margin: 16,
-    right: 0,
-    bottom: 80,
-  },
   scrollView: {
     backgroundColor: "#ffffff",
     flex: 1,

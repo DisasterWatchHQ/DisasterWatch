@@ -25,8 +25,9 @@ import { EmergencyContactCard } from "../../components/resources/EmergencyContac
 import { FacilityCard } from "../../components/resources/FacilityCard";
 import { FilterHeader } from "../../components/resources/FilterHeader";
 import HeaderBar from "../../components/headerBar";
-import { facilityApi } from "../../services/resourceApi";
+import { resourceApi } from "../../services/resourceApi";
 import { Alert } from "react-native";
+import { usePathname, useLocalSearchParams } from "expo-router";
 
 import {
   FACILITY_TYPES,
@@ -35,6 +36,7 @@ import {
 } from "../../constants/ResourceContsnts";
 
 const ResourcesScreen = () => {
+  const pathname = usePathname();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -59,6 +61,7 @@ const ResourcesScreen = () => {
       },
     },
   });
+  const { action, section } = useLocalSearchParams();
   const [error, setError] = useState(null);
   const { user, isAuthenticated } = React.useContext(UserContext);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -101,6 +104,13 @@ const ResourcesScreen = () => {
   const showAddModal = () => setIsAddModalVisible(true);
   const hideAddModal = () => setIsAddModalVisible(false);
 
+  useEffect(() => {
+    if (action === "create") {
+      setActiveSection(section || "guides");
+      setIsAddModalVisible(true);
+    }
+  }, [action, section]);
+
   const handleEditFacility = (facility) => {
     setEditingFacility(facility);
     showAddModal();
@@ -118,7 +128,7 @@ const ResourcesScreen = () => {
           onPress: async () => {
             try {
               setLoading(true);
-              await facilityApi.deleteFacility(facilityId);
+              await resourceApi.deleteFacility(facilityId);
               await fetchFacilities();
             } catch (error) {
               console.error("Error deleting facility:", error);
@@ -147,7 +157,7 @@ const ResourcesScreen = () => {
           onPress: async () => {
             try {
               setLoading(true);
-              await facilityApi.deleteResource(contactId);
+              await resourceApi.deleteResource(contactId);
               await fetchEmergencyContacts();
             } catch (error) {
               console.error("Error deleting contact:", error);
@@ -181,7 +191,7 @@ const ResourcesScreen = () => {
         onPress: async () => {
           try {
             setLoading(true);
-            await facilityApi.deleteGuide(guideId);
+            await resourceApi.deleteGuide(guideId);
             await fetchGuides(); // Refresh the list
           } catch (error) {
             console.error("Error deleting guide:", error);
@@ -205,7 +215,7 @@ const ResourcesScreen = () => {
   const fetchGuides = async () => {
     try {
       setLoading(true);
-      const response = await facilityApi.getGuides({
+      const response = await resourceApi.getGuides({
         type: filters.guides !== "all" ? filters.guides : undefined,
       });
       setData((prev) => ({
@@ -225,7 +235,7 @@ const ResourcesScreen = () => {
   const fetchEmergencyContacts = async () => {
     try {
       setLoading(true);
-      const response = await facilityApi.getEmergencyContacts({});
+      const response = await resourceApi.getEmergencyContacts({});
       setData((prev) => ({ ...prev, contacts: { data: response.data || [] } }));
     } catch (error) {
       setError("Error fetching emergency contacts.");
@@ -237,7 +247,7 @@ const ResourcesScreen = () => {
   const fetchFacilities = async () => {
     try {
       setLoading(true);
-      const response = await facilityApi.getFacilities({
+      const response = await resourceApi.getFacilities({
         type: filters.facilities !== "all" ? filters.facilities : undefined,
         availability_status:
           filters.status !== "all" ? filters.status : undefined,
@@ -449,13 +459,14 @@ const ResourcesScreen = () => {
       )}
 
       {isAuthenticated &&
+        pathname === "/(tabs)/resources" &&
         (activeSection === "guides" ||
           activeSection === "contacts" ||
           activeSection === "facilities") && (
-          <Portal>
+          <View style={styles.fabContainer}>
             <FAB
               icon="plus"
-              style={styles.fab}
+              style={[styles.fab, { bottom: insets.bottom + 16 }]}
               onPress={showAddModal}
               label={
                 activeSection === "guides"
@@ -465,105 +476,109 @@ const ResourcesScreen = () => {
                     : "Add Facility"
               }
             />
-          </Portal>
+          </View>
         )}
 
-      {activeSection === "guides" ? (
-        <AddGuideModal
-          visible={isAddModalVisible}
-          onDismiss={() => {
-            hideAddModal();
-            setEditingGuide(null);
-          }}
-          editingGuide={editingGuide}
-          onSubmit={async (guideData) => {
-            try {
-              setLoading(true);
-              if (editingGuide) {
-                await facilityApi.updateGuide(editingGuide.id, guideData);
-              } else {
-                await facilityApi.createGuide(guideData);
-              }
-              await fetchGuides();
+      <Portal>
+        {activeSection === "guides" && (
+          <AddGuideModal
+            visible={isAddModalVisible}
+            onDismiss={() => {
               hideAddModal();
               setEditingGuide(null);
-            } catch (error) {
-              console.error("Error saving guide:", error);
-            } finally {
-              setLoading(false);
-            }
-          }}
-        />
-      ) : activeSection === "contacts" ? (
-        <AddContactModal
-          visible={isAddModalVisible}
-          onDismiss={() => {
-            hideAddModal();
-            setEditingContact(null);
-          }}
-          editingContact={editingContact}
-          onSubmit={async (contactData) => {
-            try {
-              setLoading(true);
-              if (editingContact) {
-                await facilityApi.updateContact(editingContact.id, contactData);
-              } else {
-                await facilityApi.createContact(contactData);
+            }}
+            editingGuide={editingGuide}
+            onSubmit={async (guideData) => {
+              try {
+                setLoading(true);
+                if (editingGuide) {
+                  await resourceApi.updateGuide(editingGuide.id, guideData);
+                } else {
+                  await resourceApi.createGuide(guideData);
+                }
+                await fetchGuides();
+                hideAddModal();
+                setEditingGuide(null);
+              } catch (error) {
+                console.error("Error saving guide:", error);
+              } finally {
+                setLoading(false);
               }
-              await fetchEmergencyContacts();
+            }}
+          />
+        )}
+
+        {activeSection === "contacts" && (
+          <AddContactModal
+            visible={isAddModalVisible}
+            onDismiss={() => {
               hideAddModal();
               setEditingContact(null);
-            } catch (error) {
-              console.error("Error saving contact:", error);
-            } finally {
-              setLoading(false);
-            }
-          }}
-        />
-      ) : (
-        <AddFacilityModal
-          visible={isAddModalVisible}
-          onDismiss={() => {
-            hideAddModal();
-            setEditingFacility(null);
-          }}
-          editingFacility={editingFacility}
-          onSubmit={async (facilityData) => {
-            try {
-              setLoading(true);
-              if (editingFacility) {
-                await facilityApi.updateFacility(
-                  editingFacility.id,
-                  facilityData,
-                );
-              } else {
-                await facilityApi.createFacility(facilityData);
+            }}
+            editingContact={editingContact}
+            onSubmit={async (contactData) => {
+              try {
+                setLoading(true);
+                if (editingContact) {
+                  await resourceApi.updateEmergencyContact(
+                    editingContact.id,
+                    contactData,
+                  );
+                } else {
+                  await resourceApi.createEmergencyContact(contactData);
+                }
+                await fetchEmergencyContacts();
+                hideAddModal();
+                setEditingContact(null);
+              } catch (error) {
+                console.error("Error saving contact:", error);
+              } finally {
+                setLoading(false);
               }
-              await fetchFacilities();
+            }}
+          />
+        )}
+
+        {activeSection === "facilities" && (
+          <AddFacilityModal
+            visible={isAddModalVisible}
+            onDismiss={() => {
               hideAddModal();
               setEditingFacility(null);
-            } catch (error) {
-              console.error("Error saving facility:", error);
-            } finally {
-              setLoading(false);
-            }
-          }}
-        />
-      )}
+            }}
+            editingFacility={editingFacility}
+            onSubmit={async (facilityData) => {
+              try {
+                setLoading(true);
+                if (editingFacility) {
+                  await resourceApi.updateFacility(
+                    editingFacility.id,
+                    facilityData,
+                  );
+                } else {
+                  await resourceApi.createFacility(facilityData);
+                }
+                await fetchFacilities();
+                hideAddModal();
+                setEditingFacility(null);
+              } catch (error) {
+                console.error("Error saving facility:", error);
+              } finally {
+                setLoading(false);
+              }
+            }}
+          />
+        )}
+      </Portal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  fab: {
-    position: "absolute",
-    margin: 16,
-    right: 0,
-    bottom: 80,
-  },
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+    position: "relative",
   },
   subHeader: {
     backgroundColor: "white",
@@ -594,6 +609,18 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.8)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  fabContainer: {
+    position: "absolute",
+    right: 0,
+    left: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
   },
 });
 

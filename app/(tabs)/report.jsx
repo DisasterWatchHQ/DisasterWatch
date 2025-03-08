@@ -16,7 +16,7 @@ import {
   ActivityIndicator,
 } from "react-native-paper";
 import { submitReport } from "../../services/api";
-import { uploadImages } from "../../services/imageUpload";
+// import { uploadImages } from "../../services/imageUpload";
 import HeaderBar from "../../components/headerBar";
 
 const formSchema = z.object({
@@ -108,6 +108,8 @@ const ReportScreen = () => {
       const formattedData = {
         ...data,
         location: {
+          type: "Point",
+          coordinates: [0, 0], // You might want to add actual coordinates
           address: {
             city: data.location.address.city,
             district: data.location.address.district,
@@ -117,13 +119,14 @@ const ReportScreen = () => {
         },
       };
 
-      const result = await uploadImages(images, formattedData);
+      const result = await submitReport(formattedData);
+      console.log("Report submitted successfully:", result);
 
       reset();
-      setImages([]);
-      alert("Report submitted successfully!");
+      alert("Report submitted successfully! Thank you for your contribution.");
     } catch (error) {
-      alert("Failed to submit report: " + error.message);
+      console.error("Report submission error:", error);
+      alert(error.message || "Failed to submit report. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
