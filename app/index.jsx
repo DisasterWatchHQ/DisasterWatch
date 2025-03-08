@@ -1,4 +1,4 @@
-import { ScrollView, Animated, Dimensions, View } from "react-native";
+import { ScrollView, Animated, Dimensions, View, BackHandler, Platform } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useRef } from "react";
@@ -24,6 +24,17 @@ export default function WelcomePage() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Handle back button press
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (Platform.OS === 'android') {
+        BackHandler.exitApp();
+        return true;
+      }
+      return false;
+    });
+
+    return () => backHandler.remove();
   }, []);
 
   const handleGetStarted = () => {

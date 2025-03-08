@@ -1,8 +1,6 @@
 import React from "react";
 import { View } from "react-native";
 import { Text, Button, IconButton, useTheme, Chip } from "react-native-paper";
-import { useRouter } from "expo-router";
-import { getDisasterCategoryColor } from "../utils/disasterUtils";
 
 const WarningMain = ({
   disaster_category,
@@ -10,13 +8,11 @@ const WarningMain = ({
   description,
   affected_locations = [],
   severity = "medium",
-  created_at,
   status = "active",
   id,
   handleWarningPress,
   style,
 }) => {
-  const router = useRouter();
   const theme = useTheme();
 
   const getSeverityColor = () => {
@@ -34,57 +30,6 @@ const WarningMain = ({
     }
   };
 
-  const getBackgroundColor = () => {
-    const color = getSeverityColor();
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-    if (result) {
-      const r = parseInt(result[1], 16);
-      const g = parseInt(result[2], 16);
-      const b = parseInt(result[3], 16);
-      return `rgba(${r}, ${g}, ${b}, 0.1)`;
-    }
-    return `${color}10`;
-  };
-
-  const getTimeAgo = (timestamp) => {
-    try {
-      const now = new Date();
-      // Handle different timestamp formats
-      const created =
-        typeof timestamp === "string" ? new Date(timestamp) : timestamp;
-
-      // Check if the date is valid
-      if (isNaN(created.getTime())) {
-        console.error("Invalid date:", timestamp);
-        return "Invalid date";
-      }
-
-      const diffInMinutes = Math.floor((now - created) / (1000 * 60));
-      const diffInHours = Math.floor(diffInMinutes / 60);
-      const diffInDays = Math.floor(diffInHours / 24);
-
-      if (diffInMinutes < 1) {
-        return "Just now";
-      } else if (diffInMinutes < 60) {
-        return `${diffInMinutes} ${diffInMinutes === 1 ? "minute" : "minutes"} ago`;
-      } else if (diffInHours < 24) {
-        return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
-      } else if (diffInDays < 7) {
-        return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
-      } else {
-        // For older dates, show the actual date
-        return created.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        });
-      }
-    } catch (error) {
-      console.error("Date parsing error:", error);
-      return "Date unavailable";
-    }
-  };
-
   const getLocationString = () => {
     if (affected_locations && affected_locations.length > 0) {
       const location = affected_locations[0].address;
@@ -92,8 +37,6 @@ const WarningMain = ({
     }
     return "Location unavailable";
   };
-
-  const categoryColor = getDisasterCategoryColor(disaster_category);
 
   return (
     <View
@@ -121,18 +64,12 @@ const WarningMain = ({
           </Chip>
           <Chip
             compact
-            style={[styles.categoryChip, { backgroundColor: categoryColor }]}
+            style={[styles.categoryChip, ]}
             textStyle={styles.chipText}
           >
             {disaster_category.toUpperCase()}
           </Chip>
         </View>
-        <Text
-          variant="bodySmall"
-          style={[styles.timestamp, { color: theme.colors.onSurfaceVariant }]}
-        >
-          {getTimeAgo(created_at)}
-        </Text>
       </View>
 
       <View style={styles.content}>
@@ -182,7 +119,6 @@ const WarningMain = ({
             description,
             affected_locations,
             severity,
-            created_at,
             status,
             id,
           })

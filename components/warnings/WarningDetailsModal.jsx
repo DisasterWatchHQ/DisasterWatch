@@ -11,7 +11,6 @@ import {
 import { View, ScrollView, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getDisasterCategoryColor } from '../../utils/disasterUtils';
 
 const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
   if (!warning) return null;
@@ -116,14 +115,6 @@ const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
                   )}
                   {warning.disaster_category && (
                     <Chip
-                      style={[
-                        styles.chip,
-                        {
-                          backgroundColor: getDisasterCategoryColor(
-                            warning.disaster_category
-                          ),
-                        },
-                      ]}
                       textStyle={styles.chipText}
                     >
                       {warning.disaster_category?.toUpperCase()}

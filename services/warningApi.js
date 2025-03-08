@@ -52,7 +52,6 @@ export const warningApi = {
     try {
       const response = await apiClient.get('/warnings/active');
       
-      // Ensure we return the array of warnings
       if (response.data?.data?.warnings) {
         return response.data.data.warnings;
       } else if (Array.isArray(response.data)) {

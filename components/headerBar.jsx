@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Text, IconButton, useTheme, Badge } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";

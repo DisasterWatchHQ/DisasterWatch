@@ -16,11 +16,9 @@ import { useRouter } from "expo-router";
 import { warningApi } from "../../services/warningApi";
 import { resourceApi } from "../../services/resourceApi";
 import WarningDetailsModal from "../../components/warnings/WarningDetailsModal";
-import { useNavigation } from "@react-navigation/native";
 
 const Home = () => {
   const router = useRouter();
-  const navigation = useNavigation();
   
   // State management
   const [activeWarnings, setActiveWarnings] = useState([]);
@@ -45,6 +43,7 @@ const Home = () => {
   const isLoading = Object.values(loadingStates).some(state => state);
   const hasError = Object.values(errors).some(error => error !== null);
 
+  // Handle Location 
   const fetchLocation = useCallback(async () => {
     try {
       setLoadingStates(prev => ({ ...prev, location: true }));
@@ -59,7 +58,6 @@ const Home = () => {
         accuracy: Location.Accuracy.Balanced
       });
 
-      // Get address details using reverse geocoding
       const [geocodeResult] = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude
@@ -88,14 +86,14 @@ const Home = () => {
     }
   }, []);
 
+  // Get active warnings
   const fetchActiveWarnings = useCallback(async () => {
     try {
       setLoadingStates(prev => ({ ...prev, warnings: true }));
       setErrors(prev => ({ ...prev, warnings: null }));
 
       const response = await warningApi.getActiveWarnings();
-      
-      // Check if response has the expected structure
+
       if (!response || !Array.isArray(response)) {
         throw new Error('Invalid response format from server');
       }
@@ -112,6 +110,7 @@ const Home = () => {
     }
   }, []);
 
+  // Fetch neadby shelters
   const fetchNearbyFacilities = useCallback(async () => {
     if (!location?.coords || !location?.address?.district) return;
 
@@ -150,6 +149,7 @@ const Home = () => {
     }
   }, [location?.coords, location?.address?.district]);
 
+  // Handle refreshing
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -165,6 +165,7 @@ const Home = () => {
     }
   }, [fetchLocation, fetchActiveWarnings, fetchNearbyFacilities, location?.coords]);
 
+  // Handle on Warning Press
   const handleWarningPress = useCallback(async (warning) => {
     try {
       if (!warning?._id && !warning?.id) {
@@ -227,7 +228,7 @@ const Home = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={["#2563EB"]} // Primary blue color
+            colors={["#2563EB"]} 
             tintColor="#2563EB"
             title="Pull to refresh"
             titleColor="#6B7280"
@@ -269,7 +270,7 @@ const Home = () => {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text variant="titleMedium">Nearby Facilities</Text>
+            <Text variant="titleMedium">Nearby Shelters</Text>
             <Button mode="text" onPress={() => router.push("/resources")}>
               View All
             </Button>
@@ -279,7 +280,7 @@ const Home = () => {
           ) : hasError ? (
             <Text style={{ color: "red", padding: 20 }}>{errors.facilities}</Text>
           ) : nearbyFacilities.length === 0 ? (
-            <Text style={{ padding: 20 }}>No nearby facilities</Text>
+            <Text style={{ padding: 20 }}>No nearby shelters</Text>
           ) : (
             nearbyFacilities.map((facility, index) => (
               <Card key={index} style={styles.facilityCard}>

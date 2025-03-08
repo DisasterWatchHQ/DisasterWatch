@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, ScrollView, Share, Linking, StyleSheet } from "react-native";
+import { View, ScrollView, Linking, StyleSheet } from "react-native";
 import {
   Button,
   Card,
@@ -9,7 +9,6 @@ import {
   Portal,
   Dialog,
   SegmentedButtons,
-  useTheme,
   IconButton,
   TextInput
 } from "react-native-paper";

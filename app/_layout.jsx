@@ -8,6 +8,8 @@ import {
   Provider,
   MD3LightTheme,
   MD3DarkTheme,
+  PaperProvider,
+  adaptNavigationTheme,
 } from "react-native-paper";
 import Geocoder from "react-native-geocoding";
 import { PreferencesProvider } from "../context/PreferencesContext";
@@ -18,6 +20,10 @@ import {
   getNotificationSettings
 } from "../services/notifications";
 import { useRouter } from "expo-router";
+import { NetworkProvider } from '../context/NetworkContext';
+import OfflineIndicator from '../components/OfflineIndicator';
+import syncService from '../services/syncService';
+import NetInfo from '@react-native-community/netinfo';
 
 export const PreferencesContext = React.createContext();
 
@@ -49,7 +55,10 @@ const RootLayout = () => {
 
   useEffect(() => {
     if (error) throw error;
-    if (fontsLoaded) SplashScreen.hideAsync();
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+      initializeApp();
+    }
     setupNotifications();
     return () => {
       if (notificationListener.current) {
@@ -60,6 +69,23 @@ const RootLayout = () => {
       }
     };
   }, [fontsLoaded, error, router]);
+
+  const initializeApp = async () => {
+    try {
+      // Check network status
+      const networkState = await NetInfo.fetch();
+      
+      // If online, perform initial sync
+      if (networkState.isConnected && networkState.isInternetReachable) {
+        const shouldSync = await syncService.shouldSync();
+        if (shouldSync) {
+          await syncService.syncData();
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing app:', error);
+    }
+  };
 
   const setupNotifications = async () => {
     try {
@@ -91,24 +117,26 @@ const RootLayout = () => {
   if (!fontsLoaded && !error) return null;
 
   return (
-    <PreferencesContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <PreferencesProvider>
-        <Provider theme={theme}>
-          <UserProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="Landingpage" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="profile" />
-              <Stack.Screen name="settings" />
-              <Stack.Screen name="Dashboard" />
-            </Stack>
-          </UserProvider>
-          <StatusBar style={isDarkMode ? "light" : "dark"} />
-        </Provider>
-      </PreferencesProvider>
-    </PreferencesContext.Provider>
+    <NetworkProvider>
+      <PaperProvider theme={theme}>
+        <StatusBar style="auto" />
+        <OfflineIndicator />
+        <PreferencesContext.Provider value={{ isDarkMode, toggleTheme }}>
+          <PreferencesProvider>
+            <UserProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="profile" />
+                <Stack.Screen name="settings" />
+                <Stack.Screen name="Dashboard" />
+              </Stack>
+            </UserProvider>
+          </PreferencesProvider>
+        </PreferencesContext.Provider>
+      </PaperProvider>
+    </NetworkProvider>
   );
 };
 
