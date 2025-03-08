@@ -32,7 +32,7 @@ export default function WelcomePage() {
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      router.push("/Landingpage");
+      router.push("(tabs)/home");
     });
   };
 
@@ -104,24 +104,6 @@ export default function WelcomePage() {
               }}
             >
               Get Started
-            </Button>
-
-            <Button
-              mode="outlined"
-              onPress={() => {}}
-              contentStyle={{
-                height: 50,
-              }}
-              style={{
-                borderRadius: 12,
-                borderWidth: 2,
-              }}
-              labelStyle={{
-                fontSize: 18,
-                fontWeight: "600",
-              }}
-            >
-              Learn More
             </Button>
             <Button
               mode="outlined"
