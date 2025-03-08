@@ -15,7 +15,7 @@ const UserProvider = ({ children }) => {
         setUser(sessionData);
       }
     } catch (error) {
-      console.log("Error loading user:", error);
+      console.error("Error loading user:", error);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ const UserProvider = ({ children }) => {
       setUser(credentials.user);
       return true;
     } catch (error) {
-      console.log("Error signing in:", error);
+      console.error("Error signing in:", error);
       return false;
     }
   };
@@ -44,7 +44,7 @@ const UserProvider = ({ children }) => {
       await SecureStore.deleteItemAsync("userSession");
       setUser(null);
     } catch (error) {
-      console.log("Error logging out:", error);
+      console.error("Error logging out:", error);
     }
   };
 

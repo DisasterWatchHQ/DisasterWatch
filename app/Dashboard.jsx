@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Alert, StyleSheet, RefreshControl } from "react-native";
+import {
+  View,
+  ScrollView,
+  Alert,
+  StyleSheet,
+  RefreshControl,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Text,
@@ -9,6 +15,7 @@ import {
   ActivityIndicator,
   Surface,
   FAB,
+  Portal,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import HeaderBar from "../components/headerBar";
@@ -17,6 +24,10 @@ import wardash from "../services/wardash";
 import CreateWarningDialog from "../components/warnings/CreateWarningDialog";
 import { WarningActions } from "../components/warnings/WarningActions";
 import { useRouter } from "expo-router";
+import ResourceModals from "../components/resources/ResourceModals";
+import { resourcesApi } from "../services/resourceApi";
+import * as SecureStore from 'expo-secure-store';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const StatsCard = ({ title, value, icon, color }) => {
   return (
@@ -121,7 +132,8 @@ const ActiveWarningCard = ({ warning }) => {
         </Text>
         {warning.updates?.length > 0 && (
           <Text variant="bodyMedium" style={styles.warningUpdate}>
-            Last update: {warning.updates[warning.updates.length - 1].update_text}
+            Last update:{" "}
+            {warning.updates[warning.updates.length - 1].update_text}
           </Text>
         )}
         <WarningActions warning={warning} />
@@ -133,6 +145,7 @@ const ActiveWarningCard = ({ warning }) => {
 const Dashboard = () => {
   const theme = useTheme();
   const router = useRouter();
+  const [fabOpen, setFabOpen] = useState(false);
   const [dashboardStats, setDashboardStats] = useState({
     pendingCount: 0,
     verifiedToday: 0,
@@ -145,18 +158,23 @@ const Dashboard = () => {
   const [activeWarnings, setActiveWarnings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [visibleModal, setVisibleModal] = useState(null);
 
+  const onStateChange = ({ open }) => setFabOpen(open);
+  const handleModalDismiss = () => {
+    setVisibleModal(null);
+  };
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching dashboard data...'); // Debug log
+      console.log("Fetching dashboard data..."); // Debug log
 
       const [
         verificationStats,
         reportStats,
         reportsResponse,
         warningsResponse,
-        feedStats
+        feedStats,
       ] = await Promise.all([
         api.get("/reports/stats/verification"),
         api.get("/reports/stats"),
@@ -164,22 +182,28 @@ const Dashboard = () => {
           params: { verification_status: "pending", limit: 5 },
         }),
         wardash.get("/warnings/active"),
-        api.get("/reports/feedstats")
+        api.get("/reports/feedstats"),
       ]);
 
-      console.log('Verification Stats:', verificationStats.data);
-      console.log('Report Stats:', reportStats.data);
-      console.log('Reports Response:', reportsResponse.data);
-      console.log('Warnings Response:', warningsResponse.data);
-      console.log('Feed Stats:', feedStats.data);
+      console.log("Verification Stats:", verificationStats.data);
+      console.log("Report Stats:", reportStats.data);
+      console.log("Reports Response:", reportsResponse.data);
+      console.log("Warnings Response:", warningsResponse.data);
+      console.log("Feed Stats:", feedStats.data);
 
       // Combine all stats
       setDashboardStats({
         pendingCount: verificationStats.data.pendingCount || 0,
         verifiedToday: verificationStats.data.verifiedToday || 0,
         activeIncidents: verificationStats.data.activeIncidents || 0,
-        avgVerificationTime: Math.round(verificationStats.data.avgVerificationTime || 0),
-        totalReports: reportStats.data.byStatus?.reduce((acc, curr) => acc + curr.count, 0) || 0,
+        avgVerificationTime: Math.round(
+          verificationStats.data.avgVerificationTime || 0,
+        ),
+        totalReports:
+          reportStats.data.byStatus?.reduce(
+            (acc, curr) => acc + curr.count,
+            0,
+          ) || 0,
         reportTypes: reportStats.data.byCategory || [],
       });
 
@@ -194,7 +218,7 @@ const Dashboard = () => {
               ? `${report.location.address.district || ""}, ${report.location.address.city || ""}`
               : "Location not specified",
             timestamp: report.date_time || report.createdAt,
-          }))
+          })),
         );
       } else {
         setPendingReports([]);
@@ -212,7 +236,7 @@ const Dashboard = () => {
         console.error("Error response:", error.response.data);
         console.error("Error status:", error.response.status);
         console.error("Error headers:", error.response.headers);
-        
+
         if (error.response.status === 401) {
           Alert.alert(
             "Session Expired",
@@ -222,19 +246,19 @@ const Dashboard = () => {
                 text: "OK",
                 onPress: () => router.push("/login"),
               },
-            ]
+            ],
           );
         } else if (error.response.status === 404) {
           Alert.alert(
             "API Error",
             "The requested endpoint was not found. Please check your API configuration.",
-            [{ text: "OK" }]
+            [{ text: "OK" }],
           );
         } else {
           Alert.alert(
             "Error",
             "Failed to fetch dashboard data. Please try again later.",
-            [{ text: "OK" }]
+            [{ text: "OK" }],
           );
         }
       } else if (error.request) {
@@ -242,14 +266,14 @@ const Dashboard = () => {
         Alert.alert(
           "Connection Error",
           "Unable to connect to the server. Please check your internet connection.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       } else {
         console.error("Error setting up request:", error.message);
         Alert.alert(
           "Error",
           "An unexpected error occurred. Please try again later.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       }
     } finally {
@@ -257,31 +281,85 @@ const Dashboard = () => {
       setRefreshing(false);
     }
   };
-
+  const handleResourceSubmit = async (type, data) => {
+    try {
+      let response;
+      switch (type) {
+        case "guide":
+          response = await resourcesApi.createGuide(data);
+          break;
+        case "contact":
+          response = await resourcesApi.createEmergencyContact(data);
+          break;
+        case "facility":
+          response = await resourcesApi.createFacility(data);
+          break;
+      }
+      Alert.alert("Success", `${type} created successfully`);
+      handleModalDismiss();
+    } catch (error) {
+      console.error("Error creating resource:", error);
+      Alert.alert("Error", error.message || `Failed to create ${type}`);
+    }
+  };
   const handleVerifyReport = async (reportId) => {
     try {
-      await api.post(`/reports/${reportId}/verify`, {
+      console.log("Attempting to verify report:", reportId);
+      const response = await api.post(`/reports/${reportId}/verify`, {
         severity: "medium",
-        notes: "Verified through dashboard",
+        notes: "Verified through dashboard"
       });
-      fetchDashboardData();
+      
+      console.log("Verify response:", response.data); // Debug log
+      await fetchDashboardData();
       Alert.alert("Success", "Report verified successfully");
     } catch (error) {
       console.error("Error verifying report:", error);
-      Alert.alert("Error", "Failed to verify report");
+      console.error("Full error object:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      // More specific error handling
+      if (error.response?.status === 401) {
+        Alert.alert("Error", "Please log in again to verify reports");
+        router.push("/login");
+      } else if (error.response?.status === 403) {
+        Alert.alert("Error", "You don't have permission to verify reports");
+      } else {
+        Alert.alert("Error", error.response?.data?.error || "Failed to verify report");
+      }
     }
   };
-
+  
   const handleRejectReport = async (reportId) => {
     try {
-      await api.post(`/reports/${reportId}/dismiss`, {
-        notes: "Dismissed through dashboard",
+      console.log("Attempting to dismiss report:", reportId);
+      const response = await api.post(`/reports/${reportId}/dismiss`, {
+        notes: "Dismissed through dashboard"
       });
-      fetchDashboardData();
+      
+      console.log("Dismiss response:", response.data); // Debug log
+      await fetchDashboardData();
       Alert.alert("Success", "Report dismissed successfully");
     } catch (error) {
       console.error("Error dismissing report:", error);
-      Alert.alert("Error", "Failed to dismiss report");
+      console.error("Full error object:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      // More specific error handling
+      if (error.response?.status === 401) {
+        Alert.alert("Error", "Please log in again to dismiss reports");
+        router.push("/login");
+      } else if (error.response?.status === 403) {
+        Alert.alert("Error", "You don't have permission to dismiss reports");
+      } else {
+        Alert.alert("Error", error.response?.data?.error || "Failed to dismiss report");
+      }
     }
   };
 
@@ -298,9 +376,13 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
         <HeaderBar title="Dashboard" showBack={false} />
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <ActivityIndicator size="large" />
         </View>
       </SafeAreaView>
@@ -315,7 +397,7 @@ const Dashboard = () => {
         subtitle="Disaster Management Overview"
       />
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
@@ -368,7 +450,9 @@ const Dashboard = () => {
               />
             ))
           ) : (
-            <Text style={styles.emptyMessage}>No pending reports to verify</Text>
+            <Text style={styles.emptyMessage}>
+              No pending reports to verify
+            </Text>
           )}
         </Surface>
 
@@ -383,20 +467,52 @@ const Dashboard = () => {
         </Surface>
       </ScrollView>
 
-      <View style={styles.fabContainer}>
-        <FAB
-          icon="home"
-          style={[styles.fab, styles.homeFab, { backgroundColor: theme.colors.primary }]}
-          onPress={() => router.push("/home")}
-          label="Home"
+      <Portal>
+        <ResourceModals
+          visibleModal={visibleModal}
+          onDismiss={handleModalDismiss}
+          onSubmit={handleResourceSubmit}
         />
-        <FAB
-          icon="plus"
-          style={[styles.fab, styles.createFab, { backgroundColor: theme.colors.primary }]}
-          onPress={() => router.push("/report")}
-          label="New Report"
+        <FAB.Group
+          open={fabOpen}
+          visible
+          icon={fabOpen ? "close" : "plus"}
+          actions={[
+            {
+              icon: "home",
+              label: "Home",
+              onPress: () => router.push("/home"),
+            },
+            {
+              icon: "plus",
+              label: "New Report",
+              onPress: () => router.push("/report"),
+            },
+            {
+              icon: "book-plus",
+              label: "New Guide",
+              onPress: () => setVisibleModal("guide"),
+            },
+            {
+              icon: "phone-plus",
+              label: "New Contact",
+              onPress: () => setVisibleModal("contact"),
+            },
+            {
+              icon: "hospital-building",
+              label: "New Facility",
+              onPress: () => setVisibleModal("facility"),
+            },
+          ]}
+          onStateChange={onStateChange}
+          onPress={() => {
+            if (fabOpen) {
+              setFabOpen(false);
+            }
+          }}
+          style={styles.fabGroup}
         />
-      </View>
+      </Portal>
     </SafeAreaView>
   );
 };
@@ -495,23 +611,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginTop: 16,
   },
-  fabContainer: {
-    position: "absolute",
-    bottom: 16,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-  },
-  fab: {
-    elevation: 4,
-  },
-  homeFab: {
-    marginRight: 8,
-  },
-  createFab: {
-    marginLeft: 8,
+  fabGroup: {
+    paddingBottom: 0,
   },
 });
 

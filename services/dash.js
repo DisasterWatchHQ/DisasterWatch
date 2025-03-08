@@ -4,8 +4,6 @@ import * as SecureStore from 'expo-secure-store';
 // Get the API URL from environment variables or use a default
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-console.log('Using API URL:', API_URL); // Debug log
-
 const api = axios.create({
   baseURL: API_URL,
   headers: {

@@ -14,46 +14,55 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getDisasterCategoryColor } from '../../utils/disasterUtils';
 
 const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
-  if (!warning) {
-    return null;
-  }
-  console.log(warning);
+  if (!warning) return null;
 
   const formatDate = (dateString) => {
+    if (!dateString) return "Not specified";
+    
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        console.error("Invalid date:", dateString);
-        return "Date unavailable";
-      }
-      return date.toLocaleString();
+      if (isNaN(date.getTime())) return "Invalid date";
+      
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
     } catch (error) {
-      console.error("Error formatting date:", error);
+      console.error("Date formatting error:", error);
       return "Date unavailable";
     }
   };
 
   const getTimeAgo = (timestamp) => {
+    if (!timestamp) return "Time unavailable";
+
     try {
       const now = new Date();
       const created = new Date(timestamp);
-      if (isNaN(created.getTime())) {
-        console.error("Invalid timestamp:", timestamp);
-        return "Time unavailable";
-      }
-      const diffInMinutes = Math.floor((now - created) / (1000 * 60));
+      
+      if (isNaN(created.getTime())) return "Invalid time";
 
-      if (diffInMinutes < 60) {
-        return `${diffInMinutes} minutes ago`;
-      } else if (diffInMinutes < 1440) {
-        const hours = Math.floor(diffInMinutes / 60);
-        return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+      const diffInMinutes = Math.floor((now - created) / (1000 * 60));
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      if (diffInMinutes < 1) {
+        return "Just now";
+      } else if (diffInMinutes < 60) {
+        return `${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`;
+      } else if (diffInHours < 24) {
+        return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
+      } else if (diffInDays < 7) {
+        return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
       } else {
-        const days = Math.floor(diffInMinutes / 1440);
-        return `${days} ${days === 1 ? "day" : "days"} ago`;
+        return formatDate(timestamp);
       }
     } catch (error) {
-      console.error("Error calculating time ago:", error);
+      console.error("Time ago calculation error:", error);
       return "Time unavailable";
     }
   };
@@ -73,10 +82,6 @@ const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
     }
   };
 
-  const getDisasterCategoryColor = (category) => {
-    return getDisasterCategoryColor(category);
-  };
-
   return (
     <Portal>
       <Modal
@@ -84,127 +89,146 @@ const WarningDetailsModal = ({ visible, warning, onDismiss }) => {
         onDismiss={onDismiss}
         contentContainerStyle={styles.modalContainer}
       >
-        <Card style={styles.card}>
-          <IconButton
-            icon="close"
-            size={24}
-            onPress={onDismiss}
-            style={styles.closeButton}
-          />
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={true}
-          >
-            <View style={styles.headerSection}>
-              <View style={styles.chips}>
-                <Chip
-                  style={[
-                    styles.chip,
-                    { backgroundColor: getSeverityColor(warning.severity) },
-                  ]}
-                  textStyle={styles.chipText}
-                >
-                  {warning.severity?.toUpperCase()}
-                </Chip>
-                <Chip
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: getDisasterCategoryColor(
-                        warning.disaster_category,
-                      ),
-                    },
-                  ]}
-                  textStyle={styles.chipText}
-                >
-                  {warning.disaster_category?.toUpperCase()}
-                </Chip>
-              </View>
-              <Text variant="titleLarge" style={styles.title}>
-                {warning.title}
-              </Text>
-              <Text variant="bodySmall" style={styles.timestamp}>
-                {getTimeAgo(warning.created_at)}
-              </Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Description
-              </Text>
-              <Text variant="bodyMedium" style={styles.description}>
-                {warning.description}
-              </Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Expected Duration
-              </Text>
-              <Text variant="bodyMedium">
-                From: {formatDate(warning.expected_duration?.start_time)}
-              </Text>
-              {warning.expected_duration?.end_time && (
-                <Text variant="bodyMedium">
-                  To: {formatDate(warning.expected_duration.end_time)}
+        <SafeAreaView style={styles.safeArea}>
+          <Card style={styles.card}>
+            <IconButton
+              icon="close"
+              size={24}
+              onPress={onDismiss}
+              style={styles.closeButton}
+            />
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.headerSection}>
+                <View style={styles.chips}>
+                  {warning.severity && (
+                    <Chip
+                      style={[
+                        styles.chip,
+                        { backgroundColor: getSeverityColor(warning.severity) },
+                      ]}
+                      textStyle={styles.chipText}
+                    >
+                      {warning.severity?.toUpperCase()}
+                    </Chip>
+                  )}
+                  {warning.disaster_category && (
+                    <Chip
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: getDisasterCategoryColor(
+                            warning.disaster_category
+                          ),
+                        },
+                      ]}
+                      textStyle={styles.chipText}
+                    >
+                      {warning.disaster_category?.toUpperCase()}
+                    </Chip>
+                  )}
+                </View>
+                <Text variant="titleLarge" style={styles.title}>
+                  {warning.title || "Untitled Warning"}
                 </Text>
-              )}
-            </View>
+                <Text variant="bodySmall" style={styles.timestamp}>
+                  {getTimeAgo(warning.created_at)}
+                </Text>
+              </View>
 
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Issued By
-              </Text>
-              <Text variant="bodyMedium">
-                {warning.created_by.name} -{" "}
-                {warning.created_by.associated_department}
-              </Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Affected Locations
-              </Text>
-              {warning.affected_locations.map((location, index) => (
-                <View key={index} style={styles.locationItem}>
-                  <MaterialCommunityIcons
-                    name="map-marker"
-                    size={20}
-                    color="#6B7280"
-                  />
-                  <Text variant="bodyMedium" style={styles.locationText}>
-                    {`Lat: ${location.latitude.toFixed(4)}, Long: ${location.longitude.toFixed(4)}`}
+              {warning.description && (
+                <View style={styles.section}>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>
+                    Description
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.description}>
+                    {warning.description}
                   </Text>
                 </View>
-              ))}
-            </View>
+              )}
 
-            <View style={styles.section}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Status
-              </Text>
-              <Chip
-                style={[styles.chip, { backgroundColor: "#4B5563" }]}
-                textStyle={styles.chipText}
+              {warning.expected_duration && (
+                <View style={styles.section}>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>
+                    Expected Duration
+                  </Text>
+                  <Text variant="bodyMedium">
+                    From: {formatDate(warning.expected_duration?.start_time)}
+                  </Text>
+                  {warning.expected_duration?.end_time && (
+                    <Text variant="bodyMedium">
+                      To: {formatDate(warning.expected_duration.end_time)}
+                    </Text>
+                  )}
+                </View>
+              )}
+
+              {warning.created_by && (
+                <View style={styles.section}>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>
+                    Issued By
+                  </Text>
+                  <Text variant="bodyMedium">
+                    {warning.created_by.name || "Unknown"}{" "}
+                    {warning.created_by.associated_department && 
+                      `- ${warning.created_by.associated_department}`}
+                  </Text>
+                </View>
+              )}
+
+              {warning.affected_locations?.length > 0 && (
+                <View style={styles.section}>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>
+                    Affected Locations
+                  </Text>
+                  {warning.affected_locations.map((location, index) => (
+                    <View key={index} style={styles.locationItem}>
+                      <MaterialCommunityIcons
+                        name="map-marker"
+                        size={20}
+                        color="#6B7280"
+                      />
+                      <Text variant="bodyMedium" style={styles.locationText}>
+                        {location.address?.city && location.address?.district ? 
+                          `${location.address.city}, ${location.address.district}` :
+                          `Lat: ${location.latitude?.toFixed(4)}, Long: ${location.longitude?.toFixed(4)}`}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {warning.status && (
+                <View style={styles.section}>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>
+                    Status
+                  </Text>
+                  <Chip
+                    style={[styles.chip, { backgroundColor: "#4B5563" }]}
+                    textStyle={styles.chipText}
+                  >
+                    {warning.status.toUpperCase()}
+                  </Chip>
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={styles.actionButtons}>
+              <Button
+                mode="contained"
+                onPress={onDismiss}
+                style={[
+                  styles.button,
+                  { backgroundColor: getSeverityColor(warning.severity) },
+                ]}
               >
-                {warning.status.toUpperCase()}
-              </Chip>
+                Close
+              </Button>
             </View>
-          </ScrollView>
-
-          <View style={styles.actionButtons}>
-            <Button
-              mode="contained"
-              onPress={onDismiss}
-              style={[
-                styles.button,
-                { backgroundColor: getSeverityColor(warning.severity) },
-              ]}
-            >
-              Close
-            </Button>
-          </View>
-        </Card>
+          </Card>
+        </SafeAreaView>
       </Modal>
     </Portal>
   );

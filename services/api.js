@@ -1,10 +1,9 @@
 import * as SecureStore from "expo-secure-store";
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const submitReport = async (reportData) => {
   try {
-    // Get auth token
+
     const session = await SecureStore.getItemAsync("userSession");
     let headers = {
       Accept: "application/json",
@@ -48,15 +47,14 @@ export const fetchReports = async (filters) => {
       ...(filters.district && { district: filters.district }),
     }).toString();
 
-    const response = await fetch(
-      `${API_URL}/reports/reports?${queryParams}`,
-    );
+    const response = await fetch(`${API_URL}/reports/reports?${queryParams}`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch reports");
     }
 
-    return await response.json();
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error("Fetch reports error:", error);
     throw error;
@@ -65,15 +63,14 @@ export const fetchReports = async (filters) => {
 
 export const fetchFeedStats = async () => {
   try {
-    const response = await fetch(`${API_URL}/userReport/feedstats`);
+    const response = await fetch(`${API_URL}/reports/feedstats`);
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Failed to fetch feed stats");
     }
 
-    const data = await response.json();
-    return data.success ? data.data : data;
+    return await response.json();
   } catch (error) {
     console.error("Fetch stats error:", error);
     throw error;
@@ -83,7 +80,7 @@ export const fetchFeedStats = async () => {
 export const fetchLiveUpdates = async (minutes = 30) => {
   try {
     const response = await fetch(
-      `${API_URL}/userReport/updates?minutes=${minutes}`,
+      `${API_URL}/reports/updates?minutes=${minutes}`,
     );
 
     if (!response.ok) {
@@ -91,8 +88,7 @@ export const fetchLiveUpdates = async (minutes = 30) => {
       throw new Error(errorData.error || "Failed to fetch updates");
     }
 
-    const data = await response.json();
-    return data.success ? data.data : data;
+    return await response.json();
   } catch (error) {
     console.error("Fetch updates error:", error);
     throw error;

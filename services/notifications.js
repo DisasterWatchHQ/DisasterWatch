@@ -65,8 +65,6 @@ export async function registerForPushNotificationsAsync() {
     token = await Notifications.getExpoPushTokenAsync({
       projectId: Constants.expoConfig.extra.eas.projectId,
     });
-    
-    console.log("Push Token:", token.data);
 
     try {
       await apiClient.patch('/users/push-token', {

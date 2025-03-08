@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { Text, Button, IconButton, useTheme, Chip } from "react-native-paper";
 import { useRouter } from "expo-router";
-import { getDisasterCategoryColor } from '../utils/disasterUtils';
+import { getDisasterCategoryColor } from "../utils/disasterUtils";
 
 const WarningMain = ({
   disaster_category,
@@ -22,11 +22,11 @@ const WarningMain = ({
   const getSeverityColor = () => {
     switch (severity.toLowerCase()) {
       case "critical":
-        return "#DC2626"; 
+        return "#DC2626";
       case "high":
-        return "#F87171"; 
+        return "#F87171";
       case "medium":
-        return "#FBBF24"; 
+        return "#FBBF24";
       case "low":
         return "#34D399";
       default:
@@ -47,18 +47,41 @@ const WarningMain = ({
   };
 
   const getTimeAgo = (timestamp) => {
-    const now = new Date();
-    const created = new Date(timestamp);
-    const diffInMinutes = Math.floor((now - created) / (1000 * 60));
+    try {
+      const now = new Date();
+      // Handle different timestamp formats
+      const created =
+        typeof timestamp === "string" ? new Date(timestamp) : timestamp;
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minutes ago`;
-    } else if (diffInMinutes < 1440) {
-      const hours = Math.floor(diffInMinutes / 60);
-      return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
-    } else {
-      const days = Math.floor(diffInMinutes / 1440);
-      return `${days} ${days === 1 ? "day" : "days"} ago`;
+      // Check if the date is valid
+      if (isNaN(created.getTime())) {
+        console.error("Invalid date:", timestamp);
+        return "Invalid date";
+      }
+
+      const diffInMinutes = Math.floor((now - created) / (1000 * 60));
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      if (diffInMinutes < 1) {
+        return "Just now";
+      } else if (diffInMinutes < 60) {
+        return `${diffInMinutes} ${diffInMinutes === 1 ? "minute" : "minutes"} ago`;
+      } else if (diffInHours < 24) {
+        return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+      } else if (diffInDays < 7) {
+        return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+      } else {
+        // For older dates, show the actual date
+        return created.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      }
+    } catch (error) {
+      console.error("Date parsing error:", error);
+      return "Date unavailable";
     }
   };
 
@@ -70,35 +93,43 @@ const WarningMain = ({
     return "Location unavailable";
   };
 
-  const getDisasterCategoryColor = () => {
-    return getDisasterCategoryColor(disaster_category);
-  };
+  const categoryColor = getDisasterCategoryColor(disaster_category);
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: getBackgroundColor(),
+          backgroundColor: theme.colors.surface,
           borderLeftWidth: 4,
           borderLeftColor: getSeverityColor(),
         },
         style,
       ]}
     >
-      <View style={styles.statusBar}>
-        <Chip
-          compact
-          style={{
-            backgroundColor: getSeverityColor(),
-          }}
-          textStyle={{ color: "white", fontSize: 12 }}
-        >
-          {severity.toUpperCase()}
-        </Chip>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Chip
+            compact
+            style={[
+              styles.severityChip,
+              { backgroundColor: getSeverityColor() },
+            ]}
+            textStyle={styles.chipText}
+          >
+            {severity.toUpperCase()}
+          </Chip>
+          <Chip
+            compact
+            style={[styles.categoryChip, { backgroundColor: categoryColor }]}
+            textStyle={styles.chipText}
+          >
+            {disaster_category.toUpperCase()}
+          </Chip>
+        </View>
         <Text
           variant="bodySmall"
-          style={{ color: theme.colors.onSurfaceVariant }}
+          style={[styles.timestamp, { color: theme.colors.onSurfaceVariant }]}
         >
           {getTimeAgo(created_at)}
         </Text>
@@ -108,19 +139,11 @@ const WarningMain = ({
         <Text
           variant="titleMedium"
           style={[styles.title, { color: theme.colors.onSurface }]}
+          numberOfLines={2}
         >
           {title}
         </Text>
-        <Chip
-          compact
-          style={[
-            styles.categoryChip,
-            { backgroundColor: getDisasterCategoryColor() },
-          ]}
-          textStyle={{ fontSize: 12, color: "white" }}
-        >
-          {disaster_category.toUpperCase()}
-        </Chip>
+
         {description && (
           <Text
             variant="bodyMedium"
@@ -128,6 +151,7 @@ const WarningMain = ({
               styles.description,
               { color: theme.colors.onSurfaceVariant },
             ]}
+            numberOfLines={3}
           >
             {description}
           </Text>
@@ -142,7 +166,7 @@ const WarningMain = ({
           />
           <Text
             variant="bodyMedium"
-            style={{ color: theme.colors.onSurfaceVariant }}
+            style={[styles.location, { color: theme.colors.onSurfaceVariant }]}
           >
             {getLocationString()}
           </Text>
@@ -164,7 +188,7 @@ const WarningMain = ({
           })
         }
         style={[styles.button, { backgroundColor: getSeverityColor() }]}
-        labelStyle={{ fontSize: 14 }}
+        labelStyle={styles.buttonLabel}
       >
         View Details
       </Button>
@@ -177,33 +201,51 @@ const styles = {
     margin: 8,
     padding: 16,
     borderRadius: 12,
+    elevation: 2,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
   },
-  statusBar: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
-  content: {
+  headerLeft: {
+    flexDirection: "row",
     gap: 8,
+  },
+  severityChip: {
+    height: 32,
+  },
+  categoryChip: {
+    height: 32,
+  },
+  chipText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  timestamp: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  content: {
+    gap: 12,
     marginBottom: 16,
   },
   title: {
-    fontWeight: "bold",
+    fontWeight: "700",
     fontSize: 18,
-  },
-  categoryChip: {
-    alignSelf: "flex-start",
-    marginVertical: 4,
+    lineHeight: 24,
   },
   description: {
+    fontSize: 14,
     lineHeight: 20,
   },
   locationContainer: {
@@ -213,11 +255,21 @@ const styles = {
   },
   locationIcon: {
     margin: 0,
+    marginRight: -4,
     padding: 0,
+  },
+  location: {
+    fontSize: 14,
   },
   button: {
     marginTop: 8,
     borderRadius: 8,
+    height: 40,
+  },
+  buttonLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
 };
 
