@@ -1,53 +1,187 @@
 # DisasterWatch
-  This repo contains the group project for module IT3162
 
- Current map we have in mind
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![React Native](https://img.shields.io/badge/React%20Native-v0.72+-61dafb.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2049+-000020.svg)](https://expo.dev/)
 
- Frontend (React Native/Expo)<br/>
-   ├── Screens<br/>
-   │     ├── HomeScreen (Disaster Feed + Map)<br/>
-   │     ├── ReportingScreen (User Reports)<br/>
-   │     ├── HotlinesScreen (Emergency Contacts)<br/>
-   │     ├── NotificationSettingsScreen (Preferences)<br/>
-   │     ├── UserProfileScreen (Profile Management)<br/>
-   │     └── OnboardingScreen (Introduction for New Users)<br/>
-   ├── Components<br/>
-   │     ├── DisasterCard (List of Disaster Alerts)<br/>
-   │     ├── MapView (Interactive Map with Markers)<br/>
-   │     ├── ReportForm (Disaster Reporting Form)<br/>
-   │     ├── AlertModal (Notifications/Popups)<br/>
-   │     └── LoadingSpinner (Reusable Loading Indicator)<br/>
-   ├── State Management (Redux)<br/>
-   ├── APIs (Integration with OpenWeatherAPI, Cloud ML Model)<br/>
-   ├── Push Notifications (Firebase Cloud Messaging)<br/>
-  
- Backend (Node.js/Express)<br/>
-    ├── RESTful API Endpoints<br/>
-    │     ├── /reports (CRUD for Disaster Reports)<br/>
-    │     ├── /weather (Fetch Weather Data)<br/>
-    │     ├── /predictions (ML Model Predictions)<br/>
-    │     ├── /users (User Authentication & Profiles)<br/>
-    │     └── /hotlines (Emergency Contact Management)<br/>
-    ├── Database (MongoDB)<br/>
-    │     ├── Collections<br/>
-    │     │     ├── users<br/>
-    │     │     ├── reports<br/>
-    │     │     ├── predictions<br/>
-    │     │     └── hotlines<br/>
-    ├── Machine Learning (Hosted Model on Cloud)<br/>
-    │     ├── TensorFlow/Python for ML Model<br/>
-    └── Authentication & Security (Firebase Auth)<br/>
-    
-  **For Team members**
+## About
 
-  The commit type can be one of the following:<br/>
-    - feat: Commits, which adds a new feature<br/>
-    - fix: Commits, that fixes a bug<br/>
-    - refactor: Commits, that rewrite/restructure your code, however, do not change any behavior<br/>
-    - perf: Commits are special refactor commits, that improve performance<br/>
-    - style: Commits, that do not affect the meaning (white space, formatting, missing semi-colons, etc)<br/>
-    - test: Commits, that add missing tests or correct existing tests<br/>
-    - docs: Commits, that affect documentation only<br/>
-    - build: Commits, that affect build components like build tool, ci pipeline, dependencies, project version, ...<br/>
-    - ops: Commits, that affect operational components like infrastructure, deployment, backup, recovery...<br/>
-    - chore: Miscellaneous commits e.g. modifying .gitignore<br/>
+DisasterWatch is a comprehensive mobile application designed to help communities prepare for, monitor, and respond to natural and man-made disasters. Built with React Native and Expo, it provides real-time disaster tracking, reporting capabilities, and emergency response coordination tools.
+
+## Features
+
+- 🗺️ **Real-time Disaster Feed**
+  - Interactive map interface with disaster markers
+  - Filter disasters by type, severity, and location
+  - Real-time updates and push notifications
+
+- 📱 **Disaster Reporting**
+  - User-generated incident reports
+  - Photo and video upload capabilities
+  - Location-based reporting
+  - Offline submission support
+
+- 🚨 **Emergency Services**
+  - Emergency contact directory
+  - One-tap emergency calling
+  - Nearest emergency facility locator
+  - Emergency protocols and guidelines
+
+- 🔔 **Smart Notifications**
+  - Customizable alert preferences
+  - Geofenced notifications
+  - Severity-based filtering
+  - Silent hours configuration
+
+- 👤 **User Features**
+  - Profile management
+  - Emergency contact list
+  - Personal safety checklist
+  - Activity history
+
+- 🌡️ **Weather Integration**
+  - Real-time weather data
+  - Natural disaster predictions
+  - Severe weather alerts
+  - Historical weather patterns
+
+## Tech Stack
+
+### Frontend
+- React Native (v0.72+)
+- Expo SDK 49+
+- NativeWind (TailwindCSS for React Native)
+- React Navigation v6
+
+### Data Management
+- React Context API
+- AsyncStorage
+- Expo SecureStore
+- Redux Toolkit (for complex state)
+
+### Maps & Location
+- React Native Maps
+- Expo Location
+- Google Maps API
+
+### Notifications
+- Expo Notifications
+- Firebase Cloud Messaging
+
+### API & Networking
+- Axios
+- React Query
+- WebSocket for real-time updates
+
+## Prerequisites
+
+- Node.js (v16.0.0 or higher)
+- npm (v8.0.0 or higher) or yarn (v1.22.0 or higher)
+- Expo CLI (`npm install -g expo-cli`)
+- Xcode (for iOS development, Mac only)
+- Android Studio (for Android development)
+- Git
+
+## Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/DisasterWatch.git
+   cd DisasterWatch
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` with your API keys and configuration:
+   - GOOGLE_MAPS_API_KEY
+   - WEATHER_API_KEY
+   - FIREBASE_CONFIG
+   - API_BASE_URL
+
+4. **Start Development Server**
+   ```bash
+   npm start # or yarn start
+   ```
+
+## Available Scripts
+
+- `npm start` - Start the Expo development server
+- `npm run ios` - Run on iOS simulator
+- `npm run android` - Run on Android emulator
+- `npm run web` - Run in web browser
+- `npm test` - Run test suite
+- `npm run lint` - Run ESLint
+- `npm run typescript` - Run TypeScript checks
+- `npm run build:android` - Build Android release
+- `npm run build:ios` - Build iOS release
+
+## Development
+
+### Code Style
+- ESLint configuration extends React Native recommended settings
+- Prettier for code formatting
+- Husky for pre-commit hooks
+- Commitlint for conventional commits
+
+### Testing
+- Jest for unit and integration tests
+- React Native Testing Library
+- E2E testing with Detox
+
+### Debugging
+- React Native Debugger
+- Flipper support
+- Chrome DevTools integration
+
+## Deployment
+
+### Android
+1. Update `app.json` version
+2. Generate release keystore
+3. Configure `app.json` with keystore details
+4. Run `npm run build:android`
+
+### iOS
+1. Update `app.json` version
+2. Configure certificates in Apple Developer Portal
+3. Update provisioning profiles
+4. Run `npm run build:ios`
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Documentation
+
+- [API Documentation](docs/API.md)
+- [Component Library](docs/COMPONENTS.md)
+- [State Management](docs/STATE.md)
+- [Testing Guide](docs/TESTING.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, email support@disasterwatch.com or join our Slack channel.
+
+---
+
+Made with ❤️ by the DisasterWatch Team
