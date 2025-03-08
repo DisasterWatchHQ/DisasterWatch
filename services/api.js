@@ -1,36 +1,37 @@
-const API_URL = process.env.REACT_APP_API_URL;
+import * as SecureStore from "expo-secure-store";
 
-export const submitReport = async (reportData, images) => {
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+export const submitReport = async (reportData) => {
   try {
-    const formData = new FormData();
+    // Get auth token
+    const session = await SecureStore.getItemAsync("userSession");
+    let headers = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
 
-    Object.keys(reportData).forEach((key) => {
-      if (key === "location") {
-        formData.append(key, JSON.stringify(reportData[key]));
-      } else {
-        formData.append(key, reportData[key]);
+    if (session) {
+      const { token } = JSON.parse(session);
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
       }
-    });
-
-    if (images && images.length) {
-      images.forEach((image) => {
-        formData.append("images", image);
-      });
     }
 
-    const response = await fetch(`${API_URL}/userReport`, {
+    const response = await fetch(`${API_URL}/reports`, {
       method: "POST",
-      body: formData,
+      headers,
+      body: JSON.stringify(reportData),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to submit report");
+      throw new Error(errorData.message || "Failed to submit report");
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Submit error:", error);
+    console.error("Submit report error:", error);
     throw error;
   }
 };
@@ -48,7 +49,7 @@ export const fetchReports = async (filters) => {
     }).toString();
 
     const response = await fetch(
-      `${API_URL}/userReport/reports?${queryParams}`,
+      `${API_URL}/reports/reports?${queryParams}`,
     );
 
     if (!response.ok) {
