@@ -101,11 +101,22 @@ const RootLayout = () => {
           const data = response.notification.request.content.data;
           console.log('Notification response:', data);
 
-          // Handle navigation based on notification type
+          // Handle navigation based on notification type with proper routing
           if (data.type === 'warning') {
-            router.push('/dashboard');
+            router.navigate('(tabs)', {
+              screen: 'home',
+              params: {
+                showWarning: true,
+                warningId: data.warningId
+              }
+            });
           } else if (data.type === 'report') {
-            router.push('/report');
+            router.navigate('(tabs)', {
+              screen: 'report',
+              params: {
+                reportId: data.reportId
+              }
+            });
           }
         });
       }
@@ -125,12 +136,32 @@ const RootLayout = () => {
           <PreferencesProvider>
             <UserProvider>
               <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen 
+                  name="(auth)" 
+                  options={{
+                    animation: 'fade',
+                  }}
+                />
+                <Stack.Screen 
+                  name="(tabs)" 
+                  options={{
+                    animation: 'fade',
+                  }}
+                />
+                <Stack.Screen 
+                  name="(profile)" 
+                  options={{
+                    animation: 'slide_from_right',
+                  }}
+                />
                 <Stack.Screen name="index" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="profile" />
-                <Stack.Screen name="settings" />
-                <Stack.Screen name="Dashboard" />
+                <Stack.Screen 
+                  name="Dashboard" 
+                  options={{
+                    animation: 'slide_from_bottom',
+                    presentation: 'modal'
+                  }}
+                />
               </Stack>
             </UserProvider>
           </PreferencesProvider>
