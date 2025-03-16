@@ -125,12 +125,12 @@ const Home = () => {
         maxDistance: 5 // 5km radius
       });
 
-      if (!response || !response.success || !Array.isArray(response.data)) {
+      if (!response || !response.success || !Array.isArray(response.resources)) {
         throw new Error('Invalid facilities response format');
       }
 
       // Sort facilities by distance if available
-      const sortedFacilities = response.data.sort((a, b) => {
+      const sortedFacilities = response.resources.sort((a, b) => {
         if (a.distance && b.distance) {
           return parseFloat(a.distance) - parseFloat(b.distance);
         }

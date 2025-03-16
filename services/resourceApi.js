@@ -90,7 +90,7 @@ export const resourceApi = {
           longitude,
           maxDistance,
           type,
-          availability_status,
+          availabilityStatus: availability_status,
         },
       });
       return response.data;
