@@ -47,7 +47,7 @@ const formSchema = z.object({
     .min(1, "At least one location must be specified"),
 });
 
-const CreateWarningDialog = () => {
+const CreateWarningDialog = ({ onWarningCreated }) => {
   const theme = useTheme();
   const { user } = useContext(UserContext);
   const [visible, setVisible] = useState(false);
@@ -157,20 +157,25 @@ const CreateWarningDialog = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      console.log("Current user:", user);
       if (!user) {
-        throw new Error("User not authenticated");
+        Alert.alert(
+          "Authentication Required",
+          "Please sign in to create a warning. This feature is only available for authenticated users.",
+          [
+            { text: "Cancel", onPress: () => setVisible(false) },
+            { text: "Sign In", onPress: () => setVisible(false) }
+          ]
+        );
+        return;
       }
-
-      // Log form data for debugging
-      console.log("Form data:", data);
 
       const formattedData = {
         ...data,
         created_by: user.id,
         expected_duration: {
-          start_time: new Date(),
+          start_time: new Date().toISOString(),
         },
+        created_at: new Date().toISOString(),
         affected_locations: [
           {
             latitude: location?.latitude,
@@ -181,19 +186,19 @@ const CreateWarningDialog = () => {
       };
 
       try {
-        console.log("Submitting data:", formattedData); // Debug log
         const response = await wardash.post("/warnings", formattedData);
-        console.log("Response:", response.data);
         if (response.data) {
           setVisible(false);
           reset();
           Alert.alert("Success", "Warning created successfully");
+          if (onWarningCreated) {
+            onWarningCreated();
+          }
           return response.data;
         }
       } catch (error) {
         console.error("Error creating warning:", error);
         if (error.response) {
-          console.error("Error response:", error.response.data);
           throw new Error(
             error.response.data.error || "Failed to create warning",
           );

@@ -5,6 +5,7 @@ import {
   Alert,
   TouchableOpacity,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from "react-native-maps";
 import React, {
@@ -24,13 +25,19 @@ import { warningApi } from "../../services/warningApi";
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = 0.0421;
 
-const markerTypes = [
-  { type: "Flood", color: "blue", icon: "water" },
-  { type: "Fire", color: "red", icon: "local-fire-department" },
-  { type: "Earthquake", color: "orange", icon: "vibration" },
-  { type: "Landslide", color: "brown", icon: "landscape" },
-  { type: "Cyclone", color: "purple", icon: "thunderstorm" },
-];
+const SEVERITY_COLORS = {
+  low: "#3b82f6", // blue
+  medium: "#eab308", // yellow
+  high: "#f97316", // orange
+  critical: "#ef4444", // red
+};
+
+const SEVERITY_RADIUS = {
+  low: 1000, // 1km
+  medium: 2000, // 2km
+  high: 5000, // 5km
+  critical: 10000, // 10km
+};
 
 const MapControl = React.memo(({ icon, onPress, className }) => (
   <TouchableOpacity
@@ -41,33 +48,74 @@ const MapControl = React.memo(({ icon, onPress, className }) => (
   </TouchableOpacity>
 ));
 
-const DisasterMarker = React.memo(({ marker }) => {
-  if (!marker || !marker.coordinate) return null;
+const DisasterMarker = React.memo(({ warning }) => {
+  if (!warning) {
+    return null;
+  }
 
-  const markerType = markerTypes.find(t => 
-    t.type.toLowerCase() === (marker.type || '').toLowerCase()
-  ) || markerTypes[0]; // Default to first type if no match
+  // Handle different coordinate formats
+  let coordinates;
+  try {
+    if (warning.affected_locations?.[0]?.coordinates) {
+      coordinates = warning.affected_locations[0].coordinates;
+    } else if (warning.location?.coordinates) {
+      coordinates = warning.location.coordinates;
+    } else if (warning.coordinates) {
+      coordinates = warning.coordinates;
+    } else {
+      console.log("Invalid warning data - no coordinates found:", warning);
+      return null;
+    }
 
-  return (
-    <Marker
-      coordinate={marker.coordinate}
-      pinColor={markerType?.color || 'red'}
-    >
-      <Callout>
-        <View className="p-3">
-          <Text className="font-bold text-base">{marker.title || 'No Title'}</Text>
-          <Text className="text-sm mt-1">
-            {marker.type || 'Unknown'} - {marker.severity || 'Unknown'}
-          </Text>
-          <Text className="text-sm mt-1">{marker.description || 'No description'}</Text>
-          <Text className="text-xs text-gray-500 mt-2">{marker.timestamp || 'No timestamp'}</Text>
-        </View>
-      </Callout>
-    </Marker>
-  );
+    // Validate coordinates
+    const lat = parseFloat(coordinates.latitude || coordinates[1]);
+    const lng = parseFloat(coordinates.longitude || coordinates[0]);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      console.log("Invalid coordinates:", coordinates);
+      return null;
+    }
+
+    const severity = warning.severity?.toLowerCase() || 'medium';
+    const color = SEVERITY_COLORS[severity] || SEVERITY_COLORS.medium;
+
+    return (
+      <Marker
+        coordinate={{
+          latitude: lat,
+          longitude: lng,
+        }}
+        pinColor={color}
+      >
+        <Callout>
+          <View className="p-3 max-w-[300px]">
+            <Text className="font-bold text-base">{warning.title || 'No Title'}</Text>
+            <Text className="text-sm mt-1">
+              {warning.disaster_category || 'Unknown Category'} - Severity: {warning.severity || 'Medium'}
+            </Text>
+            <Text className="text-sm mt-1">{warning.description || 'No description available'}</Text>
+            <Text className="text-xs text-gray-500 mt-2">
+              Created: {warning.created_at ? new Date(warning.created_at).toLocaleString() : 'Unknown date'}
+            </Text>
+            {warning.updates?.length > 0 && (
+              <View className="mt-2 border-t pt-2">
+                <Text className="text-sm font-medium">Latest Update:</Text>
+                <Text className="text-sm">
+                  {warning.updates[warning.updates.length - 1].update_text}
+                </Text>
+              </View>
+            )}
+          </View>
+        </Callout>
+      </Marker>
+    );
+  } catch (error) {
+    console.error("Error rendering marker:", error);
+    return null;
+  }
 });
 
-const MapFeed = ({ disasterMarkers = [] }) => {
+const MapFeed = () => {
   const mapRef = useRef(null);
   const [location, setLocation] = useState(null);
   const [showLegend, setShowLegend] = useState(false);
@@ -111,18 +159,21 @@ const MapFeed = ({ disasterMarkers = [] }) => {
   useEffect(() => {
     const fetchWarnings = async () => {
       try {
+        console.log("Fetching warnings...");
         const response = await warningApi.getActiveWarnings();
-        // Check the response structure and set warnings accordingly
-        const warningData = response?.data || response || [];
-        console.log("Fetched warnings:", warningData); // Debug log
+        console.log("Raw response:", response);
+        const warningData = Array.isArray(response) ? response : [];
+        console.log("Processed warning data:", warningData);
         setWarnings(warningData);
       } catch (error) {
         console.error("Error fetching warnings:", error);
-        Alert.alert("Error", "Failed to fetch warnings");
+        setWarnings([]); // Set empty array on error
       }
     };
 
     fetchWarnings();
+    const interval = setInterval(fetchWarnings, 60000); // Refresh every minute
+    return () => clearInterval(interval);
   }, []);
 
   const handleRegionChange = useCallback(
@@ -144,87 +195,6 @@ const MapFeed = ({ disasterMarkers = [] }) => {
     },
     [location],
   );
-
-  const warningMarkers = useMemo(() => {
-    if (!Array.isArray(warnings)) {
-      console.warn("Warnings is not an array:", warnings);
-      return [];
-    }
-
-    return warnings
-      .map((warning) => {
-        try {
-          // Add null checks and default values
-          const locations = warning.affected_locations || [];
-          const primaryLocation = locations[0] || {};
-          const coordinates = primaryLocation.coordinates || {};
-
-          // Only create marker if valid coordinates exist
-          if (!coordinates.latitude || !coordinates.longitude) {
-            console.warn("Invalid coordinates for warning:", warning);
-            return null;
-          }
-
-          return {
-            coordinate: {
-              latitude: parseFloat(coordinates.latitude),
-              longitude: parseFloat(coordinates.longitude),
-            },
-            type:
-              (warning.disaster_category || "unknown").charAt(0).toUpperCase() +
-              (warning.disaster_category || "unknown").slice(1),
-            description: warning.description || "No description available",
-            timestamp: warning.created_at
-              ? new Date(warning.created_at).toLocaleString()
-              : "Time not specified",
-            severity: warning.severity || "unknown",
-            title: warning.title || "Untitled Warning",
-          };
-        } catch (error) {
-          console.error("Error processing warning:", error);
-          return null;
-        }
-      })
-      .filter((marker) => marker !== null); // Remove any null markers
-  }, [warnings]);
-
-  const memoizedMarkers = useMemo(
-    () =>
-      Array.isArray(disasterMarkers) &&
-      disasterMarkers.map((marker, index) => (
-        <DisasterMarker
-          key={`${marker.coordinate.latitude}-${marker.coordinate.longitude}`}
-          marker={marker}
-        />
-      )),
-    [disasterMarkers],
-  );
-
-  useEffect(() => {
-    console.log("Processed markers:", warningMarkers);
-  }, [warningMarkers]);
-
-  const fetchNearbyWarnings = useCallback(async () => {
-    if (!location) return;
-
-    try {
-      const nearbyWarnings = await warningApi.getWarningsByLocation(
-        location.latitude,
-        location.longitude,
-        50, // radius in km
-      );
-      setWarnings(nearbyWarnings.data);
-    } catch (error) {
-      console.error("Error fetching nearby warnings:", error);
-    }
-  }, [location]);
-
-  // Add to useEffect
-  useEffect(() => {
-    if (location) {
-      fetchNearbyWarnings();
-    }
-  }, [location, fetchNearbyWarnings]);
 
   if (isLoading) {
     return (
@@ -248,29 +218,35 @@ const MapFeed = ({ disasterMarkers = [] }) => {
   return (
     <View className="flex-1 bg-neutral-800">
       {location && (
-        <MapView
-          ref={mapRef}
-          style={{ width: "100%", height: "100%" }}
-          provider={PROVIDER_GOOGLE}
-          initialRegion={location}
-          onRegionChangeComplete={handleRegionChange}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-          showsCompass={false}
-          loadingEnabled={true}
-          moveOnMarkerPress={false}
-        >
-          {Array.isArray(warningMarkers) &&
-            warningMarkers.map(
-              (marker, index) =>
-                marker && (
-                  <DisasterMarker
-                    key={`${marker.coordinate.latitude}-${marker.coordinate.longitude}-${index}`}
-                    marker={marker}
-                  />
-                ),
-            )}
-        </MapView>
+        <>
+          <MapView
+            ref={mapRef}
+            style={{ width: "100%", height: "100%" }}
+            provider={PROVIDER_GOOGLE}
+            initialRegion={location}
+            onRegionChangeComplete={handleRegionChange}
+            showsUserLocation={true}
+            showsMyLocationButton={false}
+            showsCompass={false}
+            loadingEnabled={true}
+            moveOnMarkerPress={false}
+          >
+            {Array.isArray(warnings) && warnings.length > 0 && warnings.map((warning, index) => {
+              if (!warning) return null;
+              return (
+                <DisasterMarker
+                  key={`${warning._id || index}-${index}`}
+                  warning={warning}
+                />
+              );
+            })}
+          </MapView>
+          {(!Array.isArray(warnings) || warnings.length === 0) && (
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>No active warnings in your area</Text>
+            </View>
+          )}
+        </>
       )}
 
       <View className="absolute top-4 w-11/12 self-center mt-8 z-10">
@@ -351,11 +327,19 @@ const MapFeed = ({ disasterMarkers = [] }) => {
 
       {showLegend && (
         <View className="absolute bottom-20 left-4 bg-white p-4 rounded-lg shadow-lg">
-          <Text className="font-bold text-base mb-3">Disaster Types</Text>
-          {markerTypes.map((item, index) => (
-            <View key={index} className="flex-row items-center mb-2">
-              <MaterialIcons name={item.icon} size={24} color={item.color} />
-              <Text className="ml-2">{item.type}</Text>
+          <Text className="font-bold text-base mb-3">Warning Severity</Text>
+          {Object.entries(SEVERITY_COLORS).map(([severity, color]) => (
+            <View key={severity} className="flex-row items-center mb-2">
+              <View
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 6,
+                  backgroundColor: color,
+                  marginRight: 8,
+                }}
+              />
+              <Text className="capitalize">{severity}</Text>
             </View>
           ))}
         </View>
@@ -363,5 +347,25 @@ const MapFeed = ({ disasterMarkers = [] }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  noDataContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -100 }, { translateY: -20 }],
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 8,
+    width: 200,
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  noDataText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+});
 
 export default React.memo(MapFeed);
