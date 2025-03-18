@@ -28,7 +28,12 @@ export const useReports = () => {
       const response = await fetchReports(filters);
 
       if (response.success && response.data) {
-        setReports(response.data.reports);
+        // Filter reports on the frontend if verified_only is true
+        const filteredReports = filters.verified_only 
+          ? response.data.reports.filter(report => report.verification_status === 'verified')
+          : response.data.reports;
+
+        setReports(filteredReports);
         setPagination({
           currentPage: response.data.pagination.currentPage,
           totalPages: response.data.pagination.totalPages,
