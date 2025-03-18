@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { Text, Switch, useTheme, Divider } from "react-native-paper";
 import HeaderBar from "../components/headerBar";
 import { 
@@ -11,6 +11,8 @@ import {
 } from "../services/notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PreferencesContext } from '../app/_layout';
+import { router } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const Settings = () => {
   const [notificationSettings, setNotificationSettings] = useState({
@@ -112,6 +114,22 @@ const Settings = () => {
       <HeaderBar title="Settings" showBack={true} />
       <ScrollView style={styles.content}>
         <View style={styles.section}>
+          <Text variant="titleMedium" style={styles.sectionTitle}>Account</Text>
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={() => router.push('/profile')}
+          >
+            <View style={styles.settingItemContent}>
+              <MaterialCommunityIcons name="account" size={24} color={theme.colors.primary} />
+              <Text variant="bodyLarge">Profile Settings</Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={24} color={theme.colors.onSurfaceVariant} />
+          </TouchableOpacity>
+        </View>
+
+        <Divider style={styles.divider} />
+
+        <View style={styles.section}>
           <Text variant="titleMedium" style={styles.sectionTitle}>Appearance</Text>
           <View style={styles.settingItem}>
             <Text variant="bodyLarge">Dark Mode</Text>
@@ -195,6 +213,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
+  },
+  settingItemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   divider: {
     marginVertical: 8,

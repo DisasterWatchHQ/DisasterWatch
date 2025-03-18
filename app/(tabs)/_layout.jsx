@@ -120,6 +120,15 @@ const TabsLayout = () => {
           ),
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="account" focused={focused} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 };
