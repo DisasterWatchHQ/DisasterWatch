@@ -11,8 +11,8 @@ const UserProvider = ({ children }) => {
     try {
       const session = await SecureStore.getItemAsync("userSession");
       if (session) {
-        const sessionData = JSON.parse(session);
-        setUser(sessionData);
+        const { user } = JSON.parse(session);
+        setUser(user);
       }
     } catch (error) {
       console.error("Error loading user:", error);
