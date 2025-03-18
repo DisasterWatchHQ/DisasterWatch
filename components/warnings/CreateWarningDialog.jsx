@@ -167,7 +167,7 @@ const CreateWarningDialog = () => {
 
       const formattedData = {
         ...data,
-        created_by: user.user.id,
+        created_by: user.id,
         expected_duration: {
           start_time: new Date(),
         },
