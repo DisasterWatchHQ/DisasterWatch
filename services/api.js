@@ -46,7 +46,7 @@ export const fetchReports = async (filters) => {
       ...(filters.disaster_category && {
         disaster_category: filters.disaster_category,
       }),
-      ...(filters.verified_only && { verified_only: true }),
+      ...(filters.verified_only && { verified_only: "true" }),
       ...(filters.district && { district: filters.district }),
     }).toString();
 
