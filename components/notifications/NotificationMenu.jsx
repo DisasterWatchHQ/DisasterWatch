@@ -1,60 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { Portal, Modal, Text, IconButton, useTheme, Badge } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import wardash from '../../services/wardash';
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Portal, Modal, Text, useTheme, IconButton, Divider } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 
-const NotificationMenu = ({ visible, onDismiss }) => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+const NotificationMenu = ({ visible, onDismiss, notifications = [], onNotificationRead }) => {
   const theme = useTheme();
+  const router = useRouter();
 
-  useEffect(() => {
-    if (visible) {
-      fetchNotifications();
+  const handleNotificationPress = (notification) => {
+    if (!notification.read) {
+      onNotificationRead(notification.id);
     }
-  }, [visible]);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const response = await wardash.get('/notifications');
-      setNotifications(response.data);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
+    // Handle navigation based on notification type
+    if (notification.data?.type === 'warning') {
+      router.navigate('(tabs)', {
+        screen: 'home',
+        params: {
+          showWarning: true,
+          warningId: notification.data.warningId
+        }
+      });
+    } else if (notification.data?.type === 'report') {
+      router.navigate('(tabs)', {
+        screen: 'report',
+        params: {
+          reportId: notification.data.reportId
+        }
+      });
     }
+    onDismiss();
   };
 
-  const getSeverityColor = (severity) => {
-    switch (severity?.toLowerCase()) {
-      case 'critical':
-        return '#DC2626';
-      case 'high':
-        return '#F87171';
-      case 'medium':
-        return '#FBBF24';
-      case 'low':
-        return '#34D399';
-      default:
-        return theme.colors.primary;
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    
+    // Less than 1 minute
+    if (diff < 60000) {
+      return 'Just now';
     }
-  };
-
-  const formatDate = (dateString) => {
-    try {
-      if (!dateString) return "Date unavailable";
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        console.error("Invalid date:", dateString);
-        return "Date unavailable";
-      }
-      return date.toLocaleString();
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Date unavailable";
+    // Less than 1 hour
+    if (diff < 3600000) {
+      const minutes = Math.floor(diff / 60000);
+      return `${minutes}m ago`;
     }
+    // Less than 1 day
+    if (diff < 86400000) {
+      const hours = Math.floor(diff / 3600000);
+      return `${hours}h ago`;
+    }
+    // Less than 1 week
+    if (diff < 604800000) {
+      const days = Math.floor(diff / 86400000);
+      return `${days}d ago`;
+    }
+    // Otherwise, show the date
+    return date.toLocaleDateString();
   };
 
   return (
@@ -62,54 +65,48 @@ const NotificationMenu = ({ visible, onDismiss }) => {
       <Modal
         visible={visible}
         onDismiss={onDismiss}
-        contentContainerStyle={styles.modalContainer}
+        contentContainerStyle={[styles.modal, { backgroundColor: theme.colors.background }]}
       >
         <View style={styles.header}>
           <Text variant="titleLarge">Notifications</Text>
           <IconButton
             icon="close"
-            size={24}
+            size={20}
             onPress={onDismiss}
             style={styles.closeButton}
           />
         </View>
-
-        <ScrollView style={styles.notificationList}>
-          {loading ? (
-            <Text style={styles.loadingText}>Loading notifications...</Text>
-          ) : notifications.length === 0 ? (
-            <Text style={styles.emptyText}>No notifications</Text>
+        <Divider />
+        <ScrollView style={styles.content}>
+          {notifications.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text variant="bodyLarge" style={styles.emptyText}>
+                No notifications
+              </Text>
+            </View>
           ) : (
             notifications.map((notification) => (
               <View
-                key={notification._id}
+                key={notification.id}
                 style={[
                   styles.notificationItem,
-                  {
-                    borderLeftColor: getSeverityColor(notification.severity),
-                  },
+                  !notification.read && styles.unreadNotification,
                 ]}
+                onTouchEnd={() => handleNotificationPress(notification)}
               >
-                <View style={styles.notificationHeader}>
-                  <Text variant="titleMedium">{notification.title}</Text>
+                <View style={styles.notificationContent}>
+                  <Text variant="titleMedium" style={styles.notificationTitle}>
+                    {notification.title}
+                  </Text>
+                  <Text variant="bodyMedium" style={styles.notificationBody}>
+                    {notification.body}
+                  </Text>
                   <Text variant="bodySmall" style={styles.timestamp}>
-                    {formatDate(notification.created_at)}
+                    {formatTimestamp(notification.timestamp)}
                   </Text>
                 </View>
-                <Text variant="bodyMedium" style={styles.message}>
-                  {notification.message}
-                </Text>
-                {notification.affected_locations && (
-                  <View style={styles.locationContainer}>
-                    <IconButton
-                      icon="map-marker"
-                      size={16}
-                      iconColor={getSeverityColor(notification.severity)}
-                    />
-                    <Text variant="bodySmall" style={styles.locationText}>
-                      {notification.affected_locations[0]?.address?.city}, {notification.affected_locations[0]?.address?.district}
-                    </Text>
-                  </View>
+                {!notification.read && (
+                  <View style={[styles.unreadDot, { backgroundColor: theme.colors.primary }]} />
                 )}
               </View>
             ))
@@ -121,8 +118,7 @@ const NotificationMenu = ({ visible, onDismiss }) => {
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    backgroundColor: 'white',
+  modal: {
     margin: 20,
     borderRadius: 8,
     maxHeight: '80%',
@@ -132,51 +128,50 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   closeButton: {
     margin: 0,
   },
-  notificationList: {
+  content: {
     maxHeight: '100%',
   },
+  emptyContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  emptyText: {
+    opacity: 0.6,
+  },
   notificationItem: {
+    flexDirection: 'row',
     padding: 16,
-    borderLeftWidth: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  notificationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+  unreadNotification: {
+    backgroundColor: '#F3F4F6',
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  notificationBody: {
+    opacity: 0.8,
+    marginBottom: 4,
   },
   timestamp: {
-    color: '#6B7280',
+    opacity: 0.6,
+    fontSize: 12,
   },
-  message: {
-    color: '#374151',
-    marginBottom: 8,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationText: {
-    color: '#6B7280',
-    marginLeft: -8,
-  },
-  loadingText: {
-    textAlign: 'center',
-    padding: 20,
-    color: '#6B7280',
-  },
-  emptyText: {
-    textAlign: 'center',
-    padding: 20,
-    color: '#6B7280',
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+    alignSelf: 'center',
   },
 });
 

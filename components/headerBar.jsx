@@ -3,7 +3,7 @@ import { Text, IconButton, useTheme, Badge } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import NotificationMenu from "./notifications/NotificationMenu";
-import wardash from "../services/wardash";
+import * as Notifications from "expo-notifications";
 
 const HeaderBar = ({
   showBack = false,
@@ -20,17 +20,35 @@ const HeaderBar = ({
 
   useEffect(() => {
     if (showBell) {
-      fetchUnreadCount();
+      // Get initial badge count
+      getBadgeCount();
+      
+      // Listen for notification changes
+      const subscription = Notifications.addNotificationReceivedListener(notification => {
+        // Increment badge count when new notification arrives
+        setUnreadCount(prev => prev + 1);
+      });
+
+      return () => {
+        subscription.remove();
+      };
     }
   }, [showBell]);
 
-  const fetchUnreadCount = async () => {
+  const getBadgeCount = async () => {
     try {
-      const response = await wardash.get('/notifications/unread-count');
-      setUnreadCount(response.data.count);
+      const count = await Notifications.getBadgeCountAsync();
+      setUnreadCount(count);
     } catch (error) {
-      console.error('Error fetching unread count:', error);
+      console.error('Error getting badge count:', error);
     }
+  };
+
+  const handleNotificationPress = async () => {
+    setShowNotifications(true);
+    // Reset badge count when opening notifications
+    await Notifications.setBadgeCountAsync(0);
+    setUnreadCount(0);
   };
 
   return (
@@ -62,7 +80,7 @@ const HeaderBar = ({
                 icon="bell"
                 mode="text"
                 size={20}
-                onPress={() => setShowNotifications(true)}
+                onPress={handleNotificationPress}
                 style={styles.actionButton}
               />
               {unreadCount > 0 && (
