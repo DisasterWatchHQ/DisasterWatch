@@ -484,6 +484,11 @@ const Dashboard = () => {
               onPress: () => router.push("/home"),
             },
             {
+              icon: "tab",
+              label: "Dashboard",
+              onPress: () => router.push("/Dashboard"),
+            },
+            {
               icon: "plus",
               label: "New Report",
               onPress: () => router.push("/report"),
@@ -612,7 +617,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   fabGroup: {
-    paddingBottom: 0,
+    paddingBottom: 50,
   },
 });
 
