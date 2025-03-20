@@ -55,6 +55,7 @@ const TabsLayout = () => {
       letterSpacing: 0.5,
     },
   };
+
   const TabIcon = ({ name, focused, color }) => (
     <Icon
       name={focused ? name : `${name}-outline`}
@@ -67,12 +68,14 @@ const TabsLayout = () => {
       }}
     />
   );
+
   const screenOptions = {
     ...tabBarStyles,
     tabBarShowLabel: true,
     tabBarHideOnKeyboard: true,
     headerShown: false,
   };
+
   return (
     <Tabs screenOptions={screenOptions}>
       <Tabs.Screen
@@ -121,15 +124,16 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="settings"
         options={{
-          title: "Profile",
+          title: "Settings",
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="account" focused={focused} color={color} />
+            <TabIcon name="cog" focused={focused} color={color} />
           ),
         }}
       />
     </Tabs>
   );
 };
+
 export default TabsLayout;
