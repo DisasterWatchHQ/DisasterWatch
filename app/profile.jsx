@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, useTheme, Portal, Dialog, TextInput, Button } from 'react-native-paper';
+import { Text, useTheme, Portal, Dialog, TextInput, Button, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { UserContext } from '../constants/globalProvider';
@@ -14,7 +14,7 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const Profile = () => {
   const theme = useTheme();
-  const { user, setUser } = React.useContext(UserContext);
+  const { user, setUser, loading: userLoading } = React.useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -30,6 +30,11 @@ const Profile = () => {
   }); 
 
   useEffect(() => {
+    if (!userLoading && !user) {
+      router.replace('/(auth)/signIn');
+      return;
+    }
+
     if (user) {
       setEditForm({
         name: user.name || '',
@@ -37,7 +42,21 @@ const Profile = () => {
         organization: user.organization || '',
       });
     }
-  }, [user]);
+  }, [user, userLoading]);
+
+  // Show loading indicator while checking authentication
+  if (userLoading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  // Don't render anything if not authenticated
+  if (!user) {
+    return null;
+  }
 
   const handleUpdateProfile = async () => {
     try {
@@ -167,7 +186,7 @@ const Profile = () => {
             try {
               const response = await wardash.delete(`/users/${user.id}`);
               if (response.data.success) {
-                router.replace('/login');
+                router.replace('/(auth)/signIn');
               } else {
                 throw new Error(response.data.message || 'Failed to delete account');
               }
@@ -224,7 +243,7 @@ const Profile = () => {
           <ProfileOption
             icon="logout"
             title="Logout"
-            onPress={() => router.push('/login')}
+            onPress={() => router.push('/(auth)/signIn')}
             danger
           />
           <ProfileOption
@@ -308,6 +327,10 @@ const Profile = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   section: {
     marginTop: 16,

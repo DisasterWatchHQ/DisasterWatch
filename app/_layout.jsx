@@ -148,12 +148,6 @@ const RootLayout = () => {
                     animation: 'fade',
                   }}
                 />
-                <Stack.Screen 
-                  name="(profile)" 
-                  options={{
-                    animation: 'slide_from_right',
-                  }}
-                />
                 <Stack.Screen name="index" />
                 <Stack.Screen 
                   name="Dashboard" 

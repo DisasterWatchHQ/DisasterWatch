@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PreferencesContext } from '../app/_layout';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { UserContext } from '../constants/globalProvider';
 
 const Settings = () => {
   const [notificationSettings, setNotificationSettings] = useState({
@@ -26,6 +27,7 @@ const Settings = () => {
     vibration: true,
   });
   const { isDarkMode, toggleTheme } = React.useContext(PreferencesContext);
+  const { user } = React.useContext(UserContext);
   const theme = useTheme();
 
   useEffect(() => {
@@ -41,6 +43,14 @@ const Settings = () => {
     } catch (error) {
       console.error("Error loading notification settings:", error);
     }
+  };
+
+  const handleProfilePress = () => {
+    if (!user) {
+      router.push('/(auth)/signIn');
+      return;
+    }
+    router.push('/profile');
   };
 
   const toggleNotifications = async () => {
@@ -117,7 +127,7 @@ const Settings = () => {
           <Text variant="titleMedium" style={styles.sectionTitle}>Account</Text>
           <TouchableOpacity 
             style={styles.settingItem}
-            onPress={() => router.push('/profile')}
+            onPress={handleProfilePress}
           >
             <View style={styles.settingItemContent}>
               <MaterialCommunityIcons name="account" size={24} color={theme.colors.primary} />
