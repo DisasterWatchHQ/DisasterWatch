@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Platform,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE, Marker, Callout } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE, Marker, Callout, Circle } from "react-native-maps";
 import React, {
   useEffect,
   useState,
@@ -21,6 +22,7 @@ import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplet
 import { GMAPS_API_KEY } from "@env";
 import debounce from "lodash/debounce";
 import { warningApi } from "../../services/warningApi";
+import { useTheme } from "react-native-paper";
 
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = 0.0421;
@@ -39,10 +41,11 @@ const SEVERITY_RADIUS = {
   critical: 10000, // 10km
 };
 
-const MapControl = React.memo(({ icon, onPress, className }) => (
+const MapControl = React.memo(({ icon, onPress, className, disabled }) => (
   <TouchableOpacity
-    className={`p-3 bg-white rounded-lg shadow-lg ${className}`}
+    className={`p-3 bg-white rounded-lg shadow-lg ${className} ${disabled ? 'opacity-50' : ''}`}
     onPress={onPress}
+    disabled={disabled}
   >
     <MaterialIcons name={icon} size={24} color="black" />
   </TouchableOpacity>
@@ -78,36 +81,50 @@ const DisasterMarker = React.memo(({ warning }) => {
 
     const severity = warning.severity?.toLowerCase() || 'medium';
     const color = SEVERITY_COLORS[severity] || SEVERITY_COLORS.medium;
+    const radius = SEVERITY_RADIUS[severity] || SEVERITY_RADIUS.medium;
 
     return (
-      <Marker
-        coordinate={{
-          latitude: lat,
-          longitude: lng,
-        }}
-        pinColor={color}
-      >
-        <Callout>
-          <View className="p-3 max-w-[300px]">
-            <Text className="font-bold text-base">{warning.title || 'No Title'}</Text>
-            <Text className="text-sm mt-1">
-              {warning.disaster_category || 'Unknown Category'} - Severity: {warning.severity || 'Medium'}
-            </Text>
-            <Text className="text-sm mt-1">{warning.description || 'No description available'}</Text>
-            <Text className="text-xs text-gray-500 mt-2">
-              Created: {warning.created_at ? new Date(warning.created_at).toLocaleString() : 'Unknown date'}
-            </Text>
-            {warning.updates?.length > 0 && (
-              <View className="mt-2 border-t pt-2">
-                <Text className="text-sm font-medium">Latest Update:</Text>
-                <Text className="text-sm">
-                  {warning.updates[warning.updates.length - 1].update_text}
-                </Text>
-              </View>
-            )}
-          </View>
-        </Callout>
-      </Marker>
+      <>
+        <Circle
+          center={{
+            latitude: lat,
+            longitude: lng,
+          }}
+          radius={radius}
+          fillColor={color}
+          strokeColor={color}
+          strokeWidth={1}
+          opacity={0.2}
+        />
+        <Marker
+          coordinate={{
+            latitude: lat,
+            longitude: lng,
+          }}
+          pinColor={color}
+        >
+          <Callout>
+            <View className="p-3 max-w-[300px]">
+              <Text className="font-bold text-base">{warning.title || 'No Title'}</Text>
+              <Text className="text-sm mt-1">
+                {warning.disaster_category || 'Unknown Category'} - Severity: {warning.severity || 'Medium'}
+              </Text>
+              <Text className="text-sm mt-1">{warning.description || 'No description available'}</Text>
+              <Text className="text-xs text-gray-500 mt-2">
+                Created: {warning.created_at ? new Date(warning.created_at).toLocaleString() : 'Unknown date'}
+              </Text>
+              {warning.updates?.length > 0 && (
+                <View className="mt-2 border-t pt-2">
+                  <Text className="text-sm font-medium">Latest Update:</Text>
+                  <Text className="text-sm">
+                    {warning.updates[warning.updates.length - 1].update_text}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </Callout>
+        </Marker>
+      </>
     );
   } catch (error) {
     console.error("Error rendering marker:", error);
@@ -122,6 +139,9 @@ const MapFeed = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [warnings, setWarnings] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
+  const [isLocationEnabled, setIsLocationEnabled] = useState(false);
+  const theme = useTheme();
 
   const getCurrentLocation = useCallback(async () => {
     try {
@@ -131,21 +151,31 @@ const MapFeed = () => {
         throw new Error("Location permission denied");
       }
 
-      let userLocation = await Location.getCurrentPositionAsync({
+      let location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
 
       const newLocation = {
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA,
       };
 
+      setUserLocation(newLocation);
       setLocation(newLocation);
-      mapRef.current?.animateToRegion(newLocation, 1000);
+      setIsLocationEnabled(true);
+      
+      // Ensure the map is ready before animating
+      if (mapRef.current) {
+        setTimeout(() => {
+          mapRef.current?.animateToRegion(newLocation, 1000);
+        }, 100);
+      }
     } catch (error) {
+      console.error("Error getting location:", error);
       setError(error.message);
+      setIsLocationEnabled(false);
       Alert.alert("Error", error.message);
     } finally {
       setIsLoading(false);
@@ -196,6 +226,27 @@ const MapFeed = () => {
     [location],
   );
 
+  const handleCenterOnUser = useCallback(() => {
+    if (userLocation && mapRef.current) {
+      // Force a location update before centering
+      Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      }).then(location => {
+        const newLocation = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        };
+        setUserLocation(newLocation);
+        mapRef.current?.animateToRegion(newLocation, 1000);
+      }).catch(error => {
+        console.error("Error updating location:", error);
+        Alert.alert("Error", "Could not update location");
+      });
+    }
+  }, [userLocation]);
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-neutral-800">
@@ -225,11 +276,18 @@ const MapFeed = () => {
             provider={PROVIDER_GOOGLE}
             initialRegion={location}
             onRegionChangeComplete={handleRegionChange}
-            showsUserLocation={true}
+            showsUserLocation={isLocationEnabled}
             showsMyLocationButton={false}
-            showsCompass={false}
+            showsCompass={true}
             loadingEnabled={true}
             moveOnMarkerPress={false}
+            toolbarEnabled={true}
+            showsScale={true}
+            showsBuildings={true}
+            showsTraffic={true}
+            showsIndoors={true}
+            showsPointsOfInterest={true}
+            followsUserLocation={true}
           >
             {Array.isArray(warnings) && warnings.length > 0 && warnings.map((warning, index) => {
               if (!warning) return null;
@@ -321,8 +379,9 @@ const MapFeed = () => {
 
       <MapControl
         icon="my-location"
-        onPress={getCurrentLocation}
+        onPress={handleCenterOnUser}
         className="absolute right-4 bottom-6"
+        disabled={!isLocationEnabled}
       />
 
       {showLegend && (
