@@ -69,14 +69,18 @@ export const authApi = {
     }
   },
 
-  forgotPassword: async (email) => {
+  forgotPassword: async (data) => {
     try {
       const response = await fetch(`${API_URL}/users/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email: data.email,
+          workId: data.workId,
+          associatedDepartment: data.associatedDepartment
+        }),
       });
       return handleResponse(response);
     } catch (error) {
