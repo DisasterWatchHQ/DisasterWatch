@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { fetchFeedStats, fetchLiveUpdates } from '../services/api';
+import { fetchLiveUpdates } from '../services/api';
+import { warningApi } from '../services/warningApi';
 
 export const useLiveUpdates = () => {
   const [updates, setUpdates] = useState([]);
@@ -11,18 +12,31 @@ export const useLiveUpdates = () => {
   const loadUpdates = async () => {
     try {
       setLoading(true);
-      const [updatesData, statsData] = await Promise.all([
+      const [updatesData, warningsData] = await Promise.all([
         fetchLiveUpdates(),
-        fetchFeedStats(),
+        warningApi.getActiveWarnings(),
       ]);
 
       if (updatesData.success && updatesData.data?.updates) {
         setUpdates(updatesData.data.updates);
       }
 
-      if (statsData.success && statsData.data) {
-        setActiveWarnings(statsData.data.activeWarnings);
-        setWarningStats(statsData.data.warningStats);
+      if (warningsData) {
+        // Group warnings by disaster category
+        const stats = warningsData.reduce((acc, warning) => {
+          const category = warning.disaster_category;
+          if (!acc[category]) {
+            acc[category] = {
+              _id: category,
+              active_warnings: 0
+            };
+          }
+          acc[category].active_warnings += 1;
+          return acc;
+        }, {});
+
+        setActiveWarnings(warningsData.length);
+        setWarningStats(Object.values(stats));
       }
     } catch (err) {
       setError(err.message);
