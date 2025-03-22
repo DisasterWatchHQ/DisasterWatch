@@ -123,15 +123,6 @@ const TabsLayout = () => {
           ),
         }}
       />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="cog" focused={focused} color={color} />
-          ),
-        }}
-      />
     </Tabs>
   );
 };
