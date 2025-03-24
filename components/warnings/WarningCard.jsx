@@ -1,12 +1,12 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { Card, IconButton, Chip, Text, useTheme } from 'react-native-paper';
-import { getDisasterCategoryIcon } from '../../utils/disasterUtils';
+import PropTypes from 'prop-types';
 
 const WarningCard = ({ warning, onPress, getSeverityColor }) => {
   const theme = useTheme();
   
-  const getTimeAgo = (timestamp) => {
+  const getTimeAgo = useMemo(() => (timestamp) => {
     try {
       const now = new Date();
       const created = new Date(timestamp);
@@ -28,73 +28,117 @@ const WarningCard = ({ warning, onPress, getSeverityColor }) => {
       console.error("Error calculating time ago:", error);
       return "Time unavailable";
     }
-  };
+  }, []);
+
+  const severityColor = useMemo(() => 
+    getSeverityColor(warning.severity),
+    [warning.severity, getSeverityColor]
+  );
   
   return (
     <Card
       mode="outlined"
-      style={{ marginBottom: 12 }}
+      style={[styles.card, { borderColor: theme.colors.outline }]}
       onPress={() => onPress(warning)}
     >
-      <Card.Content>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 8,
-                gap: 8,
-              }}
-            >
-              <IconButton
-                icon={getDisasterCategoryIcon(warning.disaster_category)}
-                size={24}
-                iconColor={getSeverityColor(warning.severity)}
-              />
+      <Card.Content style={styles.content}>
+        <View style={styles.container}>
+          <View style={styles.mainContent}>
+            <View style={styles.header}>
               <Chip
                 mode="outlined"
-                textStyle={{ color: getSeverityColor(warning.severity) }}
-                style={{ borderColor: getSeverityColor(warning.severity) }}
+                textStyle={{ color: severityColor }}
+                style={[styles.chip, { borderColor: severityColor }]}
               >
                 {warning.severity.toUpperCase()}
               </Chip>
               <Chip
                 mode="outlined"
                 textStyle={{ color: theme.colors.primary }}
-                style={{ borderColor: theme.colors.primary }}
+                style={[styles.chip, { borderColor: theme.colors.primary }]}
               >
                 {warning.disaster_category.toUpperCase()}
               </Chip>
             </View>
-            <Text variant="titleMedium">{warning.title}</Text>
+            
+            <Text 
+              variant="titleMedium"
+              style={{ color: theme.colors.onSurface }}
+            >
+              {warning.title}
+            </Text>
+            
             {warning.description && (
               <Text
                 variant="bodyMedium"
-                style={{ color: theme.colors.onSurfaceVariant, marginTop: 4 }}
+                style={[styles.description, { color: theme.colors.onSurfaceVariant }]}
                 numberOfLines={2}
               >
                 {warning.description}
               </Text>
             )}
+            
             <Text
               variant="bodySmall"
-              style={{ color: theme.colors.onSurfaceVariant, marginTop: 4 }}
+              style={[styles.timestamp, { color: theme.colors.onSurfaceVariant }]}
             >
               {getTimeAgo(warning.created_at)}
             </Text>
           </View>
-          <IconButton icon="chevron-right" />
+          
+          <IconButton 
+            icon="chevron-right"
+            iconColor={theme.colors.onSurfaceVariant}
+          />
         </View>
       </Card.Content>
     </Card>
   );
 };
+
+WarningCard.propTypes = {
+  warning: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string,
+    disaster_category: PropTypes.string.isRequired,
+    severity: PropTypes.string.isRequired,
+    created_at: PropTypes.string.isRequired,
+  }).isRequired,
+  onPress: PropTypes.func.isRequired,
+  getSeverityColor: PropTypes.func.isRequired,
+};
+
+const styles = StyleSheet.create({
+  card: {
+    marginBottom: 12,
+  },
+  content: {
+    padding: 12,
+  },
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  mainContent: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 8,
+  },
+  chip: {
+    height: 28,
+  },
+  description: {
+    marginTop: 4,
+  },
+  timestamp: {
+    marginTop: 4,
+  },
+});
 
 export default WarningCard;

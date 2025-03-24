@@ -15,9 +15,9 @@ import {
   MD3Colors,
   ActivityIndicator,
 } from "react-native-paper";
-import { submitReport } from "../../services/api";
+import { submitReport } from "../../api/services/api";
 // import { uploadImages } from "../../services/imageUpload";
-import HeaderBar from "../../components/headerBar";
+import HeaderBar from "../../components/HeaderBar";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -120,7 +120,6 @@ const ReportScreen = () => {
       };
 
       const result = await submitReport(formattedData);
-      console.log("Report submitted successfully:", result);
 
       reset();
       alert("Report submitted successfully! Thank you for your contribution.");

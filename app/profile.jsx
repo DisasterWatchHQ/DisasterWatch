@@ -3,18 +3,18 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, useTheme, Portal, Dialog, TextInput, Button, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { UserContext } from '../constants/globalProvider';
+import { useUser } from '../context/UserContext';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import ProfileOption from '../components/profile/ProfileOption';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import wardash from '../services/wardash';
+import wardash from '../api/services/wardash';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const Profile = () => {
   const theme = useTheme();
-  const { user, setUser, loading: userLoading } = React.useContext(UserContext);
+  const { user, setUser, loading: userLoading } = useUser();
   const [loading, setLoading] = useState(false);
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editForm, setEditForm] = useState({

@@ -3,8 +3,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { ActivityIndicator, Text, useTheme } from 'react-native-paper';
 import Markdown from 'react-native-markdown-display';
-import HeaderBar from '../../components/headerBar';
-import { facilityApi } from '../../services/resourceApi';
+import HeaderBar from '../../components/HeaderBar';
+import { facilityApi } from '../../api/services/resources';
 
 const GuideDetailScreen = () => {
   const { id } = useLocalSearchParams();

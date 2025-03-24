@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native-paper";
 import * as SecureStore from "expo-secure-store";
-import wardash from "../../services/wardash";
+import wardash from "../../api/services/wardash";
 
 export const WarningActions = ({ warning, onUpdate }) => {
   const [visible, setVisible] = useState(false);
@@ -33,12 +33,10 @@ export const WarningActions = ({ warning, onUpdate }) => {
         severity_change: severityChange || undefined,
       };
 
-      console.log("Submitting update:", updateData); // Debug log
       const response = await wardash.post(
         `/warnings/${warning._id}/updates`,
         updateData,
       );
-      console.log("Update response:", response.data); // Debug log
       onUpdate && onUpdate(response.data);
       setVisible(false);
       setUpdateText("");
@@ -70,12 +68,10 @@ export const WarningActions = ({ warning, onUpdate }) => {
         resolved_at: new Date(),
       };
 
-      console.log("Submitting resolution:", resolutionData); // Debug log
       const response = await wardash.post(
         `/warnings/${warning._id}/resolve`,
         resolutionData,
       );
-      console.log("Resolution response:", response.data); // Debug log
 
       onUpdate && onUpdate(response.data);
     } catch (error) {

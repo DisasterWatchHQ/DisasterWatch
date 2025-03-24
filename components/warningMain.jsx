@@ -64,7 +64,7 @@ const WarningMain = ({
           </Chip>
           <Chip
             compact
-            style={[styles.categoryChip, ]}
+            style={[styles.categoryChip, { backgroundColor: getSeverityColor() } ]}
             textStyle={styles.chipText}
           >
             {disaster_category.toUpperCase()}

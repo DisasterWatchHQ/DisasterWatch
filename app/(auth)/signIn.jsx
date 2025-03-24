@@ -1,7 +1,7 @@
 import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
-import React,{ useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import {
   Text,
@@ -12,8 +12,8 @@ import {
   HelperText,
   Divider,
 } from "react-native-paper";
-import { authApi } from "../../services/authApi";
-import { UserContext } from "../../constants/globalProvider";
+import { authApi } from "../../api/services/auth.js";
+import { UserContext } from "../../context/UserContext";
 
 const SignIn = () => {
   const router = useRouter();

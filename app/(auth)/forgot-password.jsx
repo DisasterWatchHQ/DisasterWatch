@@ -13,7 +13,7 @@ import {
   Dialog,
   RadioButton,
 } from "react-native-paper";
-import { authApi } from "../../services/authApi";
+import { authApi } from "../../api/services/auth.js";
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -26,14 +26,15 @@ const ForgotPassword = () => {
   const [form, setForm] = useState({
     email: "",
     workId: "",
-    department: "",
+    associatedDepartment: "",
   });
 
   const validateForm = () => {
     const newErrors = {};
     if (!form.email) newErrors.email = "Email is required";
     if (!form.workId) newErrors.workId = "Work ID is required";
-    if (!form.department) newErrors.department = "Department is required";
+    if (!form.associatedDepartment)
+      newErrors.associatedDepartment = "Department is required";
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = "Please enter a valid email address";
     }
@@ -47,14 +48,21 @@ const ForgotPassword = () => {
     setIsSubmitting(true);
 
     try {
-      await authApi.forgotPassword(form);
+      await authApi.forgotPassword({
+        email: form.email.toLowerCase(),
+        workId: form.workId,
+        associatedDepartment: form.associatedDepartment,
+      });
       Alert.alert(
         "Success",
         "Password reset instructions have been sent to the administrator.",
-        [{ text: "OK", onPress: () => router.replace("/signIn") }]
+        [{ text: "OK", onPress: () => router.replace("/signIn") }],
       );
     } catch (error) {
-      Alert.alert("Error", error.message || "Something went wrong. Please try again.");
+      Alert.alert(
+        "Error",
+        error.message || "Something went wrong. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -109,13 +117,15 @@ const ForgotPassword = () => {
 
             <List.Item
               title="Select Department"
-              description={form.department || "Choose your department"}
+              description={
+                form.associatedDepartment || "Choose your department"
+              }
               onPress={() => setDepartmentDialogVisible(true)}
               left={(props) => <List.Icon {...props} icon="office-building" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
             />
-            <HelperText type="error" visible={!!errors.department}>
-              {errors.department}
+            <HelperText type="error" visible={!!errors.associatedDepartment}>
+              {errors.associatedDepartment}
             </HelperText>
           </View>
 
@@ -126,7 +136,7 @@ const ForgotPassword = () => {
               loading={isSubmitting}
               style={{ padding: 4 }}
             >
-              Reset Password
+              Send Reset Request
             </Button>
 
             <View style={{ marginTop: 20, alignItems: "center" }}>
@@ -152,10 +162,10 @@ const ForgotPassword = () => {
           <Dialog.Content>
             <RadioButton.Group
               onValueChange={(value) => {
-                setForm({ ...form, department: value });
+                setForm({ ...form, associatedDepartment: value });
                 setDepartmentDialogVisible(false);
               }}
-              value={form.department}
+              value={form.associatedDepartment}
             >
               {departments.map((department) => (
                 <RadioButton.Item

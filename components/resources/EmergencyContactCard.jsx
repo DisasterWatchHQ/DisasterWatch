@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, StyleSheet, Linking, TouchableOpacity } from "react-native";
 import { Card, Chip, Text, useTheme, Menu, Divider } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { UserContext } from "../../constants/globalProvider";
+import { UserContext } from "../../context/UserContext";
 
 export const EmergencyContactCard = ({ contact, onEdit, onDelete }) => {
   const theme = useTheme();

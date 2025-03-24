@@ -14,7 +14,7 @@ import {
   Dialog,
   RadioButton,
 } from "react-native-paper";
-import { authApi } from "../../services/authApi";
+import { authApi } from "../../api/services/auth.js";
 
 const SignUp = () => {
   const router = useRouter();
@@ -60,18 +60,16 @@ const SignUp = () => {
         email: form.email.toLowerCase(),
         password: form.password,
         workId: form.workId,
-        associatedDepartment: form.associatedDepartment
+        associatedDepartment: form.associatedDepartment,
       });
 
-      Alert.alert(
-        "Success",
-        "Account created successfully!",
-        [{ text: "OK", onPress: () => router.replace("/signIn") }]
-      );
+      Alert.alert("Success", "Account created successfully!", [
+        { text: "OK", onPress: () => router.replace("/signIn") },
+      ]);
     } catch (error) {
       Alert.alert(
         "Error",
-        error.message || "Something went wrong. Please try again."
+        error.message || "Something went wrong. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -151,7 +149,9 @@ const SignUp = () => {
 
             <List.Item
               title="Select Department"
-              description={form.associatedDepartment || "Choose your department"}
+              description={
+                form.associatedDepartment || "Choose your department"
+              }
               onPress={() => setDepartmentDialogVisible(true)}
               left={(props) => <List.Icon {...props} icon="office-building" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}

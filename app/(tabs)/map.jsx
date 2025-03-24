@@ -21,7 +21,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { GMAPS_API_KEY } from "@env";
 import debounce from "lodash/debounce";
-import { warningApi } from "../../services/warningApi";
+import { warningApi } from "../../api/services/warnings";
 import { useTheme } from "react-native-paper";
 
 const LATITUDE_DELTA = 0.0922;
@@ -66,7 +66,6 @@ const DisasterMarker = React.memo(({ warning }) => {
     } else if (warning.coordinates) {
       coordinates = warning.coordinates;
     } else {
-      console.log("Invalid warning data - no coordinates found:", warning);
       return null;
     }
 
@@ -75,7 +74,6 @@ const DisasterMarker = React.memo(({ warning }) => {
     const lng = parseFloat(coordinates.longitude || coordinates[0]);
 
     if (isNaN(lat) || isNaN(lng)) {
-      console.log("Invalid coordinates:", coordinates);
       return null;
     }
 
@@ -189,11 +187,8 @@ const MapFeed = () => {
   useEffect(() => {
     const fetchWarnings = async () => {
       try {
-        console.log("Fetching warnings...");
         const response = await warningApi.getActiveWarnings();
-        console.log("Raw response:", response);
         const warningData = Array.isArray(response) ? response : [];
-        console.log("Processed warning data:", warningData);
         setWarnings(warningData);
       } catch (error) {
         console.error("Error fetching warnings:", error);

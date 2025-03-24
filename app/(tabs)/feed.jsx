@@ -20,7 +20,7 @@ import {
 } from "react-native-paper";
 import { useReports } from "../../hooks/useReportsfeed";
 import { useLiveUpdates } from "../../hooks/useLiveUpdates";
-import HeaderBar from "../../components/headerBar";
+import HeaderBar from "../../components/HeaderBar";
 
 const DISTRICT_GROUPS = {
   Western: ["Colombo", "Gampaha", "Kalutara"],

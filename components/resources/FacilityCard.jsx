@@ -10,7 +10,7 @@ import {
   Divider,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { UserContext } from "../../constants/globalProvider";
+import { UserContext } from "../../context/UserContext";
 
 const getFacilityIcon = (type) => {
   switch (type.toLowerCase()) {

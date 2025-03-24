@@ -16,7 +16,7 @@ import {
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { UserContext } from "../../constants/globalProvider";
+import { UserContext } from "../../context/UserContext";
 import AddContactModal from "../../components/resources/AddContactModal";
 import AddGuideModal from "../../components/resources/AddGuideModal";
 import AddFacilityModal from "../../components/resources/AddFacilityModal";
@@ -24,8 +24,8 @@ import { GuideCard } from "../../components/resources/GuideCard";
 import { EmergencyContactCard } from "../../components/resources/EmergencyContactCard";
 import { FacilityCard } from "../../components/resources/FacilityCard";
 import { FilterHeader } from "../../components/resources/FilterHeader";
-import HeaderBar from "../../components/headerBar";
-import { resourceApi } from "../../services/resourceApi";
+import HeaderBar from "../../components/HeaderBar";
+import { resourceApi } from "../../api/services/resources";
 import { Alert } from "react-native";
 import { usePathname, useLocalSearchParams } from "expo-router";
 
