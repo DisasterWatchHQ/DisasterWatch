@@ -1,5 +1,11 @@
-import { useState, useEffect } from "react";
-import { View, ScrollView, Linking, StyleSheet } from "react-native";
+import { useState } from "react";
+import {
+  View,
+  ScrollView,
+  Linking,
+  StyleSheet,
+  RefreshControl,
+} from "react-native";
 import {
   Button,
   Card,
@@ -10,10 +16,11 @@ import {
   Dialog,
   SegmentedButtons,
   IconButton,
-  TextInput
+  TextInput,
 } from "react-native-paper";
 import { useReports } from "../../hooks/useReportsfeed";
 import { useLiveUpdates } from "../../hooks/useLiveUpdates";
+import HeaderBar from "../../components/HeaderBar";
 
 const DISTRICT_GROUPS = {
   Western: ["Colombo", "Gampaha", "Kalutara"],
@@ -46,10 +53,13 @@ export default function DisasterFeed() {
     error: updatesError,
     refresh: refreshUpdates,
   } = useLiveUpdates();
+
   const [showAlert, setShowAlert] = useState(false);
   const [selectedTab, setSelectedTab] = useState("all");
   const [showDistrictPicker, setShowDistrictPicker] = useState(false);
   const [districtSearch, setDistrictSearch] = useState("");
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const filterDistricts = (districts) => {
     if (!districtSearch) return districts;
@@ -97,186 +107,436 @@ export default function DisasterFeed() {
     updateFilters({ verified_only: value === "verified" });
   };
 
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (filters.district) count++;
+    if (filters.disaster_category) count++;
+    return count;
+  };
+
+  const activeFiltersCount = getActiveFiltersCount();
+
+  const clearAllFilters = () => {
+    updateFilters({
+      district: "",
+      disaster_category: "",
+      verified_only: false,
+    });
+    setSelectedTab("all");
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshReports(), refreshUpdates()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (error || updatesError) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error || updatesError}</Text>
+        <Button
+          mode="contained"
+          onPress={() => {
+            refreshReports();
+            refreshUpdates();
+          }}
+          style={styles.errorButton}
+        >
+          Try Again
+        </Button>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text variant="headlineMedium" style={styles.title}>
-            Disaster Feed
-          </Text>
-          <Text variant="bodyMedium" style={styles.subtitle}>
-            Live updates and verified reports
-          </Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <Button
-            mode="contained"
-            onPress={() => {
+      <HeaderBar
+        title="Disaster Feed"
+        subtitle="Live updates and verified reports"
+        rightActions={[
+          {
+            icon: "bell-outline",
+            onPress: () => setShowAlert(true),
+            accessibilityLabel: "Notification settings",
+          },
+          {
+            icon: "refresh",
+            onPress: () => {
               refreshReports();
               refreshUpdates();
-            }}
-            loading={loading || updatesLoading}
-            compact
-            style={styles.refreshButton}
-            contentStyle={styles.refreshButtonContent}
-          >
-            Refresh
-          </Button>
-          <IconButton
-            icon="bell"
-            size={20}
-            onPress={() => setShowAlert(true)}
-            style={styles.notificationButton}
-          />
-        </View>
-      </View>
-
-      {activeWarnings > 0 && (
-        <ScrollView horizontal style={styles.warningBanner}>
-          {warningStats.map((warning, index) => (
-            <Chip
-              key={index}
-              style={styles.warningChip}
-              textStyle={styles.warningText}
-            >
-              {`${warning._id}: ${warning.active_warnings} active warnings`}
-            </Chip>
-          ))}
-        </ScrollView>
-      )}
-
-      <SegmentedButtons
-        value={selectedTab}
-        onValueChange={handleTabChange}
-        buttons={[
-          { value: "all", label: "All Reports" },
-          { value: "verified", label: "Verified Only" },
+            },
+            loading: loading || updatesLoading,
+          },
         ]}
-        style={styles.segmentedButtons}
       />
 
-      <ScrollView style={styles.filterContainer} horizontal>
-        <Chip
-          mode="outlined"
-          onPress={() => setShowDistrictPicker(true)}
-          style={[styles.filterChip, styles.districtChip]}
-          icon="map-marker"
-        >
-          {currentDistrict}
-        </Chip>
-        {["flood", "fire", "earthquake", "landslide", "cyclone"].map(
-          (category) => (
-            <Chip
-              key={category}
-              compact
-              selected={filters.disaster_category === category}
-              onPress={() =>
-                handleFilterChange(
-                  "disaster_category",
-                  filters.disaster_category === category ? "" : category,
-                )
-              }
-              style={styles.filterChip}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </Chip>
-          ),
-        )}
-      </ScrollView>
-
-      <ScrollView style={styles.reportsContainer}>
-        {loading ? (
-          <ActivityIndicator style={styles.loader} />
-        ) : (
-          reports.map((report) => (
-            <Card key={report.id} style={styles.reportCard} mode="outlined">
-              <Card.Title
-                title={report.title}
-                subtitle={`${report.location.address.district}, ${report.location.address.city}`}
-                titleNumberOfLines={2}
-                titleStyle={{ fontSize: 16, fontWeight: "bold" }}
-                right={(props) => (
-                  <View style={styles.shareButtons}>
-                    <Button
-                      compact
-                      icon="twitter"
-                      onPress={() => handleSocialShare(report, "twitter")}
-                    />
-                    <Button
-                      compact
-                      icon="facebook"
-                      onPress={() => handleSocialShare(report, "facebook")}
-                    />
-                    <Button
-                      compact
-                      icon="whatsapp"
-                      onPress={() => handleSocialShare(report, "whatsapp")}
-                    />
-                  </View>
-                )}
-              />
-              <Card.Content>
-                <Text variant="bodyMedium" style={{ fontSize: 14 }}>
-                  {report.description}
-                </Text>
-                <View style={styles.badgeContainer}>
-                  <Chip>{report.disaster_category}</Chip>
-                  <Chip mode={report.verified ? "flat" : "outlined"}>
-                    {report.verification_status}
-                  </Chip>
-                  {report.severity && (
-                    <Chip
-                      mode="flat"
-                      style={
-                        report.severity === "critical"
-                          ? styles.criticalChip
-                          : report.severity === "high"
-                            ? styles.highChip
-                            : styles.normalChip
-                      }
-                    >
-                      {report.severity}
-                    </Chip>
-                  )}
-                </View>
-              </Card.Content>
-              <Card.Actions>
-                <Text variant="bodySmall" style={styles.timestamp}>
-                  {new Date(report.date_time).toLocaleString()}
-                </Text>
-              </Card.Actions>
-            </Card>
-          ))
-        )}
-      </ScrollView>
-
-      {pagination && pagination.totalPages > 1 && (
-        <View style={styles.pagination}>
-          <Button
-            disabled={pagination.currentPage === 1}
-            onPress={() => updateFilters({ page: pagination.currentPage - 1 })}
+      {activeWarnings > 0 && (
+        <View style={styles.warningBannerContainer}>
+          <View style={styles.warningBannerHeader}>
+            <IconButton
+              icon="alert"
+              size={20}
+              style={styles.warningIcon}
+              color="#7C2D12"
+            />
+            <Text style={styles.warningBannerTitle}>Active Warnings</Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.warningBanner}
+            contentContainerStyle={styles.warningBannerContent}
           >
-            Previous
-          </Button>
-          <Text>
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </Text>
-          <Button
-            disabled={pagination.currentPage === pagination.totalPages}
-            onPress={() => updateFilters({ page: pagination.currentPage + 1 })}
-          >
-            Next
-          </Button>
+            {warningStats.map((warning, index) => (
+              <Chip
+                key={index}
+                style={styles.warningChip}
+                textStyle={styles.warningText}
+                icon="alert"
+                mode="flat"
+              >
+                {`${warning._id}: ${warning.active_warnings} active`}
+              </Chip>
+            ))}
+          </ScrollView>
         </View>
       )}
+
+      <View style={styles.quickFiltersContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.quickFiltersContent}
+        >
+          <Chip
+            mode={selectedTab === "all" ? "flat" : "outlined"}
+            onPress={() => handleTabChange("all")}
+            style={[
+              styles.quickFilterChip,
+              selectedTab === "all" && styles.selectedQuickFilterChip,
+            ]}
+            textStyle={[
+              styles.quickFilterText,
+              selectedTab === "all" && styles.selectedQuickFilterText,
+            ]}
+          >
+            All Reports
+          </Chip>
+          <Chip
+            mode={selectedTab === "verified" ? "flat" : "outlined"}
+            onPress={() => handleTabChange("verified")}
+            style={[
+              styles.quickFilterChip,
+              selectedTab === "verified" && styles.selectedQuickFilterChip,
+            ]}
+            textStyle={[
+              styles.quickFilterText,
+              selectedTab === "verified" && styles.selectedQuickFilterText,
+            ]}
+          >
+            Verified Only
+          </Chip>
+          <Chip
+            mode={showFilterDialog ? "flat" : "outlined"}
+            onPress={() => setShowFilterDialog(true)}
+            icon="filter-variant"
+            style={[
+              styles.quickFilterChip,
+              showFilterDialog && styles.selectedQuickFilterChip,
+            ]}
+            textStyle={[
+              styles.quickFilterText,
+              showFilterDialog && styles.selectedQuickFilterText,
+            ]}
+          >
+            Filters {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ""}
+          </Chip>
+        </ScrollView>
+      </View>
+
+      <ScrollView
+        style={styles.reportsContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.reportsContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#3b82f6"]}
+            tintColor="#3b82f6"
+          />
+        }
+      >
+        {loading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator
+              size="large"
+              color="#3b82f6"
+              style={styles.loader}
+            />
+            <Text style={styles.loaderText}>Loading reports...</Text>
+          </View>
+        ) : reports.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <IconButton icon="alert-circle-outline" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>No Reports Found</Text>
+            <Text style={styles.emptyText}>
+              Try changing your filters or check back later
+            </Text>
+            <Button
+              mode="outlined"
+              onPress={() => {
+                refreshReports();
+                refreshUpdates();
+              }}
+              style={styles.emptyRefreshButton}
+              icon="refresh"
+            >
+              Refresh
+            </Button>
+          </View>
+        ) : (
+          <>
+            <View style={styles.resultsSummary}>
+              <Text style={styles.resultsSummaryText}>
+                Showing {reports.length}{" "}
+                {reports.length === 1 ? "report" : "reports"}
+                {filters.district ? ` in ${filters.district}` : ""}
+                {filters.disaster_category
+                  ? ` - ${filters.disaster_category}`
+                  : ""}
+              </Text>
+            </View>
+
+            {reports.map((report) => (
+              <Card key={report.id} style={styles.reportCard} mode="outlined">
+                <Card.Title
+                  title={report.title}
+                  titleNumberOfLines={2}
+                  titleStyle={styles.cardTitle}
+                  right={(props) => (
+                    <Chip
+                      mode={report.verified ? "flat" : "outlined"}
+                      style={
+                        report.verified
+                          ? styles.verifiedChip
+                          : styles.unverifiedChip
+                      }
+                      textStyle={styles.verificationChipText}
+                    >
+                      {report.verification_status}
+                    </Chip>
+                  )}
+                />
+                <Card.Content>
+                  <View style={styles.locationRow}>
+                    <IconButton
+                      icon="map-marker"
+                      size={16}
+                      style={styles.locationIcon}
+                    />
+                    <Text style={styles.locationText}>
+                      {`${report.location.address.district}, ${report.location.address.city}`}
+                    </Text>
+                  </View>
+
+                  <Text variant="bodyMedium" style={styles.reportDescription}>
+                    {report.description}
+                  </Text>
+
+                  <View style={styles.badgeContainer}>
+                    <Chip
+                      style={[
+                        styles.categoryChip,
+                        {
+                          backgroundColor: getCategoryColor(
+                            report.disaster_category,
+                          ),
+                        },
+                      ]}
+                      textStyle={styles.categoryChipText}
+                    >
+                      {report.disaster_category}
+                    </Chip>
+                  </View>
+
+                  <View style={styles.timestampContainer}>
+                    <IconButton
+                      icon="clock-outline"
+                      size={16}
+                      style={styles.timestampIcon}
+                    />
+                    <Text variant="bodySmall" style={styles.timestamp}>
+                      {new Date(report.date_time).toLocaleString()}
+                    </Text>
+                  </View>
+                </Card.Content>
+                <Card.Actions style={styles.cardActions}>
+                  <Text style={styles.shareText}>Share:</Text>
+                  <View style={styles.shareButtons}>
+                    <IconButton
+                      icon="twitter"
+                      size={20}
+                      onPress={() => handleSocialShare(report, "twitter")}
+                      style={styles.shareButton}
+                      accessibilityLabel="Share on Twitter"
+                    />
+                    <IconButton
+                      icon="facebook"
+                      size={20}
+                      onPress={() => handleSocialShare(report, "facebook")}
+                      style={styles.shareButton}
+                      accessibilityLabel="Share on Facebook"
+                    />
+                    <IconButton
+                      icon="whatsapp"
+                      size={20}
+                      onPress={() => handleSocialShare(report, "whatsapp")}
+                      style={styles.shareButton}
+                      accessibilityLabel="Share on WhatsApp"
+                    />
+                  </View>
+                </Card.Actions>
+              </Card>
+            ))}
+          </>
+        )}
+
+        {pagination && pagination.totalPages > 1 && (
+          <View style={styles.pagination}>
+            <Button
+              mode="contained-tonal"
+              disabled={pagination.currentPage === 1}
+              onPress={() =>
+                updateFilters({ page: pagination.currentPage - 1 })
+              }
+              icon="chevron-left"
+              contentStyle={styles.paginationButtonContent}
+              style={styles.paginationButton}
+            >
+              Previous
+            </Button>
+            <View style={styles.paginationInfo}>
+              <Text style={styles.paginationText}>
+                Page {pagination.currentPage} of {pagination.totalPages}
+              </Text>
+            </View>
+            <Button
+              mode="contained-tonal"
+              disabled={pagination.currentPage === pagination.totalPages}
+              onPress={() =>
+                updateFilters({ page: pagination.currentPage + 1 })
+              }
+              contentStyle={[
+                styles.paginationButtonContent,
+                styles.paginationNextButtonContent,
+              ]}
+              style={styles.paginationButton}
+              icon="chevron-right"
+            >
+              Next
+            </Button>
+          </View>
+        )}
+
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+
+      <Portal>
+        <Dialog
+          visible={showFilterDialog}
+          onDismiss={() => setShowFilterDialog(false)}
+          style={styles.filterDialog}
+        >
+          <Dialog.Title>Filter Options</Dialog.Title>
+          <Dialog.Content>
+            <View style={styles.filterContent}>
+              <View style={styles.filterHeader}>
+                {activeFiltersCount > 0 && (
+                  <Button
+                    mode="text"
+                    onPress={clearAllFilters}
+                    textColor="#EF4444"
+                    style={styles.clearFiltersButton}
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Location</Text>
+                <Chip
+                  mode={filters.district ? "flat" : "outlined"}
+                  onPress={() => {
+                    setShowFilterDialog(false);
+                    setShowDistrictPicker(true);
+                  }}
+                  style={[
+                    styles.filterChip,
+                    styles.districtChip,
+                    filters.district && styles.selectedFilterChip,
+                  ]}
+                  icon="map-marker"
+                  textStyle={[
+                    styles.filterChipText,
+                    filters.district && styles.selectedFilterChipText,
+                  ]}
+                >
+                  {currentDistrict}
+                </Chip>
+              </View>
+
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Disaster Type</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.disasterCategoryContainer}
+                  contentContainerStyle={styles.disasterCategoryContent}
+                >
+                  {["flood", "fire", "earthquake", "landslide", "cyclone"].map(
+                    (category) => (
+                      <Chip
+                        key={category}
+                        selected={filters.disaster_category === category}
+                        onPress={() => {
+                          handleFilterChange(
+                            "disaster_category",
+                            filters.disaster_category === category
+                              ? ""
+                              : category,
+                          );
+                          setShowFilterDialog(false);
+                        }}
+                        style={[
+                          styles.filterChip,
+                          filters.disaster_category === category &&
+                            styles.selectedFilterChip,
+                        ]}
+                        textStyle={[
+                          styles.filterChipText,
+                          filters.disaster_category === category &&
+                            styles.selectedFilterChipText,
+                        ]}
+                      >
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </Chip>
+                    ),
+                  )}
+                </ScrollView>
+              </View>
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowFilterDialog(false)}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       <Portal>
         <Dialog
@@ -288,24 +548,38 @@ export default function DisasterFeed() {
           style={styles.districtDialog}
         >
           <Dialog.Title>Select District</Dialog.Title>
+          <View style={styles.searchContainer}>
+            <TextInput
+              placeholder="Search districts..."
+              value={districtSearch}
+              onChangeText={setDistrictSearch}
+              style={styles.searchInput}
+              mode="outlined"
+              left={<TextInput.Icon icon="magnify" />}
+              right={
+                districtSearch ? (
+                  <TextInput.Icon
+                    icon="close"
+                    onPress={() => setDistrictSearch("")}
+                  />
+                ) : null
+              }
+            />
+          </View>
           <Dialog.ScrollArea style={styles.dialogScrollArea}>
-            <View style={styles.searchContainer}>
-              <TextInput
-                placeholder="Search districts..."
-                value={districtSearch}
-                onChangeText={setDistrictSearch}
-                style={styles.searchInput}
-                mode="outlined"
-                left={<TextInput.Icon icon="magnify" />}
-                clearButtonMode="while-editing"
-              />
-            </View>
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.districtScrollContent}>
               <Chip
                 mode="outlined"
                 onPress={() => handleDistrictSelect("")}
-                style={styles.districtOption}
-                selected={!filters.district}
+                style={[
+                  styles.districtOption,
+                  !filters.district && styles.selectedDistrictOption,
+                ]}
+                textStyle={
+                  !filters.district
+                    ? styles.selectedDistrictOptionText
+                    : undefined
+                }
               >
                 All Districts
               </Chip>
@@ -316,21 +590,31 @@ export default function DisasterFeed() {
                   return null;
 
                 return (
-                  <View key={province}>
+                  <View key={province} style={styles.provinceSection}>
                     {(!districtSearch || filteredDistricts.length > 0) && (
                       <Text style={styles.provinceHeader}>{province}</Text>
                     )}
-                    {filteredDistricts.map((district) => (
-                      <Chip
-                        key={district}
-                        mode="outlined"
-                        onPress={() => handleDistrictSelect(district)}
-                        style={styles.districtOption}
-                        selected={filters.district === district}
-                      >
-                        {district}
-                      </Chip>
-                    ))}
+                    <View style={styles.districtGrid}>
+                      {filteredDistricts.map((district) => (
+                        <Chip
+                          key={district}
+                          mode="outlined"
+                          onPress={() => handleDistrictSelect(district)}
+                          style={[
+                            styles.districtOption,
+                            filters.district === district &&
+                              styles.selectedDistrictOption,
+                          ]}
+                          textStyle={
+                            filters.district === district
+                              ? styles.selectedDistrictOptionText
+                              : undefined
+                          }
+                        >
+                          {district}
+                        </Chip>
+                      ))}
+                    </View>
                   </View>
                 );
               })}
@@ -351,188 +635,384 @@ export default function DisasterFeed() {
 
       <Portal>
         <Dialog visible={showAlert} onDismiss={() => setShowAlert(false)}>
-          <Dialog.Title>Notification Settings</Dialog.Title>
+          <Dialog.Title>Alert Preferences</Dialog.Title>
           <Dialog.Content>
-            <Text>Choose which types of alerts you want to receive.</Text>
+            <Text style={styles.dialogSubtitle}>
+              Choose which alerts you want to receive
+            </Text>
+
+            <View style={styles.notificationOption}>
+              <Text style={styles.notificationLabel}>Critical Alerts</Text>
+              <Chip mode="outlined" style={styles.notificationChip} selected>
+                Enabled
+              </Chip>
+            </View>
+
+            <View style={styles.notificationOption}>
+              <Text style={styles.notificationLabel}>Verified Reports</Text>
+              <Chip mode="outlined" style={styles.notificationChip} selected>
+                Enabled
+              </Chip>
+            </View>
+
+            <View style={styles.notificationOption}>
+              <Text style={styles.notificationLabel}>Nearby Incidents</Text>
+              <Chip mode="outlined" style={styles.notificationChip}>
+                Disabled
+              </Chip>
+            </View>
+
+            <View style={styles.notificationOption}>
+              <Text style={styles.notificationLabel}>Daily Summaries</Text>
+              <Chip mode="outlined" style={styles.notificationChip}>
+                Disabled
+              </Chip>
+            </View>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setShowAlert(false)}>Save</Button>
+            <Button onPress={() => setShowAlert(false)}>Cancel</Button>
+            <Button mode="contained" onPress={() => setShowAlert(false)}>
+              Save
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
     </View>
   );
 }
+
+const getCategoryColor = (category) => {
+  const colors = {
+    flood: "#60A5FA",
+    fire: "#F87171",
+    earthquake: "#FBBF24",
+    landslide: "#34D399",
+    cyclone: "#A78BFA",
+  };
+  return colors[category] || "#E5E7EB";
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingTop: 40,
+    backgroundColor: "#f7f7f7",
+    paddingTop: 30,
+    paddingBottom: 40,
+  },
+  warningBannerContainer: {
+    backgroundColor: "#FFEDD5",
+    padding: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#FDBA74",
+  },
+  warningBannerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  warningIcon: {
+    margin: 0,
+    marginRight: 4,
+  },
+  warningBannerTitle: {
+    fontWeight: "bold",
+    color: "#7C2D12",
   },
   warningBanner: {
-    backgroundColor: "#FEF3C7",
-    padding: 8,
-    maxHeight: 60,
+    flexDirection: "row",
+  },
+  warningBannerContent: {
+    paddingRight: 8,
   },
   warningChip: {
-    marginHorizontal: 4,
-    backgroundColor: "#FBBF24",
-    height: 36,
+    backgroundColor: "#FED7AA",
+    marginRight: 8,
   },
   warningText: {
-    color: "#000",
-    fontSize: 12,
+    color: "#7C2D12",
   },
-  header: {
-    padding: 16,
+  quickFiltersContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-  headerButtons: {
+  quickFiltersContent: {
     flexDirection: "row",
-    gap: 4,
-    alignItems: "center",
   },
-  notificationButton: {
-    margin: 0,
-    width: 32,
-    height: 32,
-  },
-  refreshButton: {
-    marginLeft: 4,
-    scale: 0.9,
-    height: 40,
-  },
-  refreshButtonContent: {
-    height: 40,
-    paddingHorizontal: 9,
-  },
-  segmentedButtons: {
-    margin: 12,
-  },
-  filterContainer: {
-    maxHeight: 32,
-    paddingHorizontal: 10,
-    marginBottom: 8,
-  },
-  filterChip: {
+  quickFilterChip: {
     marginRight: 8,
-    height: 32,
-    alignSelf: "top",
+  },
+  selectedQuickFilterChip: {
+    backgroundColor: "#3b82f6",
+  },
+  quickFilterText: {
+    fontSize: 12,
+  },
+  selectedQuickFilterText: {
+    color: "white",
   },
   reportsContainer: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingBottom: 80,
+  },
+  reportsContent: {
+    paddingHorizontal: 16,
+  },
+  loaderContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+  },
+  loader: {
+    marginBottom: 16,
+  },
+  loaderText: {
+    color: "#6B7280",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#4B5563",
+    marginTop: 8,
+  },
+  emptyText: {
+    color: "#6B7280",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  emptyRefreshButton: {
+    marginTop: 8,
+  },
+  resultsSummary: {
+    marginBottom: 12,
+  },
+  resultsSummaryText: {
+    color: "#6B7280",
+    fontSize: 14,
   },
   reportCard: {
-    marginBottom: 12,
+    marginBottom: 16,
     borderRadius: 12,
-    elevation: 2,
+    borderColor: "#E5E7EB",
   },
-  shareButtons: {
+  cardTitle: {
+    fontWeight: "bold",
+  },
+  verifiedChip: {
+    backgroundColor: "#D1FAE5",
+  },
+  unverifiedChip: {
+    backgroundColor: "transparent",
+    borderColor: "#E5E7EB",
+  },
+  verificationChipText: {
+    fontSize: 12,
+  },
+  locationRow: {
     flexDirection: "row",
-    paddingRight: 8,
-    scale: 0.8,
+    alignItems: "center",
+    marginLeft: -8,
+  },
+  locationIcon: {
+    margin: 0,
+  },
+  locationText: {
+    color: "#6B7280",
+    flex: 1,
+  },
+  reportDescription: {
+    marginVertical: 8,
+    lineHeight: 20,
   },
   badgeContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 12,
+    marginTop: 8,
   },
-  criticalChip: {
-    backgroundColor: "#EF4444",
-    height: 28,
-    scale: 0.9,
+  categoryChip: {
+    marginRight: 8,
   },
-  highChip: {
-    backgroundColor: "#F59E0B",
-    height: 28,
-    scale: 0.9,
+  categoryChipText: {
+    color: "white",
+    fontWeight: "500",
   },
-  normalChip: {
-    backgroundColor: "#10B981",
-    height: 28,
-    scale: 0.9,
+  timestampContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: -8,
+    marginTop: 8,
+  },
+  timestampIcon: {
+    margin: 0,
   },
   timestamp: {
+    color: "#9CA3AF",
+  },
+  cardActions: {
+    justifyContent: "flex-start",
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+    paddingTop: 8,
+  },
+  shareText: {
+    marginRight: 8,
     color: "#6B7280",
-    fontSize: 12,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+  shareButtons: {
+    flexDirection: "row",
   },
-  errorText: {
-    color: "#EF4444",
-    textAlign: "center",
-  },
-  loader: {
-    marginTop: 20,
+  shareButton: {
+    margin: 0,
   },
   pagination: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  paginationButton: {
+    minWidth: 100,
+  },
+  paginationButtonContent: {
+    flexDirection: "row-reverse",
+  },
+  paginationNextButtonContent: {
+    flexDirection: "row",
+  },
+  paginationInfo: {
+    alignItems: "center",
+  },
+  paginationText: {
+    color: "#6B7280",
+  },
+  bottomSpacer: {
+    height: 24,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+  },
+  errorText: {
+    color: "#B91C1C",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  errorButton: {
+    marginTop: 8,
   },
   districtDialog: {
     maxHeight: "80%",
   },
-  dialogScrollArea: {
-    paddingHorizontal: 0,
-  },
   searchContainer: {
-    padding: 16,
-    paddingBottom: 8,
-    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   searchInput: {
-    backgroundColor: "#fff",
-    fontSize: 14,
+    marginBottom: 8,
+  },
+  dialogScrollArea: {
+    marginHorizontal: 0,
+  },
+  districtScrollContent: {
+    padding: 16,
+  },
+  provinceSection: {
+    marginBottom: 16,
   },
   provinceHeader: {
     fontWeight: "bold",
-    padding: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "#f5f5f5",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#e0e0e0",
+    marginBottom: 8,
+    color: "#4B5563",
+  },
+  districtGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   districtOption: {
     margin: 4,
-    marginHorizontal: 8,
-    backgroundColor: "transparent",
+    backgroundColor: "white",
   },
-  districtChip: {
-    backgroundColor: "#fff",
-    marginRight: 8,
+  selectedDistrictOption: {
+    backgroundColor: "#3b82f6",
   },
-  filterContainer: {
-    maxHeight: 32,
-    paddingHorizontal: 10,
-    marginBottom: 8,
+  selectedDistrictOptionText: {
+    color: "white",
+  },
+  dialogSubtitle: {
+    color: "#6B7280",
+    marginBottom: 16,
+  },
+  notificationOption: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  notificationLabel: {
+    fontSize: 16,
+  },
+  notificationChip: {
+    minWidth: 90,
+    justifyContent: "center",
+  },
+  filterDialog: {
+    maxHeight: "80%",
+    borderRadius: 20,
+  },
+  filterContent: {
+    padding: 8,
+  },
+  filterHeader: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginBottom: 16,
+  },
+  filterSection: {
+    marginBottom: 20,
+  },
+  filterSectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 12,
+    color: "#374151",
   },
   filterChip: {
     marginRight: 8,
-    height: 32,
-    alignSelf: "top",
+    marginBottom: 8,
+    borderRadius: 20,
+    backgroundColor: "#f3f4f6",
+    borderColor: "#e5e7eb",
+    height: 36,
+  },
+  selectedFilterChip: {
+    backgroundColor: "#3b82f6",
+    borderColor: "#3b82f6",
+  },
+  filterChipText: {
+    color: "#4b5563",
+    fontSize: 13,
+  },
+  selectedFilterChipText: {
+    color: "#ffffff",
+  },
+  districtChip: {
+    backgroundColor: "#f3f4f6",
+    borderColor: "#e5e7eb",
+    height: 36,
   },
 });

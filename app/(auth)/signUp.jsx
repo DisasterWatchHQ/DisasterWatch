@@ -14,7 +14,7 @@ import {
   Dialog,
   RadioButton,
 } from "react-native-paper";
-import { authApi } from "../../services/authApi";
+import { authApi } from "../../api/services/auth.js";
 
 const SignUp = () => {
   const router = useRouter();
@@ -26,7 +26,7 @@ const SignUp = () => {
     email: "",
     password: "",
     workId: "",
-    associated_department: "",
+    associatedDepartment: "",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,8 +37,8 @@ const SignUp = () => {
     if (!form.email) newErrors.email = "Email is required";
     if (!form.password) newErrors.password = "Password is required";
     if (!form.workId) newErrors.workId = "Work ID is required";
-    if (!form.associated_department)
-      newErrors.associated_department = "Department is required";
+    if (!form.associatedDepartment)
+      newErrors.associatedDepartment = "Department is required";
     if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = "Please enter a valid email address";
     }
@@ -55,12 +55,17 @@ const SignUp = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await authApi.register(form);
+      const response = await authApi.register({
+        name: form.name,
+        email: form.email.toLowerCase(),
+        password: form.password,
+        workId: form.workId,
+        associatedDepartment: form.associatedDepartment,
+      });
 
-      Alert.alert(
-        "Success",
-        [{ text: "OK", onPress: () => router.replace("/signIn") }],
-      );
+      Alert.alert("Success", "Account created successfully!", [
+        { text: "OK", onPress: () => router.replace("/signIn") },
+      ]);
     } catch (error) {
       Alert.alert(
         "Error",
@@ -145,14 +150,14 @@ const SignUp = () => {
             <List.Item
               title="Select Department"
               description={
-                form.associated_department || "Choose your department"
+                form.associatedDepartment || "Choose your department"
               }
               onPress={() => setDepartmentDialogVisible(true)}
               left={(props) => <List.Icon {...props} icon="office-building" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
             />
-            <HelperText type="error" visible={!!errors.associated_department}>
-              {errors.associated_department}
+            <HelperText type="error" visible={!!errors.associatedDepartment}>
+              {errors.associatedDepartment}
             </HelperText>
           </View>
           <View style={{ marginTop: 10 }}>
@@ -196,10 +201,10 @@ const SignUp = () => {
           <Dialog.Content>
             <RadioButton.Group
               onValueChange={(value) => {
-                setForm({ ...form, associated_department: value });
+                setForm({ ...form, associatedDepartment: value });
                 setDepartmentDialogVisible(false);
               }}
-              value={form.associated_department}
+              value={form.associatedDepartment}
             >
               {departments.map((department) => (
                 <RadioButton.Item

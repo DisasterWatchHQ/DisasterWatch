@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { Text, Switch, useTheme, Divider } from "react-native-paper";
-import HeaderBar from "../components/headerBar";
-import { 
-  registerForPushNotificationsAsync, 
+import HeaderBar from "../components/HeaderBar";
+import {
+  registerForPushNotificationsAsync,
   unregisterPushNotificationsAsync,
   getNotificationSettings,
   updateNotificationSettings,
-  NOTIFICATION_CATEGORIES
-} from "../services/notifications";
+  NOTIFICATION_CATEGORIES,
+} from "../api/services/notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PreferencesContext } from '../app/_layout';
+import { router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useUser } from "../context/UserContext";
 
 const Settings = () => {
   const [notificationSettings, setNotificationSettings] = useState({
@@ -23,7 +25,7 @@ const Settings = () => {
     sound: true,
     vibration: true,
   });
-  const { isDarkMode, toggleTheme } = React.useContext(PreferencesContext);
+  const { user } = useUser();
   const theme = useTheme();
 
   useEffect(() => {
@@ -41,6 +43,14 @@ const Settings = () => {
     }
   };
 
+  const handleProfilePress = () => {
+    if (!user) {
+      router.push("/(auth)/signIn");
+      return;
+    }
+    router.push("/profile");
+  };
+
   const toggleNotifications = async () => {
     try {
       const newValue = !notificationSettings.enabled;
@@ -48,7 +58,7 @@ const Settings = () => {
         ...notificationSettings,
         enabled: newValue,
       };
-      
+
       setNotificationSettings(updatedSettings);
       await updateNotificationSettings(updatedSettings);
 
@@ -71,7 +81,7 @@ const Settings = () => {
           [category]: !notificationSettings.categories[category],
         },
       };
-      
+
       setNotificationSettings(updatedSettings);
       await updateNotificationSettings(updatedSettings);
     } catch (error) {
@@ -85,7 +95,7 @@ const Settings = () => {
         ...notificationSettings,
         sound: !notificationSettings.sound,
       };
-      
+
       setNotificationSettings(updatedSettings);
       await updateNotificationSettings(updatedSettings);
     } catch (error) {
@@ -99,7 +109,7 @@ const Settings = () => {
         ...notificationSettings,
         vibration: !notificationSettings.vibration,
       };
-      
+
       setNotificationSettings(updatedSettings);
       await updateNotificationSettings(updatedSettings);
     } catch (error) {
@@ -108,21 +118,41 @@ const Settings = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <HeaderBar title="Settings" showBack={true} />
       <ScrollView style={styles.content}>
         <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>Appearance</Text>
-          <View style={styles.settingItem}>
-            <Text variant="bodyLarge">Dark Mode</Text>
-            <Switch value={isDarkMode} onValueChange={toggleTheme} />
-          </View>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Account
+          </Text>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleProfilePress}
+          >
+            <View style={styles.settingItemContent}>
+              <MaterialCommunityIcons
+                name="account"
+                size={24}
+                color={theme.colors.primary}
+              />
+              <Text variant="bodyLarge">Profile Settings</Text>
+            </View>
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={24}
+              color={theme.colors.onSurfaceVariant}
+            />
+          </TouchableOpacity>
         </View>
 
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>Notifications</Text>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Notifications
+          </Text>
           <View style={styles.settingItem}>
             <Text variant="bodyLarge">Enable Notifications</Text>
             <Switch
@@ -137,21 +167,21 @@ const Settings = () => {
                 <Text variant="bodyLarge">Warning Notifications</Text>
                 <Switch
                   value={notificationSettings.categories.warning}
-                  onValueChange={() => toggleCategory('warning')}
+                  onValueChange={() => toggleCategory("warning")}
                 />
               </View>
               <View style={styles.settingItem}>
                 <Text variant="bodyLarge">Report Notifications</Text>
                 <Switch
                   value={notificationSettings.categories.report}
-                  onValueChange={() => toggleCategory('report')}
+                  onValueChange={() => toggleCategory("report")}
                 />
               </View>
               <View style={styles.settingItem}>
                 <Text variant="bodyLarge">System Notifications</Text>
                 <Switch
                   value={notificationSettings.categories.system}
-                  onValueChange={() => toggleCategory('system')}
+                  onValueChange={() => toggleCategory("system")}
                 />
               </View>
               <View style={styles.settingItem}>
@@ -195,6 +225,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
+  },
+  settingItemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   divider: {
     marginVertical: 8,

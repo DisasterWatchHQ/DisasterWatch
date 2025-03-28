@@ -1,11 +1,10 @@
 import NetInfo from '@react-native-community/netinfo';
-import offlineStorage from './offlineStorage';
+import offlineStorage from '../utils/offlineStorage';
 import { v4 as uuidv4 } from 'react-native-get-random-values';
 
 export const createOfflineAwareAPI = (api) => {
   const wrapper = {};
 
-  // Wrap all API methods
   for (const methodName of Object.keys(api)) {
     wrapper[methodName] = async (...args) => {
       const networkState = await NetInfo.fetch();
@@ -13,27 +12,21 @@ export const createOfflineAwareAPI = (api) => {
 
       if (isOnline) {
         try {
-          // Try online request
           const result = await api[methodName](...args);
           return result;
         } catch (error) {
-          // If request fails, fall back to offline handling
           return handleOfflineOperation(methodName, args);
         }
       } else {
-        // Handle offline operation
         return handleOfflineOperation(methodName, args);
       }
     };
   }
 
   const handleOfflineOperation = async (methodName, args) => {
-    // Read operations
     if (methodName.startsWith('get')) {
       return handleOfflineRead(methodName);
-    }
-    // Write operations
-    else {
+    } else {
       return handleOfflineWrite(methodName, args);
     }
   };
@@ -61,7 +54,6 @@ export const createOfflineAwareAPI = (api) => {
 
     await offlineStorage.queueAction(action);
 
-    // Return optimistic response
     return {
       ...action.data,
       id: action.id,

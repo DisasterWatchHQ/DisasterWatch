@@ -1,21 +1,63 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { Text, Surface, IconButton } from 'react-native-paper';
+import { Text, Surface, IconButton, useTheme } from 'react-native-paper';
 import { useNetwork } from '../context/NetworkContext';
-import offlineStorage from '../services/offlineStorage';
-import syncService from '../services/syncService';
+import offlineStorage from '../api/utils/offlineStorage';
+import syncService from '../api/utils/syncService';
 
-export default function OfflineIndicator() {
+/**
+ * @typedef {Object} OfflineIndicatorProps
+ * @property {number} [checkInterval=30000] - Interval in ms to check for pending actions
+ * @property {number} [animationDuration=300] - Duration of show/hide animation in ms
+ */
+
+/**
+ * Component that shows network status and pending offline actions
+ * @param {OfflineIndicatorProps} props
+ */
+export default function OfflineIndicator({ 
+  checkInterval = 30000,
+  animationDuration = 300 
+}) {
+  const theme = useTheme();
   const { isConnected, isInternetReachable } = useNetwork();
   const [pendingActions, setPendingActions] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
-  const translateY = new Animated.Value(0);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState(null);
+
+  const translateY = useMemo(() => new Animated.Value(0), []);
+
+  const checkPendingActions = useCallback(async () => {
+    try {
+      const actions = await offlineStorage.getPendingActions();
+      setPendingActions(actions.length);
+    } catch (error) {
+      console.error('Error checking pending actions:', error);
+    }
+  }, []);
+
+  const handleSync = useCallback(async () => {
+    if (!isConnected || !isInternetReachable) return;
+
+    try {
+      setIsSyncing(true);
+      setSyncError(null);
+      await syncService.forceSyncData();
+      await checkPendingActions();
+    } catch (error) {
+      console.error('Error syncing data:', error);
+      setSyncError(error.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isConnected, isInternetReachable, checkPendingActions]);
 
   useEffect(() => {
     checkPendingActions();
-    const interval = setInterval(checkPendingActions, 30000); // Check every 30 seconds
+    const interval = setInterval(checkPendingActions, checkInterval);
     return () => clearInterval(interval);
-  }, []);
+  }, [checkInterval, checkPendingActions]);
 
   useEffect(() => {
     setIsVisible(!isConnected || !isInternetReachable || pendingActions > 0);
@@ -25,20 +67,9 @@ export default function OfflineIndicator() {
     Animated.spring(translateY, {
       toValue: isVisible ? 0 : -100,
       useNativeDriver: true,
+      duration: animationDuration,
     }).start();
-  }, [isVisible]);
-
-  const checkPendingActions = async () => {
-    const actions = await offlineStorage.getPendingActions();
-    setPendingActions(actions.length);
-  };
-
-  const handleSync = async () => {
-    if (isConnected && isInternetReachable) {
-      await syncService.forceSyncData();
-      await checkPendingActions();
-    }
-  };
+  }, [isVisible, translateY, animationDuration]);
 
   if (!isVisible) return null;
 
@@ -51,7 +82,7 @@ export default function OfflineIndicator() {
         },
       ]}
     >
-      <Surface style={styles.surface}>
+      <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
         <View style={styles.content}>
           <View style={styles.statusContainer}>
             <View
@@ -59,34 +90,39 @@ export default function OfflineIndicator() {
                 styles.statusDot,
                 {
                   backgroundColor: isConnected && isInternetReachable
-                    ? '#4CAF50'
-                    : '#F44336',
+                    ? theme.colors.success
+                    : theme.colors.error,
                 },
               ]}
             />
-            <Text style={styles.statusText}>
-              {isConnected && isInternetReachable
-                ? 'Online'
-                : 'Offline'}
+            <Text style={[styles.statusText, { color: theme.colors.onSurface }]}>
+              {isConnected && isInternetReachable ? 'Online' : 'Offline'}
             </Text>
           </View>
           
           {pendingActions > 0 && (
             <View style={styles.pendingContainer}>
-              <Text style={styles.pendingText}>
+              <Text style={[styles.pendingText, { color: theme.colors.onSurfaceVariant }]}>
                 {pendingActions} pending {pendingActions === 1 ? 'action' : 'actions'}
               </Text>
               {isConnected && isInternetReachable && (
                 <IconButton
-                  icon="sync"
+                  icon={isSyncing ? 'sync-circle' : 'sync'}
                   size={20}
                   onPress={handleSync}
                   style={styles.syncButton}
+                  disabled={isSyncing}
                 />
               )}
             </View>
           )}
         </View>
+        
+        {syncError && (
+          <Text style={[styles.errorText, { color: theme.colors.error }]}>
+            {syncError}
+          </Text>
+        )}
       </Surface>
     </Animated.View>
   );
@@ -104,7 +140,6 @@ const styles = StyleSheet.create({
     margin: 8,
     elevation: 4,
     borderRadius: 8,
-    backgroundColor: '#FFF',
   },
   content: {
     padding: 12,
@@ -132,10 +167,14 @@ const styles = StyleSheet.create({
   },
   pendingText: {
     fontSize: 14,
-    color: '#666',
     marginRight: 4,
   },
   syncButton: {
     margin: -8,
   },
-}); 
+  errorText: {
+    fontSize: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+});

@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
-import { warningApi } from './warningApi';
-import { resourceApi } from './resourceApi';
-import { createOfflineAwareAPI } from './apiWrapper';
+import { warningApi } from './warnings';
+import { resourceApi } from './resources';
+import { createOfflineAwareAPI } from '../config/apiWrapper';
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const submitReport = async (reportData) => {
@@ -46,7 +46,7 @@ export const fetchReports = async (filters) => {
       ...(filters.disaster_category && {
         disaster_category: filters.disaster_category,
       }),
-      ...(filters.verified_only && { verified_only: true }),
+      ...(filters.verified_only && { verified_only: "true" }),
       ...(filters.district && { district: filters.district }),
     }).toString();
 
@@ -98,11 +98,9 @@ export const fetchLiveUpdates = async (minutes = 30) => {
   }
 };
 
-// Create offline-aware versions of our APIs
 export const offlineWarningApi = createOfflineAwareAPI(warningApi);
 export const offlineResourceApi = createOfflineAwareAPI(resourceApi);
 
-// Export wrapped versions as default APIs
 export default {
   warnings: offlineWarningApi,
   resources: offlineResourceApi,

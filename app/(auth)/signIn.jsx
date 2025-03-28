@@ -1,7 +1,7 @@
 import { View, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import {
   Text,
@@ -12,11 +12,13 @@ import {
   HelperText,
   Divider,
 } from "react-native-paper";
-import { authApi } from "../../services/authApi";
+import { authApi } from "../../api/services/auth.js";
+import { UserContext } from "../../context/UserContext";
 
 const SignIn = () => {
   const router = useRouter();
   const theme = useTheme();
+  const { signIn } = React.useContext(UserContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +32,6 @@ const SignIn = () => {
   const saveSession = async (userData) => {
     try {
       if (form.remember) {
-        await SecureStore.setItemAsync("userSession", JSON.stringify(userData));
         await SecureStore.setItemAsync(
           "rememberedCredentials",
           JSON.stringify({
@@ -39,12 +40,11 @@ const SignIn = () => {
           }),
         );
       } else {
-        await SecureStore.setItemAsync("userSession", JSON.stringify(userData));
         await SecureStore.deleteItemAsync("rememberedCredentials");
       }
     } catch (error) {
-      console.error("Error saving session:", error);
-      Alert.alert("Error", "Failed to save session. Please try again.");
+      console.error("Error saving credentials:", error);
+      Alert.alert("Error", "Failed to save credentials. Please try again.");
     }
   };
 
@@ -93,7 +93,7 @@ const SignIn = () => {
         password: form.password,
       });
 
-      await saveSession({
+      const success = await signIn({
         token: response.token,
         user: {
           id: response.user.id,
@@ -103,7 +103,12 @@ const SignIn = () => {
         },
       });
 
-      router.replace("/Dashboard");
+      if (success) {
+        await saveSession();
+        router.replace("/Dashboard");
+      } else {
+        Alert.alert("Error", "Failed to save session. Please try again.");
+      }
     } catch (error) {
       Alert.alert("Error", error.message || "Invalid email or password");
     } finally {

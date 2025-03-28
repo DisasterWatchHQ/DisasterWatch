@@ -18,15 +18,15 @@ import {
   Portal,
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import HeaderBar from "../components/headerBar";
-import api from "../services/dash";
-import wardash from "../services/wardash";
+import HeaderBar from "../components/HeaderBar";
+import api from "../api/services/dash";
+import wardash from "../api/services/wardash";
 import CreateWarningDialog from "../components/warnings/CreateWarningDialog";
 import { WarningActions } from "../components/warnings/WarningActions";
 import { useRouter } from "expo-router";
 import ResourceModals from "../components/resources/ResourceModals";
-import { resourcesApi } from "../services/resourceApi";
-import * as SecureStore from 'expo-secure-store';
+import { resources } from "../api/services/api";
+import * as SecureStore from "expo-secure-store";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const StatsCard = ({ title, value, icon, color }) => {
@@ -167,7 +167,6 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      console.log("Fetching dashboard data..."); // Debug log
 
       const [
         verificationStats,
@@ -184,12 +183,6 @@ const Dashboard = () => {
         wardash.get("/warnings/active"),
         api.get("/reports/feedstats"),
       ]);
-
-      console.log("Verification Stats:", verificationStats.data);
-      console.log("Report Stats:", reportStats.data);
-      console.log("Reports Response:", reportsResponse.data);
-      console.log("Warnings Response:", warningsResponse.data);
-      console.log("Feed Stats:", feedStats.data);
 
       // Combine all stats
       setDashboardStats({
@@ -286,13 +279,13 @@ const Dashboard = () => {
       let response;
       switch (type) {
         case "guide":
-          response = await resourcesApi.createGuide(data);
+          response = await resources.createGuide(data);
           break;
         case "contact":
-          response = await resourcesApi.createEmergencyContact(data);
+          response = await resources.createEmergencyContact(data);
           break;
         case "facility":
-          response = await resourcesApi.createFacility(data);
+          response = await resources.createFacility(data);
           break;
       }
       Alert.alert("Success", `${type} created successfully`);
@@ -304,13 +297,11 @@ const Dashboard = () => {
   };
   const handleVerifyReport = async (reportId) => {
     try {
-      console.log("Attempting to verify report:", reportId);
       const response = await api.post(`/reports/${reportId}/verify`, {
         severity: "medium",
-        notes: "Verified through dashboard"
+        notes: "Verified through dashboard",
       });
-      
-      console.log("Verify response:", response.data); // Debug log
+
       await fetchDashboardData();
       Alert.alert("Success", "Report verified successfully");
     } catch (error) {
@@ -318,9 +309,9 @@ const Dashboard = () => {
       console.error("Full error object:", {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
-      
+
       // More specific error handling
       if (error.response?.status === 401) {
         Alert.alert("Error", "Please log in again to verify reports");
@@ -328,19 +319,20 @@ const Dashboard = () => {
       } else if (error.response?.status === 403) {
         Alert.alert("Error", "You don't have permission to verify reports");
       } else {
-        Alert.alert("Error", error.response?.data?.error || "Failed to verify report");
+        Alert.alert(
+          "Error",
+          error.response?.data?.error || "Failed to verify report",
+        );
       }
     }
   };
-  
+
   const handleRejectReport = async (reportId) => {
     try {
-      console.log("Attempting to dismiss report:", reportId);
       const response = await api.post(`/reports/${reportId}/dismiss`, {
-        notes: "Dismissed through dashboard"
+        notes: "Dismissed through dashboard",
       });
-      
-      console.log("Dismiss response:", response.data); // Debug log
+
       await fetchDashboardData();
       Alert.alert("Success", "Report dismissed successfully");
     } catch (error) {
@@ -348,9 +340,9 @@ const Dashboard = () => {
       console.error("Full error object:", {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
-      
+
       // More specific error handling
       if (error.response?.status === 401) {
         Alert.alert("Error", "Please log in again to dismiss reports");
@@ -358,7 +350,10 @@ const Dashboard = () => {
       } else if (error.response?.status === 403) {
         Alert.alert("Error", "You don't have permission to dismiss reports");
       } else {
-        Alert.alert("Error", error.response?.data?.error || "Failed to dismiss report");
+        Alert.alert(
+          "Error",
+          error.response?.data?.error || "Failed to dismiss report",
+        );
       }
     }
   };
@@ -482,6 +477,11 @@ const Dashboard = () => {
               icon: "home",
               label: "Home",
               onPress: () => router.push("/home"),
+            },
+            {
+              icon: "tab",
+              label: "Dashboard",
+              onPress: () => router.push("/Dashboard"),
             },
             {
               icon: "plus",
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   fabGroup: {
-    paddingBottom: 0,
+    paddingBottom: 50,
   },
 });
 

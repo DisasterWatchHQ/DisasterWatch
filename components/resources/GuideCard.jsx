@@ -4,7 +4,7 @@ import { Card, Chip, Text, useTheme, Menu, Divider } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatDate } from "../../scripts/dateUtils";
 import { router } from "expo-router";
-import { UserContext } from "../../constants/globalProvider";
+import { UserContext } from "../../context/UserContext";
 
 export const GuideCard = ({ guide, onEdit, onDelete }) => {
   const theme = useTheme();

@@ -1,7 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-// Get the API URL from environment variables or use a default
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
@@ -32,14 +31,11 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle token expiration
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Clear session and redirect to login
       await SecureStore.deleteItemAsync('userSession');
-      // You might want to handle navigation here
     }
     return Promise.reject(error);
   }

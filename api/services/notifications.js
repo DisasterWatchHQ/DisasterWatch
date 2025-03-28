@@ -1,28 +1,8 @@
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
-import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
-
-const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add auth token to requests
-apiClient.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Configure notification behavior
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -31,14 +11,12 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Configure notification categories
 const NOTIFICATION_CATEGORIES = {
   WARNING: 'warning',
   REPORT: 'report',
   SYSTEM: 'system',
 };
 
-// Configure notification sounds
 const NOTIFICATION_SOUNDS = {
   warning: 'warning.mp3',
   report: 'report.mp3',
@@ -67,12 +45,24 @@ export async function registerForPushNotificationsAsync() {
     });
 
     try {
-      await apiClient.patch('/users/push-token', {
-        pushToken: token.data,
-      });
-      
-      // Store the token locally
       await AsyncStorage.setItem('pushToken', token.data);
+      
+      const userSession = await AsyncStorage.getItem('userSession');
+      if (userSession) {
+        const { token: authToken } = JSON.parse(userSession);
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/users/push-token`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ pushToken: token.data }),
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to store push token on server:', response.status);
+        }
+      }
       
       return token.data;
     } catch (error) {
@@ -88,9 +78,23 @@ export async function unregisterPushNotificationsAsync() {
   try {
     const token = await AsyncStorage.getItem('pushToken');
     if (token) {
-      await apiClient.patch('/users/push-token', {
-        pushToken: null,
-      });
+      const userSession = await AsyncStorage.getItem('userSession');
+      if (userSession) {
+        const { token: authToken } = JSON.parse(userSession);
+        const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/users/push-token`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ pushToken: null }),
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to remove push token from server:', response.status);
+        }
+      }
+      
       await AsyncStorage.removeItem('pushToken');
     }
   } catch (error) {

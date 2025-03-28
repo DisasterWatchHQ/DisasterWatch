@@ -11,7 +11,6 @@ const STORAGE_KEYS = {
 };
 
 class OfflineStorage {
-  // Store disaster data
   async storeDisasters(disasters) {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.DISASTERS, JSON.stringify(disasters));
@@ -21,7 +20,6 @@ class OfflineStorage {
     }
   }
 
-  // Get stored disaster data
   async getDisasters() {
     try {
       const disasters = await AsyncStorage.getItem(STORAGE_KEYS.DISASTERS);
@@ -32,7 +30,6 @@ class OfflineStorage {
     }
   }
 
-  // Queue an action for later sync
   async queueAction(action) {
     try {
       const pendingActions = await this.getPendingActions();
@@ -49,7 +46,6 @@ class OfflineStorage {
     }
   }
 
-  // Get pending actions
   async getPendingActions() {
     try {
       const actions = await AsyncStorage.getItem(STORAGE_KEYS.PENDING_ACTIONS);
@@ -60,7 +56,6 @@ class OfflineStorage {
     }
   }
 
-  // Clear completed actions
   async clearPendingAction(actionId) {
     try {
       const pendingActions = await this.getPendingActions();
@@ -74,7 +69,6 @@ class OfflineStorage {
     }
   }
 
-  // Store emergency contacts
   async storeEmergencyContacts(contacts) {
     try {
       await AsyncStorage.setItem(
@@ -86,7 +80,6 @@ class OfflineStorage {
     }
   }
 
-  // Get emergency contacts
   async getEmergencyContacts() {
     try {
       const contacts = await AsyncStorage.getItem(STORAGE_KEYS.EMERGENCY_CONTACTS);
@@ -97,7 +90,6 @@ class OfflineStorage {
     }
   }
 
-  // Store facilities data
   async storeFacilities(facilities) {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.FACILITIES, JSON.stringify(facilities));
@@ -106,7 +98,6 @@ class OfflineStorage {
     }
   }
 
-  // Get facilities data
   async getFacilities() {
     try {
       const facilities = await AsyncStorage.getItem(STORAGE_KEYS.FACILITIES);
@@ -117,7 +108,6 @@ class OfflineStorage {
     }
   }
 
-  // Store user data
   async storeUserData(userData) {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
@@ -126,7 +116,6 @@ class OfflineStorage {
     }
   }
 
-  // Get user data
   async getUserData() {
     try {
       const userData = await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
@@ -137,7 +126,6 @@ class OfflineStorage {
     }
   }
 
-  // Update last sync timestamp
   async updateLastSync() {
     try {
       await AsyncStorage.setItem(
@@ -149,7 +137,6 @@ class OfflineStorage {
     }
   }
 
-  // Get last sync timestamp
   async getLastSync() {
     try {
       return await AsyncStorage.getItem(STORAGE_KEYS.LAST_SYNC);
@@ -159,7 +146,6 @@ class OfflineStorage {
     }
   }
 
-  // Clear all stored data
   async clearAll() {
     try {
       await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));

@@ -11,43 +11,40 @@ import { Card, Text, Button } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import WarningMain from "../../components/warningMain";
-import HeaderBar from "../../components/headerBar";
+import HeaderBar from "../../components/HeaderBar";
 import { useRouter } from "expo-router";
-import { warningApi } from "../../services/warningApi";
-import { resourceApi } from "../../services/resourceApi";
+import { warningApi } from "../../api/services/warnings";
+import { resourceApi } from "../../api/services/resources";
 import WarningDetailsModal from "../../components/warnings/WarningDetailsModal";
 
 const Home = () => {
   const router = useRouter();
-  
-  // State management
+
   const [activeWarnings, setActiveWarnings] = useState([]);
   const [nearbyFacilities, setNearbyFacilities] = useState([]);
   const [location, setLocation] = useState(null);
   const [selectedWarning, setSelectedWarning] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  
-  // Loading and error states
+
   const [loadingStates, setLoadingStates] = useState({
     location: false,
     warnings: false,
-    facilities: false
+    facilities: false,
   });
   const [errors, setErrors] = useState({
     location: null,
     warnings: null,
-    facilities: null
+    facilities: null,
   });
 
-  const isLoading = Object.values(loadingStates).some(state => state);
-  const hasError = Object.values(errors).some(error => error !== null);
+  const isLoading = Object.values(loadingStates).some((state) => state);
+  const hasError = Object.values(errors).some((error) => error !== null);
 
-  // Handle Location 
   const fetchLocation = useCallback(async () => {
     try {
-      setLoadingStates(prev => ({ ...prev, location: true }));
-      setErrors(prev => ({ ...prev, location: null }));
+      setLoadingStates((prev) => ({ ...prev, location: true }));
+      setErrors((prev) => ({ ...prev, location: null }));
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -55,12 +52,12 @@ const Home = () => {
       }
 
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced
+        accuracy: Location.Accuracy.Balanced,
       });
 
       const [geocodeResult] = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
-        longitude: location.coords.longitude
+        longitude: location.coords.longitude,
       });
 
       if (!geocodeResult) {
@@ -70,67 +67,72 @@ const Home = () => {
       setLocation({
         ...location,
         address: {
-          district: geocodeResult.district || geocodeResult.subregion || geocodeResult.region,
+          district:
+            geocodeResult.district ||
+            geocodeResult.subregion ||
+            geocodeResult.region,
           city: geocodeResult.city,
           region: geocodeResult.region,
-        }
+        },
       });
     } catch (err) {
       console.error("Location fetch error:", err);
-      setErrors(prev => ({ 
-        ...prev, 
-        location: "Failed to access location. Please enable location services."
+      setErrors((prev) => ({
+        ...prev,
+        location: "Failed to access location. Please enable location services.",
       }));
     } finally {
-      setLoadingStates(prev => ({ ...prev, location: false }));
+      setLoadingStates((prev) => ({ ...prev, location: false }));
     }
   }, []);
 
-  // Get active warnings
   const fetchActiveWarnings = useCallback(async () => {
     try {
-      setLoadingStates(prev => ({ ...prev, warnings: true }));
-      setErrors(prev => ({ ...prev, warnings: null }));
+      setLoadingStates((prev) => ({ ...prev, warnings: true }));
+      setErrors((prev) => ({ ...prev, warnings: null }));
 
       const response = await warningApi.getActiveWarnings();
 
       if (!response || !Array.isArray(response)) {
-        throw new Error('Invalid response format from server');
+        throw new Error("Invalid response format from server");
       }
 
       setActiveWarnings(response);
     } catch (err) {
       console.error("Warning fetch error:", err);
-      setErrors(prev => ({ 
-        ...prev, 
-        warnings: err.message || "Failed to load warnings. Please try again later."
+      setErrors((prev) => ({
+        ...prev,
+        warnings:
+          err.message || "Failed to load warnings. Please try again later.",
       }));
     } finally {
-      setLoadingStates(prev => ({ ...prev, warnings: false }));
+      setLoadingStates((prev) => ({ ...prev, warnings: false }));
     }
   }, []);
 
-  // Fetch neadby shelters
   const fetchNearbyFacilities = useCallback(async () => {
     if (!location?.coords || !location?.address?.district) return;
 
     try {
-      setLoadingStates(prev => ({ ...prev, facilities: true }));
-      setErrors(prev => ({ ...prev, facilities: null }));
+      setLoadingStates((prev) => ({ ...prev, facilities: true }));
+      setErrors((prev) => ({ ...prev, facilities: null }));
 
       const response = await resourceApi.getNearbyFacilities({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         district: location.address.district,
-        maxDistance: 5 // 5km radius
+        maxDistance: 5, 
       });
 
-      if (!response || !response.success || !Array.isArray(response.data)) {
-        throw new Error('Invalid facilities response format');
+      if (
+        !response ||
+        !response.success ||
+        !Array.isArray(response.resources)
+      ) {
+        throw new Error("Invalid facilities response format");
       }
 
-      // Sort facilities by distance if available
-      const sortedFacilities = response.data.sort((a, b) => {
+      const sortedFacilities = response.resources.sort((a, b) => {
         if (a.distance && b.distance) {
           return parseFloat(a.distance) - parseFloat(b.distance);
         }
@@ -140,32 +142,35 @@ const Home = () => {
       setNearbyFacilities(sortedFacilities);
     } catch (err) {
       console.error("Facilities fetch error:", err);
-      setErrors(prev => ({ 
-        ...prev, 
-        facilities: err.message || "Failed to load nearby facilities."
+      setErrors((prev) => ({
+        ...prev,
+        facilities: err.message || "Failed to load nearby facilities.",
       }));
     } finally {
-      setLoadingStates(prev => ({ ...prev, facilities: false }));
+      setLoadingStates((prev) => ({ ...prev, facilities: false }));
     }
   }, [location?.coords, location?.address?.district]);
 
-  // Handle refreshing
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await Promise.all([
         fetchLocation(),
         fetchActiveWarnings(),
-        location?.coords && fetchNearbyFacilities()
+        location?.coords && fetchNearbyFacilities(),
       ]);
     } catch (err) {
       console.error("Refresh error:", err);
     } finally {
       setRefreshing(false);
     }
-  }, [fetchLocation, fetchActiveWarnings, fetchNearbyFacilities, location?.coords]);
+  }, [
+    fetchLocation,
+    fetchActiveWarnings,
+    fetchNearbyFacilities,
+    location?.coords,
+  ]);
 
-  // Handle on Warning Press
   const handleWarningPress = useCallback(async (warning) => {
     try {
       if (!warning?._id && !warning?.id) {
@@ -183,29 +188,23 @@ const Home = () => {
       setModalVisible(true);
     } catch (err) {
       console.error("Warning details fetch error:", err);
-      Alert.alert(
-        "Error",
-        "Failed to load warning details. Please try again."
-      );
+      Alert.alert("Error", "Failed to load warning details. Please try again.");
     }
   }, []);
 
-  // Initial data fetch
   useEffect(() => {
     fetchLocation();
     fetchActiveWarnings();
-    
-    // Set up periodic updates
-    const locationInterval = setInterval(fetchLocation, 300000); // 5 minutes
-    const warningsInterval = setInterval(fetchActiveWarnings, 60000); // 1 minute
-    
+
+    const locationInterval = setInterval(fetchLocation, 300000); 
+    const warningsInterval = setInterval(fetchActiveWarnings, 60000);
+
     return () => {
       clearInterval(locationInterval);
       clearInterval(warningsInterval);
     };
   }, []);
 
-  // Fetch facilities when location changes
   useEffect(() => {
     if (location?.coords) {
       fetchNearbyFacilities();
@@ -220,7 +219,7 @@ const Home = () => {
         showBack={false}
         containerStyle={{ marginTop: 32 }}
       />
-      
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -228,7 +227,7 @@ const Home = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={["#2563EB"]} 
+            colors={["#2563EB"]}
             tintColor="#2563EB"
             title="Pull to refresh"
             titleColor="#6B7280"
@@ -278,7 +277,9 @@ const Home = () => {
           {isLoading ? (
             <ActivityIndicator size="large" style={{ padding: 20 }} />
           ) : hasError ? (
-            <Text style={{ color: "red", padding: 20 }}>{errors.facilities}</Text>
+            <Text style={{ color: "red", padding: 20 }}>
+              {errors.facilities}
+            </Text>
           ) : nearbyFacilities.length === 0 ? (
             <Text style={{ padding: 20 }}>No nearby shelters</Text>
           ) : (

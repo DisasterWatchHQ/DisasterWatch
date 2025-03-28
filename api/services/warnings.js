@@ -1,5 +1,5 @@
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -13,9 +13,12 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const session = await SecureStore.getItemAsync("userSession");
+    if (session) {
+      const { token } = JSON.parse(session);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -51,20 +54,48 @@ export const warningApi = {
   getActiveWarnings: async () => {
     try {
       const response = await apiClient.get('/warnings/active');
-      
-      if (response.data?.data?.warnings) {
-        return response.data.data.warnings;
-      } else if (Array.isArray(response.data)) {
-        return response.data;
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
-        return response.data.data;
-      } else if (response.data?.success && Array.isArray(response.data?.data)) {
-        return response.data.data;
-      }
-      
-      throw new Error('Invalid response format from server');
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Get active warnings error:', error);
+      throw error;
+    }
+  },
+
+  fetchLiveUpdates: async (minutes = 30) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/reports/updates?minutes=${minutes}`
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch updates");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Fetch updates error:", error);
+      throw error;
+    }
+  },
+
+  getLiveUpdates: async () => {
+    try {
+      const response = await apiClient.get('/warnings/live-updates'); // Adjust the endpoint as necessary
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Get live updates error:', error);
+      throw error;
+    }
+  },
+
+  // New function to fetch feed stats
+  fetchFeedStats: async () => {
+    try {
+      const response = await apiClient.get('/warnings/feed-stats'); // Adjust the endpoint as necessary
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Get feed stats error:', error);
       throw error;
     }
   },
@@ -72,7 +103,7 @@ export const warningApi = {
   getWarnings: async (filters = {}) => {
     try {
       const response = await apiClient.get('/warnings', { params: filters });
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Get warnings error:', error);
       throw error;
@@ -81,10 +112,10 @@ export const warningApi = {
 
   getWarningsByLocation: async (latitude, longitude, radius) => {
     try {
-      const response = await apiClient.get('/warnings', {
+      const response = await apiClient.get('/warnings/location', {
         params: { latitude, longitude, radius }
       });
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Get location warnings error:', error);
       throw error;
@@ -94,7 +125,7 @@ export const warningApi = {
   getWarningById: async (warningId) => {
     try {
       const response = await apiClient.get(`/warnings/${warningId}`);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Get warning details error:', error);
       throw error;
@@ -104,7 +135,7 @@ export const warningApi = {
   createWarning: async (warningData) => {
     try {
       const response = await apiClient.post('/warnings', warningData);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Create warning error:', error);
       throw error;
@@ -113,8 +144,8 @@ export const warningApi = {
 
   updateWarning: async (warningId, updateData) => {
     try {
-      const response = await apiClient.put(`/warnings/${warningId}`, updateData);
-      return response.data;
+      const response = await apiClient.patch(`/warnings/${warningId}`, updateData);
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Update warning error:', error);
       throw error;
@@ -124,7 +155,7 @@ export const warningApi = {
   resolveWarning: async (warningId) => {
     try {
       const response = await apiClient.post(`/warnings/${warningId}/resolve`);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Resolve warning error:', error);
       throw error;
@@ -136,10 +167,30 @@ export const warningApi = {
       const response = await apiClient.post(`/warnings/${warningId}/updates`, {
         message: updateMessage
       });
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Add warning update error:', error);
       throw error;
     }
   },
+
+  addResponseAction: async (warningId, actionData) => {
+    try {
+      const response = await apiClient.post(`/warnings/${warningId}/actions`, actionData);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Add response action error:', error);
+      throw error;
+    }
+  },
+
+  updateActionStatus: async (warningId, actionId, status) => {
+    try {
+      const response = await apiClient.patch(`/warnings/${warningId}/actions/${actionId}`, { status });
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Update action status error:', error);
+      throw error;
+    }
+  }
 };

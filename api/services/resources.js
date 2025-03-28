@@ -11,7 +11,6 @@ const apiClient = axios.create({
   timeout: 10000,
 });
 
-// Add auth token to requests
 apiClient.interceptors.request.use(
   async (config) => {
     try {
@@ -56,20 +55,12 @@ apiClient.interceptors.response.use(
 );
 
 export const resourceApi = {
-  // Facilities
   getFacilities: async (filters = {}) => {
     try {
       const response = await apiClient.get("/resources/facilities", {
         params: filters,
       });
-      return {
-        data: response.data.resources,
-        pagination: {
-          currentPage: response.data.currentPage,
-          totalPages: response.data.totalPages,
-          totalResults: response.data.totalResults,
-        },
-      };
+      return response.data.data || response.data;
     } catch (error) {
       console.error("Get facilities error:", error);
       throw error;
@@ -90,56 +81,54 @@ export const resourceApi = {
           longitude,
           maxDistance,
           type,
-          availability_status,
+          availabilityStatus: availability_status,
         },
       });
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error("Get nearby facilities error:", error);
       throw error;
     }
   },
 
-  // Guides
   getGuides: async (filters = {}) => {
     try {
       const response = await apiClient.get("/resources/guides", {
         params: filters,
       });
-      return {
-        data: response.data.resources,
-        pagination: {
-          currentPage: response.data.currentPage,
-          totalPages: response.data.totalPages,
-          totalResults: response.data.totalResults,
-        },
-      };
+      return response.data.data || response.data;
     } catch (error) {
       console.error("Get guides error:", error);
       throw error;
     }
   },
 
-  // Emergency Contacts
   getEmergencyContacts: async (filters = {}) => {
     try {
       const response = await apiClient.get("/resources/emergency-contacts", {
         params: filters,
       });
-      return {
-        data: response.data.resources,
-      };
+      return response.data.data || response.data;
     } catch (error) {
       console.error("Get emergency contacts error:", error);
       throw error;
     }
   },
 
-  // Resource CRUD operations
+  getResourceById: async (resourceId) => {
+    try {
+      const response = await apiClient.get(`/resources/${resourceId}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Get resource error:", error);
+      throw error;
+    }
+  },
+
   createResource: async (resourceData) => {
     try {
       const response = await apiClient.post("/resources", resourceData);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error("Create resource error:", error);
       throw error;
@@ -148,11 +137,8 @@ export const resourceApi = {
 
   updateResource: async (resourceId, updateData) => {
     try {
-      const response = await apiClient.put(
-        `/resources/${resourceId}`,
-        updateData,
-      );
-      return response.data;
+      const response = await apiClient.put(`/resources/${resourceId}`, updateData);
+      return response.data.data || response.data;
     } catch (error) {
       console.error("Update resource error:", error);
       throw error;
@@ -162,14 +148,33 @@ export const resourceApi = {
   deleteResource: async (resourceId) => {
     try {
       const response = await apiClient.delete(`/resources/${resourceId}`);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error("Delete resource error:", error);
       throw error;
     }
   },
 
-  // Specific resource type operations
+  getAllResources: async () => {
+    try {
+      const response = await apiClient.get("/resources");
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Get all resources error:", error);
+      throw error;
+    }
+  },
+
+  getVerifiedResources: async () => {
+    try {
+      const response = await apiClient.get("/resources/verified/last-month");
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Get verified resources error:", error);
+      throw error;
+    }
+  },
+
   createFacility: async (facilityData) => {
     return resourceApi.createResource({
       ...facilityData,
