@@ -27,6 +27,7 @@ import { useRouter } from "expo-router";
 import ResourceModals from "../components/resources/ResourceModals";
 import { resources } from "../api/services/api";
 import * as SecureStore from "expo-secure-store";
+import CreateWarning from '../components/warnings/CreateWarning';
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const StatsCard = ({ title, value, icon, color }) => {
@@ -159,6 +160,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [visibleModal, setVisibleModal] = useState(null);
+  const [createWarningVisible, setCreateWarningVisible] = useState(false);
 
   const onStateChange = ({ open }) => setFabOpen(open);
   const handleModalDismiss = () => {
@@ -455,7 +457,24 @@ const Dashboard = () => {
           <Text variant="headlineMedium" style={styles.sectionTitle}>
             Active Warnings
           </Text>
-          <CreateWarningDialog onWarningCreated={fetchDashboardData} />
+          <Button
+            mode="contained"
+            onPress={() => setCreateWarningVisible(true)}
+            style={styles.createButton}
+            icon="plus"
+          >
+            Create New Warning
+          </Button>
+          
+          <CreateWarning
+            visible={createWarningVisible}
+            onDismiss={() => setCreateWarningVisible(false)}
+            onWarningCreated={() => {
+              setCreateWarningVisible(false);
+              fetchDashboardData();
+            }}
+          />
+
           {activeWarnings.map((warning) => (
             <ActiveWarningCard key={warning._id} warning={warning} />
           ))}
