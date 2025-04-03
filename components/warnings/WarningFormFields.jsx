@@ -1,18 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { Controller } from 'react-hook-form';
 import PropTypes from 'prop-types';
 
-/**
- * @typedef {Object} WarningFormFieldsProps
- * @property {Object} control - React Hook Form control object
- * @property {Object} errors - Form validation errors
- */
-
-/**
- * Component for warning form input fields
- * @param {WarningFormFieldsProps} props
- */
 const WarningFormFields = ({ control, errors }) => {
   const theme = useTheme();
 
@@ -140,11 +131,6 @@ const WarningFormFields = ({ control, errors }) => {
       </View>
     </View>
   );
-};
-
-WarningFormFields.propTypes = {
-  control: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired,
 };
 
 const styles = StyleSheet.create({

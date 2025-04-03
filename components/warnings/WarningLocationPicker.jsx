@@ -4,29 +4,8 @@ import { Text, TextInput, useTheme, ActivityIndicator } from 'react-native-paper
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import PropTypes from 'prop-types';
+import { Controller } from 'react-hook-form';
 
-/**
- * @typedef {Object} LocationData
- * @property {number} latitude - Latitude coordinate
- * @property {number} longitude - Longitude coordinate
- * @property {Object} address - Address details
- * @property {string} address.city - City name
- * @property {string} address.district - District name
- * @property {string} address.province - Province name
- * @property {string} address.details - Additional address details
- */
-
-/**
- * @typedef {Object} WarningLocationPickerProps
- * @property {Object} control - React Hook Form control object
- * @property {Object} errors - Form validation errors
- * @property {Function} setValue - React Hook Form setValue function
- */
-
-/**
- * Component for picking warning location on a map
- * @param {WarningLocationPickerProps} props
- */
 const WarningLocationPicker = ({ control, errors, setValue }) => {
   const theme = useTheme();
   const [location, setLocation] = useState(null);

@@ -6,20 +6,17 @@ import {
   Portal,
   ActivityIndicator,
   useTheme,
+  Text,
 } from "react-native-paper";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 import wardash from "../../api/services/wardash";
 import { useUser } from "../../context/UserContext";
 import WarningFormFields from "./WarningFormFields";
 import WarningLocationPicker from "./WarningLocationPicker";
-
-/**
- * @typedef {Object} CreateWarningDialogProps
- * @property {Function} onWarningCreated - Callback when warning is created successfully
- */
+import { Controller } from 'react-hook-form';
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -48,10 +45,6 @@ const formSchema = z.object({
     .min(1, "At least one location must be specified"),
 });
 
-/**
- * Dialog component for creating new warnings
- * @param {CreateWarningDialogProps} props
- */
 const CreateWarningDialog = ({ onWarningCreated }) => {
   const theme = useTheme();
   const { user } = useUser();
@@ -100,8 +93,8 @@ const CreateWarningDialog = ({ onWarningCreated }) => {
         "Please sign in to create a warning. This feature is only available for authenticated users.",
         [
           { text: "Cancel", onPress: handleClose },
-          { text: "Sign In", onPress: handleClose }
-        ]
+          { text: "Sign In", onPress: handleClose },
+        ],
       );
       return;
     }
@@ -120,7 +113,7 @@ const CreateWarningDialog = ({ onWarningCreated }) => {
       };
 
       const response = await wardash.post("/warnings", formattedData);
-      
+
       if (response.data) {
         handleClose();
         Alert.alert("Success", "Warning created successfully");
@@ -129,9 +122,7 @@ const CreateWarningDialog = ({ onWarningCreated }) => {
     } catch (err) {
       console.error("Error creating warning:", err);
       setError(
-        err.response?.data?.error || 
-        err.message || 
-        "Failed to create warning"
+        err.response?.data?.error || err.message || "Failed to create warning",
       );
     } finally {
       setLoading(false);
@@ -155,23 +146,25 @@ const CreateWarningDialog = ({ onWarningCreated }) => {
           onDismiss={handleClose}
           style={[styles.dialog, { backgroundColor: theme.colors.surface }]}
         >
-          <Dialog.Title style={[styles.dialogTitle, { color: theme.colors.onSurface }]}>
+          <Dialog.Title
+            style={[styles.dialogTitle, { color: theme.colors.onSurface }]}
+          >
             Create New Warning
           </Dialog.Title>
 
           <Dialog.ScrollArea style={styles.scrollArea}>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
               {error && (
-                <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                <Text
+                  variant="bodySmall"
+                  style={[styles.errorText, { color: theme.colors.error }]}
+                >
                   {error}
                 </Text>
               )}
 
               <View style={styles.formContainer}>
-                <WarningFormFields 
-                  control={control}
-                  errors={errors}
-                />
+                <WarningFormFields control={control} errors={errors} />
 
                 <WarningLocationPicker
                   control={control}
@@ -186,8 +179,8 @@ const CreateWarningDialog = ({ onWarningCreated }) => {
             <Button onPress={handleClose} disabled={loading}>
               Cancel
             </Button>
-            <Button 
-              mode="contained" 
+            <Button
+              mode="contained"
               onPress={handleSubmit(onSubmit)}
               disabled={loading}
               loading={loading}
@@ -210,11 +203,11 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   dialog: {
-    maxHeight: '90%',
+    maxHeight: "90%",
   },
   dialogTitle: {
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
   },
   scrollArea: {
     paddingHorizontal: 0,
@@ -227,7 +220,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
   },
 });
