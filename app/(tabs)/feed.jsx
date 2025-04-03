@@ -34,6 +34,16 @@ const DISTRICT_GROUPS = {
   Sabaragamuwa: ["Ratnapura", "Kegalle"],
 };
 
+const filterRecentReports = (reports) => {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  return reports.filter((report) => {
+    const reportDate = new Date(report.date_time);
+    return reportDate >= sevenDaysAgo;
+  });
+};
+
 export default function DisasterFeed() {
   const {
     reports,
@@ -73,6 +83,8 @@ export default function DisasterFeed() {
     setShowDistrictPicker(false);
     setDistrictSearch("");
   };
+
+  const filteredReports = filterRecentReports(reports);
 
   const currentDistrict = filters.district || "All Districts";
 
@@ -280,12 +292,12 @@ export default function DisasterFeed() {
             />
             <Text style={styles.loaderText}>Loading reports...</Text>
           </View>
-        ) : reports.length === 0 ? (
+        ) : filteredReports.length === 0 ? (
           <View style={styles.emptyContainer}>
             <IconButton icon="alert-circle-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>No Reports Found</Text>
+            <Text style={styles.emptyTitle}>No Recent Reports</Text>
             <Text style={styles.emptyText}>
-              Try changing your filters or check back later
+              No reports from the last 7 days matching your filters
             </Text>
             <Button
               mode="outlined"
@@ -303,16 +315,17 @@ export default function DisasterFeed() {
           <>
             <View style={styles.resultsSummary}>
               <Text style={styles.resultsSummaryText}>
-                Showing {reports.length}{" "}
-                {reports.length === 1 ? "report" : "reports"}
+                Showing {filteredReports.length}{" "}
+                {filteredReports.length === 1 ? "report" : "reports"}
                 {filters.district ? ` in ${filters.district}` : ""}
                 {filters.disaster_category
                   ? ` - ${filters.disaster_category}`
                   : ""}
+                {" from the last 7 days"}
               </Text>
             </View>
 
-            {reports.map((report) => (
+            {filteredReports.map((report) => (
               <Card key={report.id} style={styles.reportCard} mode="outlined">
                 <Card.Title
                   title={report.title}
@@ -740,6 +753,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     marginBottom: 16,
+    marginTop: 5,
   },
   quickFiltersContent: {
     flexDirection: "row",

@@ -21,7 +21,6 @@ const Home = () => {
   const router = useRouter();
 
   const [activeWarnings, setActiveWarnings] = useState([]);
-  const [nearbyFacilities, setNearbyFacilities] = useState([]);
   const [location, setLocation] = useState(null);
   const [selectedWarning, setSelectedWarning] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -110,54 +109,13 @@ const Home = () => {
     }
   }, []);
 
-  const fetchNearbyFacilities = useCallback(async () => {
-    if (!location?.coords || !location?.address?.district) return;
-
-    try {
-      setLoadingStates((prev) => ({ ...prev, facilities: true }));
-      setErrors((prev) => ({ ...prev, facilities: null }));
-
-      const response = await resourceApi.getNearbyFacilities({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        district: location.address.district,
-        maxDistance: 5, 
-      });
-
-      if (
-        !response ||
-        !response.success ||
-        !Array.isArray(response.resources)
-      ) {
-        throw new Error("Invalid facilities response format");
-      }
-
-      const sortedFacilities = response.resources.sort((a, b) => {
-        if (a.distance && b.distance) {
-          return parseFloat(a.distance) - parseFloat(b.distance);
-        }
-        return 0;
-      });
-
-      setNearbyFacilities(sortedFacilities);
-    } catch (err) {
-      console.error("Facilities fetch error:", err);
-      setErrors((prev) => ({
-        ...prev,
-        facilities: err.message || "Failed to load nearby facilities.",
-      }));
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, facilities: false }));
-    }
-  }, [location?.coords, location?.address?.district]);
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await Promise.all([
         fetchLocation(),
         fetchActiveWarnings(),
-        location?.coords && fetchNearbyFacilities(),
+        location?.coords,
       ]);
     } catch (err) {
       console.error("Refresh error:", err);
@@ -167,7 +125,6 @@ const Home = () => {
   }, [
     fetchLocation,
     fetchActiveWarnings,
-    fetchNearbyFacilities,
     location?.coords,
   ]);
 
@@ -204,12 +161,6 @@ const Home = () => {
       clearInterval(warningsInterval);
     };
   }, []);
-
-  useEffect(() => {
-    if (location?.coords) {
-      fetchNearbyFacilities();
-    }
-  }, [location?.coords]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
@@ -264,53 +215,6 @@ const Home = () => {
                 />
               ))}
             </ScrollView>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text variant="titleMedium">Nearby Shelters</Text>
-            <Button mode="text" onPress={() => router.push("/resources")}>
-              View All
-            </Button>
-          </View>
-          {isLoading ? (
-            <ActivityIndicator size="large" style={{ padding: 20 }} />
-          ) : hasError ? (
-            <Text style={{ color: "red", padding: 20 }}>
-              {errors.facilities}
-            </Text>
-          ) : nearbyFacilities.length === 0 ? (
-            <Text style={{ padding: 20 }}>No nearby shelters</Text>
-          ) : (
-            nearbyFacilities.map((facility, index) => (
-              <Card key={index} style={styles.facilityCard}>
-                <Card.Title
-                  title={facility.name}
-                  subtitle={`${facility.distance} away`}
-                  left={(props) => (
-                    <MaterialCommunityIcons
-                      name="hospital-building"
-                      size={24}
-                      color={props.color}
-                    />
-                  )}
-                  right={(props) => (
-                    <Text
-                      style={[
-                        styles.statusText,
-                        {
-                          color:
-                            facility.status === "open" ? "#10B981" : "#EF4444",
-                        },
-                      ]}
-                    >
-                      {facility.status}
-                    </Text>
-                  )}
-                />
-              </Card>
-            ))
           )}
         </View>
       </ScrollView>

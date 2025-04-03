@@ -28,10 +28,10 @@ const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = 0.0421;
 
 const SEVERITY_COLORS = {
-  low: "#3b82f6", // blue
-  medium: "#eab308", // yellow
-  high: "#f97316", // orange
-  critical: "#ef4444", // red
+  low: "rgba(59, 130, 246, 0.7)",      // blue with 70% opacity
+  medium: "rgba(234, 179, 8, 0.7)",     // yellow with 70% opacity
+  high: "rgba(249, 115, 22, 0.7)",      // orange with 70% opacity
+  critical: "rgba(239, 68, 68, 0.7)",   // red with 70% opacity
 };
 
 const SEVERITY_RADIUS = {
