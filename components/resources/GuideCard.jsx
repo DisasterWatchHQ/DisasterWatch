@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import { Card, Chip, Text, useTheme, Menu, Divider } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -15,19 +15,6 @@ export const GuideCard = ({ guide, onEdit, onDelete }) => {
   const showMenu = () => setMenuVisible(true);
   const hideMenu = () => setMenuVisible(false);
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "high":
-        return theme.colors.error;
-      case "medium":
-        return theme.colors.warning;
-      case "low":
-        return theme.colors.success;
-      default:
-        return theme.colors.surfaceVariant;
-    }
-  };
-
   const onPressIn = () => {
     Animated.spring(scale, {
       toValue: 0.98,
@@ -42,18 +29,8 @@ export const GuideCard = ({ guide, onEdit, onDelete }) => {
     }).start();
   };
 
-  const contentPreview = guide.content
-    ? guide.content
-        .replace(/[#*`_~\[\]]/g, "")
-        .substring(0, 150)
-        .trim() + (guide.content.length > 150 ? "..." : "")
-    : "";
-
   const handlePress = () => {
-    router.push({
-      pathname: "/resources/[id]",
-      params: { id: guide.id },
-    });
+    router.push(`/resources/${guide.id}`);
   };
 
   const handleLongPress = () => {
@@ -63,61 +40,71 @@ export const GuideCard = ({ guide, onEdit, onDelete }) => {
   };
 
   return (
-    <Menu
-      visible={menuVisible}
-      onDismiss={hideMenu}
-      anchor={
-        <Animated.View
-          style={[styles.cardContainer, { transform: [{ scale }] }]}
+    <View>
+      <Animated.View style={[styles.cardContainer, { transform: [{ scale }] }]}>
+        <Card
+          mode="elevated"
+          onPress={handlePress}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
+          onLongPress={handleLongPress}
         >
-          <Card
-            mode="elevated"
-            onPress={handlePress}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            onLongPress={handleLongPress}
-          >
-            <Card.Title
-              title={guide.name}
-              titleStyle={styles.cardTitle}
-              subtitle={guide.type}
-            />
-            <Card.Content>
-              <Text style={styles.description}>{guide.description}</Text>
-              <View style={styles.tagsContainer}>
-                {guide.tags?.map((tag) => (
-                  <Chip key={tag} style={styles.chip}>
-                    {tag}
-                  </Chip>
-                ))}
-              </View>
-              <Text style={styles.lastUpdated}>
-                Last updated: {formatDate(guide.metadata?.lastUpdated)}
-              </Text>
-            </Card.Content>
-          </Card>
-        </Animated.View>
-      }
-    >
-      <Menu.Item
-        onPress={() => {
-          hideMenu();
-          onEdit(guide);
-        }}
-        title="Edit"
-        leadingIcon="pencil"
-      />
-      <Divider />
-      <Menu.Item
-        onPress={() => {
-          hideMenu();
-          onDelete(guide.id);
-        }}
-        title="Delete"
-        leadingIcon="delete"
-        titleStyle={{ color: theme.colors.error }}
-      />
-    </Menu>
+          <Card.Title
+            title={guide.name}
+            titleStyle={styles.cardTitle}
+            subtitle={guide.type}
+            right={(props) =>
+              isAuthenticated && (
+                <Menu
+                  visible={menuVisible}
+                  onDismiss={hideMenu}
+                  anchor={
+                    <MaterialCommunityIcons
+                      {...props}
+                      name="dots-vertical"
+                      size={24}
+                      onPress={showMenu}
+                    />
+                  }
+                >
+                  <Menu.Item
+                    onPress={() => {
+                      hideMenu();
+                      onEdit(guide);
+                    }}
+                    title="Edit"
+                    leadingIcon="pencil"
+                  />
+                  <Divider />
+                  <Menu.Item
+                    onPress={() => {
+                      hideMenu();
+                      onDelete(guide.id);
+                    }}
+                    title="Delete"
+                    leadingIcon="delete"
+                    titleStyle={{ color: theme.colors.error }}
+                  />
+                </Menu>
+              )
+            }
+          />
+          <Card.Content>
+            <Text style={styles.description}>{guide.description}</Text>
+            <View style={styles.tagsContainer}>
+              {guide.tags?.map((tag) => (
+                <Chip key={tag} style={styles.chip}>
+                  {tag}
+                </Chip>
+              ))}
+            </View>
+            <Text style={styles.lastUpdated}>
+              Last updated: {formatDate(guide.metadata?.lastUpdated)}
+            </Text>
+          </Card.Content>
+        </Card>
+      </Animated.View>
+    </View>
   );
 };
 

@@ -204,11 +204,20 @@ const ResourcesScreen = () => {
   };
   const handleFilterChange = (value) => {
     if (FACILITY_TYPES.some((t) => t.value === value)) {
-      setFilters((prev) => ({ ...prev, facilities: value }));
+      setFilters((prev) => ({
+        ...prev,
+        facilities: prev.facilities === value ? "all" : value
+      }));
     } else if (STATUS_TYPES.some((s) => s.value === value)) {
-      setFilters((prev) => ({ ...prev, status: value }));
+      setFilters((prev) => ({
+        ...prev,
+        status: prev.status === value ? "all" : value
+      }));
     } else {
-      setFilters((prev) => ({ ...prev, [activeSection]: value }));
+      setFilters((prev) => ({
+        ...prev,
+        [activeSection]: prev[activeSection] === value ? "all" : value
+      }));
     }
   };
 
@@ -218,12 +227,17 @@ const ResourcesScreen = () => {
       const response = await resourceApi.getGuides({
         type: filters.guides !== "all" ? filters.guides : undefined,
       });
+      
       setData((prev) => ({
         ...prev,
         guides: {
-          data: response.data,
-          pagination: response.pagination,
-        },
+          data: response.resources || [],
+          pagination: {
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults
+          }
+        }
       }));
     } catch (error) {
       setError(error.message);
@@ -236,7 +250,12 @@ const ResourcesScreen = () => {
     try {
       setLoading(true);
       const response = await resourceApi.getEmergencyContacts({});
-      setData((prev) => ({ ...prev, contacts: { data: response.data || [] } }));
+      setData((prev) => ({
+        ...prev,
+        contacts: {
+          data: response.resources || [], 
+        }
+      }));
     } catch (error) {
       setError("Error fetching emergency contacts.");
     } finally {
@@ -249,14 +268,21 @@ const ResourcesScreen = () => {
       setLoading(true);
       const response = await resourceApi.getFacilities({
         type: filters.facilities !== "all" ? filters.facilities : undefined,
-        availability_status:
-          filters.status !== "all" ? filters.status : undefined,
+        availability_status: filters.status !== "all" ? filters.status : undefined,
         limit: 20,
         page: 1,
       });
+      
       setData((prev) => ({
         ...prev,
-        facilities: { data: response.data || [] },
+        facilities: {
+          data: response.resources || [], 
+          pagination: {
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            totalResults: response.totalResults
+          }
+        }
       }));
     } catch (error) {
       setError("Error fetching facilities.");
@@ -332,27 +358,44 @@ const ResourcesScreen = () => {
 
   const getFilteredData = () => {
     const searchLower = searchQuery.toLowerCase();
-    switch (activeSection) {
-      case "guides":
-        return (data.guides.data || []).filter(
-          (guide) =>
-            guide.name.toLowerCase().includes(searchLower) ||
-            guide.description.toLowerCase().includes(searchLower),
-        );
-      case "contacts":
-        return (data.contacts.data || []).filter(
-          (contact) =>
-            contact.name.toLowerCase().includes(searchLower) ||
-            contact.description.toLowerCase().includes(searchLower),
-        );
-      case "facilities":
-        return (data.facilities.data || []).filter((facility) =>
-          facility.name.toLowerCase().includes(searchLower),
-        );
-      default:
-        return [];
-    }
+    const currentData = (() => {
+      switch (activeSection) {
+        case "guides":
+          return data.guides.data || [];
+        case "contacts":
+          return data.contacts.data || [];
+        case "facilities":
+          return data.facilities.data || [];
+        default:
+          return [];
+      }
+    })();
+    
+    const filtered = (() => {
+      switch (activeSection) {
+        case "guides":
+          return currentData.filter(
+            (guide) =>
+              guide.name.toLowerCase().includes(searchLower) ||
+              guide.description.toLowerCase().includes(searchLower)
+          );
+        case "contacts":
+          return currentData.filter(
+            (contact) =>
+              contact.name.toLowerCase().includes(searchLower) ||
+              contact.description.toLowerCase().includes(searchLower)
+          );
+        case "facilities":
+          return currentData.filter((facility) =>
+            facility.name.toLowerCase().includes(searchLower)
+          );
+        default:
+          return [];
+      }
+    })();
+    return filtered;
   };
+  
 
   const renderItem = ({ item }) => {
     switch (activeSection) {
@@ -431,13 +474,6 @@ const ResourcesScreen = () => {
           styles.listContent,
           { paddingBottom: insets.bottom + 70 },
         ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[theme.colors.primary]}
-          />
-        }
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <MaterialCommunityIcons
@@ -445,9 +481,12 @@ const ResourcesScreen = () => {
               size={48}
               color={theme.colors.onSurfaceDisabled}
             />
-            <Text style={styles.emptyText}>{error || "No results found"}</Text>
+            <Text style={styles.emptyText}>
+              {loading ? "Loading..." : error || "No results found"}
+            </Text>
           </View>
         )}
+        onEndReachedThreshold={0.5}
       />
 
       {loading && (

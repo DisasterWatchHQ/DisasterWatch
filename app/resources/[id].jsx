@@ -1,34 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, useTheme } from 'react-native-paper';
 import Markdown from 'react-native-markdown-display';
 import HeaderBar from '../../components/HeaderBar';
-import { facilityApi } from '../../api/services/resources';
+import { resourceApi } from '../../api/services/resources';
 
 const GuideDetailScreen = () => {
   const { id } = useLocalSearchParams();
   const [guide, setGuide] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const theme = useTheme();
 
   useEffect(() => {
-    fetchGuideDetails();
-  }, [id]);
+    const loadGuide = async () => {
+      try {
+        const response = await resourceApi.getResourceById(id);
+        setGuide(response.resource);
+      } catch (error) {
+        console.error('Error loading guide:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchGuideDetails = async () => {
-    try {
-      setLoading(true);
-      const response = await facilityApi.getResourceById(id);
-      setGuide(response.data);
-    } catch (err) {
-      setError('Failed to load guide details');
-      console.error('Error fetching guide:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadGuide();
+  }, [id]);
 
   if (loading) {
     return (
@@ -38,55 +35,34 @@ const GuideDetailScreen = () => {
     );
   }
 
-  if (error) {
+  if (!guide) {
     return (
       <View style={styles.centered}>
-        <Text>{error}</Text>
+        <Text>No guide data found</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          headerShown: false,
-        }} 
-      />
-      
       <HeaderBar
         title={guide?.name}
         subtitle={guide?.type}
-        showBack={false}
-        containerStyle={styles.headerBar}
-        showBell={false}
-        showCog={false}
+        showBack={true}
+        containerStyle={{ marginTop: 32 }}
       />
       
-      <ScrollView 
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-      >
+      <ScrollView style={styles.content}>
         {guide?.description && (
-          <Text style={styles.description}>
-            {guide.description}
-          </Text>
+          <Text style={styles.description}>{guide.description}</Text>
         )}
-        
-        <Markdown
-          style={{
-            body: styles.markdown,
-            heading1: styles.heading1,
-            heading2: styles.heading2,
-            heading3: styles.heading3,
-            paragraph: styles.paragraph,
-            list: styles.list,
-            listItem: styles.listItem,
-            link: { color: theme.colors.primary },
-          }}
-        >
-          {guide?.content || ''}
-        </Markdown>
+        {guide?.content ? (
+          <Markdown style={markdownStyles}>
+            {guide.content}
+          </Markdown>
+        ) : (
+          <Text>No content available</Text>
+        )}
       </ScrollView>
     </View>
   );
@@ -104,16 +80,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  contentContainer: {
     padding: 16,
   },
   description: {
     fontSize: 16,
-    marginBottom: 16,
     color: '#666',
+    marginBottom: 16,
   },
-  markdown: {
+});
+
+const markdownStyles = {
+  body: {
     fontSize: 16,
   },
   heading1: {
@@ -141,9 +118,6 @@ const styles = StyleSheet.create({
   listItem: {
     marginVertical: 4,
   },
-  headerBar: {
-    marginTop: 16,
-  }
-});
+};
 
 export default GuideDetailScreen;
