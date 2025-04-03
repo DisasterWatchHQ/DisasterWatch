@@ -60,33 +60,9 @@ export const resourceApi = {
       const response = await apiClient.get("/resources/facilities", {
         params: filters,
       });
-      return response.data.data || response.data;
+      return response.data;
     } catch (error) {
       console.error("Get facilities error:", error);
-      throw error;
-    }
-  },
-
-  getNearbyFacilities: async ({
-    latitude,
-    longitude,
-    maxDistance,
-    type,
-    availability_status,
-  }) => {
-    try {
-      const response = await apiClient.get("/resources/facilities/nearby", {
-        params: {
-          latitude,
-          longitude,
-          maxDistance,
-          type,
-          availabilityStatus: availability_status,
-        },
-      });
-      return response.data.data || response.data;
-    } catch (error) {
-      console.error("Get nearby facilities error:", error);
       throw error;
     }
   },
@@ -96,7 +72,7 @@ export const resourceApi = {
       const response = await apiClient.get("/resources/guides", {
         params: filters,
       });
-      return response.data.data || response.data;
+      return response.data;
     } catch (error) {
       console.error("Get guides error:", error);
       throw error;
@@ -108,7 +84,7 @@ export const resourceApi = {
       const response = await apiClient.get("/resources/emergency-contacts", {
         params: filters,
       });
-      return response.data.data || response.data;
+      return response.data;
     } catch (error) {
       console.error("Get emergency contacts error:", error);
       throw error;
@@ -118,7 +94,7 @@ export const resourceApi = {
   getResourceById: async (resourceId) => {
     try {
       const response = await apiClient.get(`/resources/${resourceId}`);
-      return response.data.data || response.data;
+      return response.data;
     } catch (error) {
       console.error("Get resource error:", error);
       throw error;
